@@ -1,0 +1,7 @@
+package au.com.pleasedproperty.thankyou.model
+rule "Change first name"
+	when
+		$person: Person()
+	then
+		$person.setFirstName("Bob");
+end

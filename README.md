@@ -1,2 +1,2 @@
-# wildfly-qwanda-service
-Wildfly App Server version of Qwanda Service
+#  Wildfly Application Server Version of Qwanda Service 
+

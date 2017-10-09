@@ -1,0 +1,55 @@
+package au.com.pleasedproperty.thankyou.model
+import org.json.simple.JSONObject
+import javax.persistence.EntityManager
+import au.com.pleasedproperty.thankyou.model.Property
+import au.com.pleasedproperty.thankyou.model.PropertyType
+import au.com.pleasedproperty.thankyou.model.Image
+import au.com.pleasedproperty.thankyou.factory.PropertyFactory
+import au.com.pleasedproperty.thankyou.factory.ImageFactory
+import au.com.pleasedproperty.thankyou.rest.utils.JSONUtils
+
+rule "Create property from answer collection"
+dialect "java"
+no-loop
+	when
+		$answerCollection: AnswerCollection(questionCollectionID == "pleasedproperty.property.creation")
+		$result: JSONObject()
+		$em: EntityManager()
+		$person: Person() 
+	then
+		PropertyFactory $factory = new PropertyFactory($em);
+		Property $property = new Property();
+		PropertyType $type = PropertyType.fromString($answerCollection.getAnswerValueByQuestionID("pleasedproperty.property.creation.type"));
+		$property.setType($type);
+		$factory.createProperty($property);
+		$factory.addOwnerToProperty($property, $person);
+		JSONObject $addressJSON = JSONUtils.parse($answerCollection.getAnswerValueByQuestionID("pleasedproperty.property.creation.address"));
+		Address $address = new Address($addressJSON);
+		$factory.setPropertyAddress($property, $address);
+		JSONObject $imageJSON = JSONUtils.parse($answerCollection.getAnswerValueByQuestionID("pleasedproperty.property.creation.image"));
+		insert($imageJSON);
+		insert($property);
+		$result.put("image", $imageJSON);
+		$result.put("result", $factory.getPropertyWithAdditionalDataAsJSON($property));
+		$answerCollection.finalise();
+		$em.persist($answerCollection);
+end
+
+rule "Insert image into property"
+dialect "java"
+	when
+		$answerCollection: AnswerCollection(questionCollectionID == "pleasedproperty.property.creation")
+		$result: JSONObject()
+		$em: EntityManager()
+		$person: Person() 
+		$imageJSON: JSONObject()
+		$property: Property()
+		eval($answerCollection.doesAnswerExistWithQuestionID("pleasedproperty.property.creation.image"))
+	then
+		System.out.println("Starting rule");
+		System.out.println($imageJSON);
+		System.out.println($imageJSON.get("id"));
+		PropertyFactory $propertyFactory = new PropertyFactory($em);
+		ImageFactory $imageFactory = new ImageFactory($em);
+end
+		
