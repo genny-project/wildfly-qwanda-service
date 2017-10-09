@@ -64,31 +64,29 @@
 			<version>2.5</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.gdata/core -->
-		<dependency>
+ <!-- 		<dependency>
 			<groupId>com.google.gdata</groupId>
 			<artifactId>core</artifactId>
 			<version>1.47.1</version>
 		</dependency>
-
+ 
 		<dependency>
 			<groupId>com.google.api-client</groupId>
 			<artifactId>google-api-client</artifactId>
 			<version>1.22.0</version>
 		</dependency>
-		<!-- compile 'com.google.apis:google-api-services-sheets:v4-rev483-1.22.0' 
-			https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client -->
-		<!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-sheets -->
 		<dependency>
 			<groupId>com.google.apis</groupId>
 			<artifactId>google-api-services-sheets</artifactId>
 			<version>v4-rev483-1.22.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client-jetty -->
 		<dependency>
 			<groupId>com.google.oauth-client</groupId>
 			<artifactId>google-oauth-client-jetty</artifactId>
 			<version>1.22.0</version>
-		</dependency>
+		</dependency> -->
+		
+		
 		<!-- https://mvnrepository.com/artifact/javax.ws.rs/javax.ws.rs-api -->
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
