@@ -56,20 +56,23 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- <dependency> <groupId>life.genny</groupId> <artifactId>qwanda-utils</artifactId> 
-			<version>${qwanda-utils.version}</version> </dependency> -->
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda-utils</artifactId>
+			<version>${qwanda-utils.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.5</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.gdata/core -->
- <!-- 		<dependency>
+		<dependency>
 			<groupId>com.google.gdata</groupId>
 			<artifactId>core</artifactId>
 			<version>1.47.1</version>
 		</dependency>
- 
+
 		<dependency>
 			<groupId>com.google.api-client</groupId>
 			<artifactId>google-api-client</artifactId>
@@ -84,9 +87,9 @@
 			<groupId>com.google.oauth-client</groupId>
 			<artifactId>google-oauth-client-jetty</artifactId>
 			<version>1.22.0</version>
-		</dependency> -->
-		
-		
+		</dependency>
+
+
 		<!-- https://mvnrepository.com/artifact/javax.ws.rs/javax.ws.rs-api -->
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
