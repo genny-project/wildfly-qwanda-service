@@ -4,14 +4,21 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
+import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeDateTime;
 import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.AttributeText;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
 
 /**
@@ -178,22 +185,109 @@ public class StartupService {
 
       }
 
-      // List<List<Object>> cells;
-      // try {
-      // cells = GennySheets.getStrings(BaseEntity.class.getSimpleName(), "!A1:ZZ");
-      // for (final List<Object> objList : cells) {
-      // System.out.println("Row");
-      // for (final Object obj : objList) {
-      // System.out.println("CELL:" + obj);
-      // }
-      //
-      // // final BaseEntity baseEntity = new BaseEntity();
-      // }
-      // } catch (final IOException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // }
+      // Attribute
+      List<List<Object>> cells;
+      try {
+        cells = GennySheets.getStrings(Attribute.class.getSimpleName(), "!A1:ZZ");
+        boolean firstline = true;
+        final Map<Integer, String> columnMap = new HashMap<Integer, String>();
+        for (final List<Object> objList : cells) {
+          if (firstline) {
+            int index = 0;
+            for (final Object obj : objList) {
+              final String column = (String) obj;
+              columnMap.put(index, column);
+              System.out.println("COlumn:" + column + ":Index:" + index);
+              index++;
+            }
+            firstline = false;
+          } else {
+            Integer index = 0;
+            final Map<String, Object> cellMap = new HashMap<String, Object>();
+            for (final Object obj : objList) {
+              cellMap.put(columnMap.get(index), obj);
+              index++;
+            }
+            // Now convert to Attribute
+            final String code = (String) cellMap.get("code");
+            final String name = (String) cellMap.get("name");
+            final String datatype = (String) cellMap.get("datatype");
+            final String validationListStr = (String) cellMap.get("validationlist");
+            System.out.println("Code:" + code + ":name" + name + ":datatype:" + datatype);
+            Attribute attribute = null;
+            try {
+              attribute = service.findAttributeByCode(code);
+              validationListStr.split(",");
+              new ValidationList();
+            } catch (final NoResultException e) {
+              if ("text".equalsIgnoreCase(datatype)) { // use a factory
+                attribute = new AttributeText(code, name);
+              } else if ("datetime".equalsIgnoreCase(datatype)) { // use a factory
+                attribute = new AttributeDateTime(code, name);
+              }
 
+              service.insert(attribute);
+
+            }
+          }
+
+
+        }
+      } catch (final IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      // Now link Attributes to Baseentitys
+
+
+
+      try {
+        cells = GennySheets.getStrings(EntityAttribute.class.getSimpleName(), "!A1:ZZ");
+        boolean firstline = true;
+        final Map<Integer, String> columnMap = new HashMap<Integer, String>();
+        for (final List<Object> objList : cells) {
+          if (firstline) {
+            int index = 0;
+            for (final Object obj : objList) {
+              final String column = (String) obj;
+              columnMap.put(index, column);
+              System.out.println("EA: COlumn:" + column + ":Index:" + index);
+              index++;
+            }
+            firstline = false;
+          } else {
+            Integer index = 0;
+            final Map<String, Object> cellMap = new HashMap<String, Object>();
+            for (final Object obj : objList) {
+              cellMap.put(columnMap.get(index), obj);
+              index++;
+            }
+            final String beCode = (String) cellMap.get("baseEntityCode");
+            final String attributeCode = (String) cellMap.get("attributeCode");
+            final String weightStr = (String) cellMap.get("weight");
+            final String valueString = (String) cellMap.get("valueString");
+            System.out.println("BECode:" + beCode + ":attCode" + attributeCode + ":weight:"
+                + weightStr + ": valueString:" + valueString);
+            Attribute attribute = null;
+            BaseEntity be = null;
+            try {
+              attribute = service.findAttributeByCode(attributeCode);
+              be = service.findBaseEntityByCode(beCode);
+              final Double weight = Double.valueOf(weightStr);
+              be.addAttribute(attribute, weight, valueString);
+              service.update(be);
+            } catch (final NoResultException e) {
+
+            }
+          }
+
+
+        }
+      } catch (final IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
 
 
       System.out.println(
