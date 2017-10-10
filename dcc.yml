@@ -1,0 +1,73 @@
+version: '2'
+ 
+services:
+
+
+  mysql:
+    image: mysql 
+    container_name: mysql 
+    env_file:
+      - ${ENV_FILE} 
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - mainproxy
+    ports:
+      - 3310:3306 
+    restart: unless-stopped
+
+
+  qwanda-service:
+    depends_on:
+      - mysql 
+      - keycloak
+    image: gennyproject/wildfly-qwanda-service:latest
+#    command: ["./wait-for-it.sh"]
+    container_name: qwanda-service 
+    volumes:
+      - ./realm:/realm
+    env_file:
+      - ${ENV_FILE} 
+    ports:
+      - "8998:8998"
+      - "50293:50293"
+      - "8280:8080"
+      - "8887:8787"
+      - "59990:9990"
+    links:
+      - mysql:mysql
+      - keycloak:keycloak
+    restart: unless-stopped
+    networks:
+      - mainproxy
+
+  keycloak:
+    image: gennyproject/keycloak:working 
+    container_name: keycloak 
+    env_file:
+      - ${ENV_FILE} 
+#    environment:
+#      - IMPORTEXPORT=EXPORT
+#      - KEYCLOAK_USER=admin
+#      - KEYCLOAK_PASSWORD=admin
+    volumes:
+      - ./realm:/tmp/realm 
+    networks:
+      - mainproxy
+    ports:
+      - 8180:8080
+    command: -b 0.0.0.0  
+
+
+
+volumes:
+  mysql_data:
+  maildata:
+    driver: local
+  mailstate:
+    driver: local 
+networks:
+  mainproxy:
+    driver: bridge 
+
+
