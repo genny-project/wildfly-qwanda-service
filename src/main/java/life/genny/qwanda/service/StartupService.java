@@ -5,6 +5,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.persistence.NoResultException;
+import java.io.File;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -175,8 +176,12 @@ public class StartupService {
       System.out.println(
           "###############################Google Sheets#############################################");
 
+      final GennySheets gennySheets = new GennySheets(
+          "{\"installed\":{\"client_id\":\"260075856207-9d7a02ekmujr2bh7i53dro28n132iqhe.apps.googleusercontent.com\",\"project_id\":\"genny-sheets-181905\",\"auth_uri\":\"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":\"https://accounts.google.com/o/oauth2/token\",\"auth_provider_x509_cert_url\":\"https://www.googleapis.com/oauth2/v1/certs\",\"client_secret\":\"vgXEFRgQvh3_t_e5Hj-eb6IX\",\"redirect_uris\":[\"urn:ietf:wg:oauth:2.0:oob\",\"http://localhost\"]}}",
+          "1VSXJUn8_BHG1aW0DQrFDnvLjx_jxcNiD33QzqO5D-jc", new File(System.getProperty("user.home"),
+              ".credentials/sheets.googleapis.com-java-quickstart"));
 
-      final List<BaseEntity> bes = GennySheets.getBaseEntitys();
+      final List<BaseEntity> bes = gennySheets.getBaseEntitys();
 
       for (final BaseEntity be : bes) {
         be.setCreated(LocalDateTime.now(Clock.systemUTC()));
@@ -191,7 +196,7 @@ public class StartupService {
 
       List<List<Object>> cells;
       try {
-        cells = GennySheets.getStrings(Validation.class.getSimpleName(), "!A1:ZZ");
+        cells = gennySheets.getStrings(Validation.class.getSimpleName(), "!A1:ZZ");
         boolean firstline = true;
         final Map<Integer, String> columnMap = new HashMap<Integer, String>();
         for (final List<Object> objList : cells) {
@@ -236,7 +241,7 @@ public class StartupService {
 
 
       try {
-        cells = GennySheets.getStrings(DataType.class.getSimpleName(), "!A1:ZZ");
+        cells = gennySheets.getStrings(DataType.class.getSimpleName(), "!A1:ZZ");
         boolean firstline = true;
         final Map<Integer, String> columnMap = new HashMap<Integer, String>();
         for (final List<Object> objList : cells) {
@@ -287,7 +292,7 @@ public class StartupService {
       // Attribute
 
       try {
-        cells = GennySheets.getStrings(Attribute.class.getSimpleName(), "!A1:ZZ");
+        cells = gennySheets.getStrings(Attribute.class.getSimpleName(), "!A1:ZZ");
         boolean firstline = true;
         final Map<Integer, String> columnMap = new HashMap<Integer, String>();
         for (final List<Object> objList : cells) {
@@ -334,7 +339,7 @@ public class StartupService {
 
 
       try {
-        cells = GennySheets.getStrings(EntityAttribute.class.getSimpleName(), "!A1:ZZ");
+        cells = gennySheets.getStrings(EntityAttribute.class.getSimpleName(), "!A1:ZZ");
         boolean firstline = true;
         final Map<Integer, String> columnMap = new HashMap<Integer, String>();
         for (final List<Object> objList : cells) {
@@ -386,7 +391,7 @@ public class StartupService {
       service.insert(linkAttribute2);
 
       try {
-        cells = GennySheets.getStrings(EntityEntity.class.getSimpleName(), "!A1:ZZ");
+        cells = gennySheets.getStrings(EntityEntity.class.getSimpleName(), "!A1:ZZ");
         boolean firstline = true;
         final Map<Integer, String> columnMap = new HashMap<Integer, String>();
         for (final List<Object> objList : cells) {
