@@ -18,6 +18,7 @@ import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
@@ -167,8 +168,6 @@ public class StartupService {
           new AttributeText(AttributeText.getDefaultCodePrefix() + "IMAGE_URL", "Image Url");
       service.insert(attributeImageUrl);
 
-      final AttributeLink linkAttribute = new AttributeLink("LNK_CORE", "Parent");
-      service.insert(linkAttribute);
 
 
       // create a users directory and a contacts directory
@@ -381,6 +380,56 @@ public class StartupService {
         e.printStackTrace();
       }
 
+
+      // Now link be to be
+      final AttributeLink linkAttribute2 = new AttributeLink("LNK_CORE", "Parent");
+      service.insert(linkAttribute2);
+
+      try {
+        cells = GennySheets.getStrings(EntityEntity.class.getSimpleName(), "!A1:ZZ");
+        boolean firstline = true;
+        final Map<Integer, String> columnMap = new HashMap<Integer, String>();
+        for (final List<Object> objList : cells) {
+          if (firstline) {
+            int index = 0;
+            for (final Object obj : objList) {
+              final String column = (String) obj;
+              columnMap.put(index, column);
+              System.out.println("EE: COlumn:" + column + ":Index:" + index);
+              index++;
+            }
+            firstline = false;
+          } else {
+            Integer index = 0;
+            final Map<String, Object> cellMap = new HashMap<String, Object>();
+            for (final Object obj : objList) {
+              cellMap.put(columnMap.get(index), obj);
+              index++;
+            }
+            final String parentCode = (String) cellMap.get("parentCode");
+            final String targetCode = (String) cellMap.get("targetCode");
+            cellMap.get("linkCode");
+            final String weightStr = (String) cellMap.get("weight");
+            cellMap.get("valueString");
+            BaseEntity sbe = null;
+            BaseEntity tbe = null;
+            try {
+              sbe = service.findBaseEntityByCode(parentCode);
+              tbe = service.findBaseEntityByCode(targetCode);
+              final Double weight = Double.valueOf(weightStr);
+              sbe.addTarget(tbe, linkAttribute2, weight);
+              service.update(tbe);
+            } catch (final NoResultException e) {
+
+            }
+          }
+
+
+        }
+      } catch (final IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
 
       System.out.println(
           "#######################################################################################");
