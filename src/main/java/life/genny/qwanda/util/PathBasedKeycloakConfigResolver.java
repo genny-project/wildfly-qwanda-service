@@ -9,22 +9,20 @@ import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 
-/**
- *
- * @author Juraci Paixão Kröhling <juraci at kroehling.de>
- */
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
   private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
@@ -40,7 +38,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
     String username = null;
 
     if (request != null) {
-      System.out.println("Keycloak Deployment Path incoming request:" + request);
+      // System.out.println("Keycloak Deployment Path incoming request:" + request);
       try {
         System.out.println("Keycloak Deployment Path incoming request URI:" + request.getURI());
         // Now check for a token
@@ -103,66 +101,30 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
         System.out.println("Error in accessing request.getURI , spi issue?");
       }
     }
-    // final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-    // final KeycloakSecurityContext session = (KeycloakSecurityContext) httpServletRequest
-    // .getAttribute(KeycloakSecurityContext.class.getName());
-    // final RefreshableKeycloakSecurityContext rf = (RefreshableKeycloakSecurityContext) session;
-    // KeycloakDeployment deployment = rf.getDeployment();
-    // // final AdapterDeploymentContext deploymentContext = (AdapterDeploymentContext)
-    // servletContext
-    // // .getAttribute(AdapterDeploymentContext.class.getName());
-    // // final KeycloakDeployment deployment = deploymentContext.resolveDeployment(null);
-    //
-    // // final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-    // // final KeycloakSecurityContext kContext = (KeycloakSecurityContext) httpServletRequest
-    // // .getAttribute(KeycloakSecurityContext.class.getName());
-    // // String bearerToken = "";
-    // //
-    // // if (kContext != null) {
-    // //
-    // // JSONObject jsonObj = null;
-    // // String decodedJson = null;
-    // // try {
-    // // bearerToken = kContext.getTokenString();
-    // // final String[] jwtToken = bearerToken.split("\\.");
-    // // final Base64 decoder = new Base64(true);
-    // // final byte[] decodedClaims = decoder.decode(jwtToken[1]);
-    // // decodedJson = new String(decodedClaims);
-    // // jsonObj = new JSONObject(decodedJson);
-    // // System.out.println(jsonObj);
-    // // } catch (final JSONException e1) {
-    // // // log.error("bearerToken=" + bearerToken + " decodedJson=" + decodedJson + ":" +
-    // // // e1.getMessage());
-    // // }
-    // // }
-    // // final int multitenantIndex = path.indexOf("multitenant/");
-    // // if (multitenantIndex == -1) {
-    // // throw new IllegalStateException("Not able to resolve realm from the request path!");
-    // // }
-    // //
-    // // String realm = path.substring(path.indexOf("multitenant/")).split("/")[1];
-    // // if (realm.contains("?")) {
-    // // realm = realm.split("\\?")[0];
-    // // }
+
 
     System.out.println(">>>>> INCOMING REALM IS " + realm);
 
     KeycloakDeployment deployment = cache.get(realm);
+
     if (null == deployment) {
-      // not found on the simple cache, try to load it from the file system
-      final String fileName = System.getenv("JBOSS_HOME") + "/realm/" + realm + ".json";
-      FileInputStream is;
+      System.getenv("JBOSS_HOME");
+      // is = new FileInputStream(fileName);
+      // if (is == null) {
+      // throw new IllegalStateException("Not able to find the file /" + realm + ".json");
+      // }
+      InputStream is;
       try {
-        is = new FileInputStream(fileName);
-        if (is == null) {
-          throw new IllegalStateException("Not able to find the file /" + realm + ".json");
-        }
+        is = new ByteArrayInputStream(
+            keycloakJsonMap.get(realm).getBytes(StandardCharsets.UTF_8.name()));
         System.out.println("Building deployment ");
         deployment = KeycloakDeploymentBuilder.build(is);
         cache.put(realm, deployment);
-      } catch (final FileNotFoundException e) {
+      } catch (final UnsupportedEncodingException e) {
+        // TODO Auto-generated catch block
         e.printStackTrace();
       }
+
 
     } else {
       System.out.println("Deployment fetched from cache");
@@ -184,6 +146,8 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
       final Map<String, String> keycloakJsonMap) {
     final File folder = new File(rootFilePath);
     final File[] listOfFiles = folder.listFiles();
+    final String localIP = System.getenv("HOSTIP");
+    System.out.println("HOSTIP=" + localIP);
 
     for (int i = 0; i < listOfFiles.length; i++) {
       if (listOfFiles[i].isFile()) {
@@ -191,9 +155,15 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
         try {
           String keycloakJsonText = getFileAsText(listOfFiles[i]);
           // Handle case where dev is in place with localhost
-          final String localIP = System.getenv("HOSTIP");
+
+          // if (!"localhost.json".equalsIgnoreCase(listOfFiles[i].getName())) {
           keycloakJsonText = keycloakJsonText.replaceAll("localhost", localIP);
-          keycloakJsonMap.put(listOfFiles[i].getName().replaceAll(".json", ""), keycloakJsonText);
+
+          // }
+          final String key = listOfFiles[i].getName().replaceAll(".json", "");
+          System.out.println("keycloak key:" + key + "," + keycloakJsonText);
+
+          keycloakJsonMap.put(key, keycloakJsonText);
         } catch (final IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();

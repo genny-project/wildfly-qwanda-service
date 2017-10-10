@@ -8,16 +8,18 @@ import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeDateTime;
 import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
+import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
 
@@ -185,8 +187,106 @@ public class StartupService {
 
       }
 
-      // Attribute
+      // Validations
+      final Map<String, Validation> validationMap = new HashMap<String, Validation>();
+
       List<List<Object>> cells;
+      try {
+        cells = GennySheets.getStrings(Validation.class.getSimpleName(), "!A1:ZZ");
+        boolean firstline = true;
+        final Map<Integer, String> columnMap = new HashMap<Integer, String>();
+        for (final List<Object> objList : cells) {
+          if (firstline) {
+            int index = 0;
+            for (final Object obj : objList) {
+              final String column = (String) obj;
+              columnMap.put(index, column);
+              System.out.println("COlumn:" + column + ":Index:" + index);
+              index++;
+            }
+            firstline = false;
+          } else {
+            Integer index = 0;
+            final Map<String, Object> cellMap = new HashMap<String, Object>();
+            for (final Object obj : objList) {
+              cellMap.put(columnMap.get(index), obj);
+              index++;
+            }
+            // Now convert to Attribute
+            final String code = (String) cellMap.get("code");
+            final String name = (String) cellMap.get("name");
+            final String regex = (String) cellMap.get("regex");
+            System.out.println("Code:" + code + ":name" + name + ":regex:" + regex);
+
+            if (!validationMap.containsKey(code)) {
+              final Validation validation = new Validation(code, name, regex);
+              service.insert(validation);
+              validationMap.put(code, validation);
+            }
+          }
+
+
+        }
+      } catch (final IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      // DataTypes
+      final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
+
+
+      try {
+        cells = GennySheets.getStrings(DataType.class.getSimpleName(), "!A1:ZZ");
+        boolean firstline = true;
+        final Map<Integer, String> columnMap = new HashMap<Integer, String>();
+        for (final List<Object> objList : cells) {
+          if (firstline) {
+            int index = 0;
+            for (final Object obj : objList) {
+              final String column = (String) obj;
+              columnMap.put(index, column);
+              System.out.println("COlumn:" + column + ":Index:" + index);
+              index++;
+            }
+            firstline = false;
+          } else {
+            Integer index = 0;
+            final Map<String, Object> cellMap = new HashMap<String, Object>();
+            for (final Object obj : objList) {
+              cellMap.put(columnMap.get(index), obj);
+              index++;
+            }
+            // Now convert to Attribute
+            final String code = (String) cellMap.get("code");
+            final String name = (String) cellMap.get("name");
+            final String validations = (String) cellMap.get("validations");
+            System.out.println("Code:" + code + ":name" + name + ":validations:" + validations);
+
+            final String[] validationListStr = validations.split(",");
+            final ValidationList validationList = new ValidationList();
+            for (final String validationCode : validationListStr) {
+              if (validationList.getValidationList() == null) {
+                validationList.setValidationList(new ArrayList<Validation>());
+              }
+              validationList.getValidationList().add(validationMap.get(validationCode));
+            }
+
+            if (!dataTypeMap.containsKey(code)) {
+              final DataType dataType = new DataType(name, validationList);
+              dataTypeMap.put(code, dataType);
+            }
+          }
+
+
+        }
+      } catch (final IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      // Attribute
+
       try {
         cells = GennySheets.getStrings(Attribute.class.getSimpleName(), "!A1:ZZ");
         boolean firstline = true;
@@ -212,20 +312,12 @@ public class StartupService {
             final String code = (String) cellMap.get("code");
             final String name = (String) cellMap.get("name");
             final String datatype = (String) cellMap.get("datatype");
-            final String validationListStr = (String) cellMap.get("validationlist");
             System.out.println("Code:" + code + ":name" + name + ":datatype:" + datatype);
             Attribute attribute = null;
             try {
               attribute = service.findAttributeByCode(code);
-              validationListStr.split(",");
-              new ValidationList();
             } catch (final NoResultException e) {
-              if ("text".equalsIgnoreCase(datatype)) { // use a factory
-                attribute = new AttributeText(code, name);
-              } else if ("datetime".equalsIgnoreCase(datatype)) { // use a factory
-                attribute = new AttributeDateTime(code, name);
-              }
-
+              attribute = new Attribute(code, name, dataTypeMap.get(datatype));
               service.insert(attribute);
 
             }

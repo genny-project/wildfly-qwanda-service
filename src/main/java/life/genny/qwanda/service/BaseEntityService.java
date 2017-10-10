@@ -49,6 +49,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.util.PersistenceHelper;
+import life.genny.qwanda.validation.Validation;
 
 
 /**
@@ -129,6 +130,22 @@ public class BaseEntityService {
 
     }
     return rule.getId();
+  }
+
+  public Long insert(final Validation validation) {
+    // always check if rule exists through check for unique code
+    try {
+      helper.getEntityManager().persist(validation);
+      // baseEntityEventSrc.fire(entity);
+
+    } catch (final EntityExistsException e) {
+      // so update otherwise // TODO merge?
+      Validation existing = findValidationById(validation.getId());
+      existing = helper.getEntityManager().merge(existing);
+      return existing.getId();
+
+    }
+    return validation.getId();
   }
 
   public Long insert(final Answer answer) {
@@ -310,6 +327,10 @@ public class BaseEntityService {
     return helper.getEntityManager().find(Rule.class, id);
   }
 
+  public Validation findValidationById(final Long id) {
+    return helper.getEntityManager().find(Validation.class, id);
+  }
+
   public DataType findDataTypeById(final Long id) {
     return helper.getEntityManager().find(DataType.class, id);
   }
@@ -355,6 +376,15 @@ public class BaseEntityService {
 
     final DataType result = (DataType) helper.getEntityManager()
         .createQuery("SELECT a FROM DataType a where a.code=:code")
+        .setParameter("code", code.toUpperCase()).getSingleResult();
+
+    return result;
+  }
+
+  public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
+
+    final Validation result = (Validation) helper.getEntityManager()
+        .createQuery("SELECT a FROM Validation a where a.code=:code")
         .setParameter("code", code.toUpperCase()).getSingleResult();
 
     return result;
