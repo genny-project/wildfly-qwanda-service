@@ -22,6 +22,8 @@ qwanda-service:
   image: gennyproject/wildfly-qwanda-service:latest 
   links:
     - mysql:mysql
+  env_file:
+    - ${ENV_FILE}
   environment:
     - MYSQL_URL=mysql
     - MYSQL_DATABASE=gennydb
