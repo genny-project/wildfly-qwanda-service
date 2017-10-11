@@ -43,6 +43,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
         System.out.println("Keycloak Deployment Path incoming request URI:" + request.getURI());
         // Now check for a token
 
+        if (keycloakJsonMap.isEmpty()) {
+          readFilenamesFromDirectory("./realm", keycloakJsonMap);
+          System.out.println("filenames loaded ...");
+        } else {
+          System.out.println("filenames already loaded ...");
+        }
+
+
         if (request.getHeader("Authorization") != null) {
           // extract the token
           final String authTokenHeader = request.getHeader("Authorization");
@@ -79,13 +87,6 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
           final String url = aURL.getHost();
           System.out.println("received KeycloakConfigResolver url:" + url);
 
-          if (!keycloakJsonMap.containsKey(url)) {
-            System.out.println("Key (" + url + ") not in keycloakJsonMap ");
-            readFilenamesFromDirectory("./realm", keycloakJsonMap);
-            System.out.println("filenames loaded ...");
-          } else {
-            System.out.println("filenames already loaded ...");
-          }
 
           final String keycloakJsonText = keycloakJsonMap.get(url);
           System.out.println("Selected KeycloakJson:[" + keycloakJsonText + "]");
