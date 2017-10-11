@@ -268,16 +268,15 @@ public class StartupService {
             final String name = (String) cellMap.get("name");
             final String validations = (String) cellMap.get("validations");
             System.out.println("Code:" + code + ":name" + name + ":validations:" + validations);
-
-            final String[] validationListStr = validations.split(",");
             final ValidationList validationList = new ValidationList();
-            for (final String validationCode : validationListStr) {
-              if (validationList.getValidationList() == null) {
-                validationList.setValidationList(new ArrayList<Validation>());
-              }
-              validationList.getValidationList().add(validationMap.get(validationCode));
-            }
+            validationList.setValidationList(new ArrayList<Validation>());
+            if (validations != null) {
+              final String[] validationListStr = validations.split(",");
 
+              for (final String validationCode : validationListStr) {
+                validationList.getValidationList().add(validationMap.get(validationCode));
+              }
+            }
             if (!dataTypeMap.containsKey(code)) {
               final DataType dataType = new DataType(name, validationList);
               dataTypeMap.put(code, dataType);
@@ -345,7 +344,7 @@ public class StartupService {
         e.printStackTrace();
       }
 
-      if (false) {
+      if (true) {
 
         // Now link Attributes to Baseentitys
 
