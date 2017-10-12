@@ -8,15 +8,12 @@ import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
 import java.io.File;
 import java.io.IOException;
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
-import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
@@ -48,13 +45,17 @@ public class StartupService {
 
     final GennySheets gennySheets = new GennySheets(g, go, credentialPath);
 
+
+    System.out.println(
+        "**************************** IMPORTING VALIDATIONS *************************************");
+
     // Validations
     final Map<String, Validation> validationMap = new HashMap<String, Validation>();
 
     List<Validation> validations = null;
     try {
       validations = gennySheets.getBeans(Validation.class);
-    } catch (IOException e2) {
+    } catch (final IOException e2) {
       // TODO Auto-generated catch block
       e2.printStackTrace();
     }
@@ -63,12 +64,15 @@ public class StartupService {
       validationMap.put(object.getCode(), object);
     });
 
+    System.out.println(
+        "**************************** IMPORTING DATATYPES *************************************");
+
     // DataTypes
     final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
     List<Map> obj = null;
     try {
       obj = gennySheets.row2DoubleTuples(DataType.class.getSimpleName());
-    } catch (IOException e1) {
+    } catch (final IOException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
     }
@@ -90,17 +94,19 @@ public class StartupService {
       }
     });
 
+    System.out.println(
+        "**************************** IMPORTING ATTRIBUTES *************************************");
 
     List<Map> attrs = null;
     try {
       attrs = gennySheets.row2DoubleTuples(Attribute.class.getSimpleName());
-    } catch (IOException e2) {
+    } catch (final IOException e2) {
       // TODO Auto-generated catch block
       e2.printStackTrace();
     }
     attrs.stream().forEach(data -> {
       Attribute attribute = null;
-      String datatype = (String) data.get("datatype");
+      final String datatype = (String) data.get("datatype");
       try {
         System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
             + ":datatype:" + data.get("datatype"));
@@ -109,18 +115,31 @@ public class StartupService {
       } catch (final NoResultException e) {
         attribute = new Attribute((String) data.get("code"), (String) data.get("name"),
             dataTypeMap.get(datatype));
-        System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
-            + ":datatype:" + data.get("datatype") + "##################" + attribute);
+        // System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
+        // + ":datatype:" + data.get("datatype") + "##################" + attribute);
         service.insert(attribute);
       } catch (final OptimisticLockException ee) {
         attribute = new Attribute((String) data.get("code"), (String) data.get("name"),
             dataTypeMap.get(datatype));
-        System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
-            + ":datatype:" + data.get("datatype") + "##################" + attribute);
-        service.insert(attribute);
+        // System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
+        // + ":datatype:" + data.get("datatype") + "##################" + attribute);
+        // service.insert(attribute);
       }
     });
-    // Attribut
+    System.out.println(
+        "**************************** IMPORTING BASEENTITYS *************************************");
+
+    List<BaseEntity> bes = null;
+    try {
+      bes = gennySheets.getBeans(BaseEntity.class);
+      bes.stream().forEach(object -> {
+        service.insert(object);
+      });
+    } catch (final IOException e2) {
+      // TODO Auto-generated catch block
+      e2.printStackTrace();
+    }
+
 
     if (true) {
 
@@ -128,7 +147,7 @@ public class StartupService {
       List<Map> obj2 = null;
       try {
         obj2 = gennySheets.row2DoubleTuples(EntityAttribute.class.getSimpleName());
-      } catch (IOException e1) {
+      } catch (final IOException e1) {
         // TODO Auto-generated catch block
         e1.printStackTrace();
       }
@@ -147,7 +166,7 @@ public class StartupService {
           final Double weight = Double.valueOf(weightStr);
           try {
             be.addAttribute(attribute, weight, valueString);
-          } catch (BadDataException e) {
+          } catch (final BadDataException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
@@ -164,7 +183,7 @@ public class StartupService {
       List<Map> obj3 = null;
       try {
         obj3 = gennySheets.row2DoubleTuples(EntityEntity.class.getSimpleName());
-      } catch (IOException e1) {
+      } catch (final IOException e1) {
         // TODO Auto-generated catch block
         e1.printStackTrace();
       }
@@ -184,7 +203,7 @@ public class StartupService {
           service.update(tbe);
         } catch (final NoResultException e) {
 
-        } catch (BadDataException e) {
+        } catch (final BadDataException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }

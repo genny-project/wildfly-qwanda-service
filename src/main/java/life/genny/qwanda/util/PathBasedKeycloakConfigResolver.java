@@ -72,7 +72,8 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
                 + e1.getMessage());
           }
           try {
-            username = (String) jsonObj.get("name");
+            username = (String) jsonObj.get("preferred_username");
+            realm = (String) jsonObj.get("aud");
           } catch (final JSONException e1) {
             System.out
                 .println("no customercode incuded with token for " + username + ":" + decodedJson);
@@ -148,7 +149,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
     final File folder = new File(rootFilePath);
     final File[] listOfFiles = folder.listFiles();
     final String localIP = System.getenv("HOSTIP");
-    System.out.println("HOSTIP=" + localIP);
+    System.out.println("Loading Files! with HOSTIP=" + localIP);
 
     for (int i = 0; i < listOfFiles.length; i++) {
       if (listOfFiles[i].isFile()) {
