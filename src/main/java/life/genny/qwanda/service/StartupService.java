@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import life.genny.qwanda.Ask;
+import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
@@ -206,6 +208,63 @@ public class StartupService {
         } catch (final BadDataException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
+        }
+      });
+
+
+      List<Map> obj4 = null;
+      try {
+        obj4 = gennySheets.row2DoubleTuples(Question.class.getSimpleName());
+      } catch (final IOException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+      obj4.stream().forEach(object -> {
+        final String code = (String) object.get("code");
+        final String name = (String) object.get("name");
+        final String attrCode = (String) object.get("attribute_code");
+
+        Attribute attr;
+        System.out.println("++++++++++++++++++++++++"+attrCode+"+++++++++++++staringt++"+name +code+"++++++++++++++++++++++++++++++++++"+"+++++++++++++++++++++++++++++++++++++++++++++");
+       
+        attr = service.findAttributeByCode(attrCode);
+        Question q = new Question(code, name, attr);
+        System.out.println("+++++++++++++++++++++++++++++++++++++stpppt++++++++++++++++++++++++++++++++++++"+attr+"++++++"+q+"++++++++++++++++++++++++++++++++++++++");
+        try {
+          
+          service.insert(q);
+         
+        } catch (final NoResultException e) {
+
+        }
+      });
+         
+      List<Map> obj5 = null;
+      try {
+        obj5 = gennySheets.row2DoubleTuples(Ask.class.getSimpleName());
+      } catch (final IOException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+      obj5.stream().forEach(object -> {
+        final String qCode = (String) object.get("question_code");
+        final String name = (String) object.get("name");
+        final String source = (String) object.get("source");
+        Question q ;     
+        System.out.println("+++++++++++++++++++++++++++++++++++++start++++++++++++++++++++++++++++++++++++"+qCode+"+++++++++++++++++++++++++++++++++++++++++++++");
+        q = service.findQuestionByCode(qCode);
+        System.out.println("+++++++++++++++++++++++++++++++++++++st++++"+source+"++++++++++++++++++++++++++++++++"+name+"+++++++++++++++++++++++++++++++++++++++++++++");
+
+        try {
+          BaseEntity s = service.findBaseEntityByCode(source);
+         System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"+q+"+++++++++++++++++++++++++++++++++++++++++++++");
+         Ask a = new Ask(q,s,s);
+         
+          service.insert(a);
+          
+          System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"+a+"+++++++++++++++++++++++++++++++++++++++++++++");
+
+        } catch (final NoResultException e) {
         }
       });
     }

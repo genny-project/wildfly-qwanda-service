@@ -212,7 +212,7 @@ public class QwandaEndpoint {
   public Response fetchAsks() {
     final List<Ask> entitys = service.findAsks();
 
-    System.out.println(entitys);
+    System.out.println(entitys+"kkkkk");
     return Response.status(200).entity(entitys).build();
   }
 
