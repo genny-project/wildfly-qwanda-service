@@ -60,6 +60,7 @@ public class StartupService {
       e2.printStackTrace();
     }
     validations.stream().forEach(object -> {
+
       service.insert(object);
       validationMap.put(object.getCode(), object);
     });
@@ -77,20 +78,22 @@ public class StartupService {
       e1.printStackTrace();
     }
     obj.stream().forEach(object -> {
-      final String code = (String) object.get("code");
-      final String name = (String) object.get("name");
-      final String validationss = (String) object.get("validations");
-      final ValidationList validationList = new ValidationList();
-      validationList.setValidationList(new ArrayList<Validation>());
-      if (validationss != null) {
-        final String[] validationListStr = validationss.split(",");
-        for (final String validationCode : validationListStr) {
-          validationList.getValidationList().add(validationMap.get(validationCode));
+      if (object.get("code") != null) {
+        final String code = (String) object.get("code");
+        final String name = (String) object.get("name");
+        final String validationss = (String) object.get("validations");
+        final ValidationList validationList = new ValidationList();
+        validationList.setValidationList(new ArrayList<Validation>());
+        if (validationss != null) {
+          final String[] validationListStr = validationss.split(",");
+          for (final String validationCode : validationListStr) {
+            validationList.getValidationList().add(validationMap.get(validationCode));
+          }
         }
-      }
-      if (!dataTypeMap.containsKey(code)) {
-        final DataType dataType = new DataType(name, validationList);
-        dataTypeMap.put(code, dataType);
+        if (!dataTypeMap.containsKey(code)) {
+          final DataType dataType = new DataType(name, validationList);
+          dataTypeMap.put(code, dataType);
+        }
       }
     });
 
@@ -106,24 +109,26 @@ public class StartupService {
     }
     attrs.stream().forEach(data -> {
       Attribute attribute = null;
-      final String datatype = (String) data.get("datatype");
-      try {
-        System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
-            + ":datatype:" + data.get("datatype"));
-        attribute = service.findAttributeByCode((String) data.get("code"));
+      if (data.get("code") != null) {
+        final String datatype = (String) data.get("datatype");
+        try {
+          System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
+              + ":datatype:" + data.get("datatype"));
+          attribute = service.findAttributeByCode((String) data.get("code"));
 
-      } catch (final NoResultException e) {
-        attribute = new Attribute((String) data.get("code"), (String) data.get("name"),
-            dataTypeMap.get(datatype));
-        // System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
-        // + ":datatype:" + data.get("datatype") + "##################" + attribute);
-        service.insert(attribute);
-      } catch (final OptimisticLockException ee) {
-        attribute = new Attribute((String) data.get("code"), (String) data.get("name"),
-            dataTypeMap.get(datatype));
-        // System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
-        // + ":datatype:" + data.get("datatype") + "##################" + attribute);
-        // service.insert(attribute);
+        } catch (final NoResultException e) {
+          attribute = new Attribute((String) data.get("code"), (String) data.get("name"),
+              dataTypeMap.get(datatype));
+          // System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
+          // + ":datatype:" + data.get("datatype") + "##################" + attribute);
+          service.insert(attribute);
+        } catch (final OptimisticLockException ee) {
+          attribute = new Attribute((String) data.get("code"), (String) data.get("name"),
+              dataTypeMap.get(datatype));
+          // System.out.println("ATTRIBUTE:::Code:" + data.get("code") + ":name" + data.get("name")
+          // + ":datatype:" + data.get("datatype") + "##################" + attribute);
+          // service.insert(attribute);
+        }
       }
     });
     System.out.println(
