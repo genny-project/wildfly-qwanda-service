@@ -28,24 +28,28 @@ public class StartupService {
 
   private final static String secret = System.getenv("GOOGLE_CLIENT_SECRET");
   private final static String genny = System.getenv("GOOGLE_SHEETID");
-  private final static String channel40 =  "1-h7cmgJyUf2Xg7fd9icCJAdLjj6oXtYFPXGqd8En7sM";
-  static File credentialPath = new File(System.getProperty("user.home"),
+  private final static String channel40 =  "1jNe-MOXx8DFxA2kDeCHjdZ7U-4Fqk1cqyhTgsZvUZ4o";
+  static File gennyPath = new File(System.getProperty("user.home"),
       ".credentials/genny");
-
+  static File channelPath = new File(System.getProperty("user.home"),
+      ".credentials/channel");
   @Inject
   private BaseEntityService service;
 
   @PostConstruct
   public void init() {
     Map<String, Runnable> projects= new HashMap<String, Runnable>();
-    projects.put("genny", () ->genny(genny));
-    projects.put("channel40", () ->genny(channel40));
+    projects.put("genny", () ->genny(genny, gennyPath));
+    projects.put("channel40", () ->genny(channel40, channelPath));
+    projects.get("channel40").run();
+    
+    System.out.println("\n\n**************************************************************************\n\n");
     projects.get("genny").run();
   }
 
-  public  Map<String, Object> genny(String projectType) {
+  public  Map<String, Object> genny(String projectType, File path) {
     
-    GennySheets sheets = new GennySheets(secret, projectType, credentialPath);
+    GennySheets sheets = new GennySheets(secret, projectType, path);
     
     Map<String, Validation> gValidations = sheets.validationData();
     gValidations.entrySet().stream().map(tuple -> tuple.getValue()).forEach(validation -> {
@@ -62,6 +66,7 @@ public class StartupService {
     });
     Map<String, BaseEntity> gAttr2Bes = sheets.attr2BaseEntitys(gAttrs, gBes);
     gAttr2Bes.entrySet().stream().map(tuple -> tuple.getValue()).forEach(be -> {
+      System.out.println(be+"***********************");
       service.update(be);
     });
     Map<String, AttributeLink> gAttrLink = sheets.attrLink();
