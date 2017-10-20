@@ -44,7 +44,7 @@ public class StartupService {
     projects.get("channel40").run();
     
     System.out.println("\n\n**************************************************************************\n\n");
-    projects.get("genny").run();
+//    projects.get("genny").run();
   }
 
   public  Map<String, Object> genny(String projectType, File path) {
