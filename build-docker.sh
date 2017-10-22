@@ -7,3 +7,4 @@ else
 fi
 
 docker build --no-cache  -t gennyproject/wildfly-qwanda-service:${version} .
+docker build -f DockerfileJRebel --no-cache  -t gennyproject/wildfly-qwanda-service:jrebel .

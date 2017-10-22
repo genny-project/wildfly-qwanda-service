@@ -1,4 +1,4 @@
-FROM gennyproject/wildfly:latest 
+FROM gennyproject/wildfly:jrebel 
 
 USER root
 RUN set -x \
@@ -8,7 +8,6 @@ RUN set -x \
 
 RUN ln -s /bin/sed /usr/bin/sed
 RUN chmod a+x /usr/bin/sed
-
 RUN env
 
 ENV PROJECT wildfly-qwanda-service
@@ -18,7 +17,7 @@ ADD gennyCredentials /root/.credentials/genny/StoredCredential
 ADD channel /root/.credentials/channel/StoredCredential
 RUN touch $JBOSS_HOME/standalone/deployments/$PROJECT.war.dodeploy
 USER root
-RUN chown -R jboss:jboss $JBOSS_HOME/standalone/deployments/$PROJECT.war
+RUN chown -R jboss:jboss $JBOSS_HOME
 RUN chmod -Rf 777 $JBOSS_HOME/standalone/deployments/$PROJECT.war
 
 RUN mkdir /opt/realm
@@ -29,10 +28,13 @@ ADD realm /opt/realm
 ADD google $JBOSS_HOME/google
 ADD docker-entrypoint2.sh /opt/jboss/
 
+
 USER jboss
 USER root
 EXPOSE 8998
 EXPOSE 8787
 
-ENTRYPOINT [ "/opt/jboss/docker-entrypoint2.sh" ]
+ADD docker-entrypoint4.sh /opt/jboss/
+ENTRYPOINT [ "/opt/jboss/docker-entrypoint4.sh" ]
 CMD ["-b", "0.0.0.0"]
+

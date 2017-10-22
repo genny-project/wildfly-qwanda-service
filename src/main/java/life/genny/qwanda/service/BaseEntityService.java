@@ -1,6 +1,25 @@
 package life.genny.qwanda.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.exception.ConstraintViolationException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.keycloak.KeycloakSecurityContext;
+import org.mortbay.log.Log;
+import javax.ejb.EJBException;
+import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
+import javax.persistence.EntityExistsException;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceException;
+import javax.persistence.Query;
+import javax.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,25 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.ejb.EJBException;
-import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.persistence.EntityExistsException;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceException;
-import javax.persistence.Query;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.exception.ConstraintViolationException;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.keycloak.KeycloakSecurityContext;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+import java.util.stream.Collectors;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -94,19 +95,19 @@ public class BaseEntityService {
       helper.getEntityManager().persist(question);
       System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
       // baseEntityEventSrc.fire(entity);
-    } catch (ConstraintViolationException e) {
+    } catch (final ConstraintViolationException e) {
       Question existing = findQuestionByCode(question.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (PersistenceException e) {
+    } catch (final PersistenceException e) {
       Question existing = findQuestionByCode(question.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (EJBException e) {
+    } catch (final EJBException e) {
       Question existing = findQuestionByCode(question.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (IllegalStateException e) {
+    } catch (final IllegalStateException e) {
       Question existing = findQuestionByCode(question.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
@@ -120,23 +121,23 @@ public class BaseEntityService {
       helper.getEntityManager().persist(ask);
       System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
       // baseEntityEventSrc.fire(entity);
-    } catch (ConstraintViolationException e) {
-   // so update otherwise // TODO merge?
+    } catch (final ConstraintViolationException e) {
+      // so update otherwise // TODO merge?
       Ask existing = findAskById(ask.getId());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (PersistenceException e) {
-   // so update otherwise // TODO merge?
+    } catch (final PersistenceException e) {
+      // so update otherwise // TODO merge?
       Ask existing = findAskById(ask.getId());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (EJBException e) {
-   // so update otherwise // TODO merge?
+    } catch (final EJBException e) {
+      // so update otherwise // TODO merge?
       Ask existing = findAskById(ask.getId());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (IllegalStateException e) {
-   // so update otherwise // TODO merge?
+    } catch (final IllegalStateException e) {
+      // so update otherwise // TODO merge?
       Ask existing = findAskById(ask.getId());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
@@ -166,25 +167,26 @@ public class BaseEntityService {
       helper.getEntityManager().persist(validation);
       System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
       // baseEntityEventSrc.fire(entity);
-    } catch (ConstraintViolationException e) {
+    } catch (final ConstraintViolationException e) {
       System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
-      Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n"+existing+"\n\n\n\n\n\n\n\n\n");
+      final Validation existing = findValidationByCode(validation.getCode());
+      System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
       return existing.getId();
-    } catch (PersistenceException e) {
-      System.out.println("\n\n\n\n\n\n22222***"+validation.getCode()+"****2222222\n\n\n\n\n\n\n\n\n");
-      Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n"+existing.getRegex()+"\n\n\n\n\n\n\n\n\n");
+    } catch (final PersistenceException e) {
+      System.out
+          .println("\n\n\n\n\n\n22222***" + validation.getCode() + "****2222222\n\n\n\n\n\n\n\n\n");
+      final Validation existing = findValidationByCode(validation.getCode());
+      System.out.println("\n\n\n\n\n\n" + existing.getRegex() + "\n\n\n\n\n\n\n\n\n");
       return existing.getId();
-    } catch (EJBException e) {
+    } catch (final EJBException e) {
       System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
-      Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n"+existing+"\n\n\n\n\n\n\n\n\n");
+      final Validation existing = findValidationByCode(validation.getCode());
+      System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
       return existing.getId();
-    } catch (IllegalStateException e) {
+    } catch (final IllegalStateException e) {
       System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
-      Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n"+existing+"\n\n\n\n\n\n\n\n\n");
+      final Validation existing = findValidationByCode(validation.getCode());
+      System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
       return existing.getId();
     }
     return validation.getId();
@@ -269,23 +271,23 @@ public class BaseEntityService {
       helper.getEntityManager().persist(entity);
       baseEntityEventSrc.fire(entity);
       // baseEntityEventSrc.fire(entity);
-    } catch (ConstraintViolationException e) {
-   // so update otherwise // TODO merge?
+    } catch (final ConstraintViolationException e) {
+      // so update otherwise // TODO merge?
       helper.getEntityManager().merge(entity);
       baseEntityEventSrc.fire(entity);
       return entity.getId();
-    } catch (PersistenceException e) {
-   // so update otherwise // TODO merge?
+    } catch (final PersistenceException e) {
+      // so update otherwise // TODO merge?
       helper.getEntityManager().merge(entity);
       baseEntityEventSrc.fire(entity);
       return entity.getId();
-    } catch (EJBException e) {
-   // so update otherwise // TODO merge?
+    } catch (final EJBException e) {
+      // so update otherwise // TODO merge?
       helper.getEntityManager().merge(entity);
       baseEntityEventSrc.fire(entity);
       return entity.getId();
-    } catch (IllegalStateException e) {
-   // so update otherwise // TODO merge?
+    } catch (final IllegalStateException e) {
+      // so update otherwise // TODO merge?
       helper.getEntityManager().merge(entity);
       baseEntityEventSrc.fire(entity);
       return entity.getId();
@@ -323,32 +325,32 @@ public class BaseEntityService {
     }
     return ask.getId();
   }
-  
-//  public Long update(BaseEntity entity) {
-//    // always check if baseentity exists through check for unique code
-//    try {
-//   // so persist otherwise
-//      helper.getEntityManager().persist(entity);
-//      // baseEntityEventSrc.fire(entity);
-//    } catch (ConstraintViolationException e) {
-//      entity = helper.getEntityManager().merge(entity);
-//      baseEntityEventSrc.fire(entity);
-//      return entity.getId();
-//    } catch (PersistenceException e) {
-//      entity = helper.getEntityManager().merge(entity);
-//      baseEntityEventSrc.fire(entity);
-//      return entity.getId();
-//    } catch (EJBException e) {
-//      entity = helper.getEntityManager().merge(entity);
-//      baseEntityEventSrc.fire(entity);
-//      return entity.getId();
-//    } catch (IllegalStateException e) {
-//      entity = helper.getEntityManager().merge(entity);
-//      baseEntityEventSrc.fire(entity);
-//      return entity.getId();
-//    }
-//    return entity.getId();
-//  }
+
+  // public Long update(BaseEntity entity) {
+  // // always check if baseentity exists through check for unique code
+  // try {
+  // // so persist otherwise
+  // helper.getEntityManager().persist(entity);
+  // // baseEntityEventSrc.fire(entity);
+  // } catch (ConstraintViolationException e) {
+  // entity = helper.getEntityManager().merge(entity);
+  // baseEntityEventSrc.fire(entity);
+  // return entity.getId();
+  // } catch (PersistenceException e) {
+  // entity = helper.getEntityManager().merge(entity);
+  // baseEntityEventSrc.fire(entity);
+  // return entity.getId();
+  // } catch (EJBException e) {
+  // entity = helper.getEntityManager().merge(entity);
+  // baseEntityEventSrc.fire(entity);
+  // return entity.getId();
+  // } catch (IllegalStateException e) {
+  // entity = helper.getEntityManager().merge(entity);
+  // baseEntityEventSrc.fire(entity);
+  // return entity.getId();
+  // }
+  // return entity.getId();
+  // }
 
 
   public Long update(BaseEntity entity) {
@@ -462,11 +464,11 @@ public class BaseEntityService {
   }
 
   public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
-    String co = "VLD_EMAIL";
+    final String co = "VLD_EMAIL";
     final Validation result = (Validation) helper.getEntityManager()
-        .createQuery("SELECT a FROM Validation a where a.code=:code")
-        .setParameter("code", co).getSingleResult();
-    System.out.println("8878978978978977987897987987987"+result);
+        .createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", co)
+        .getSingleResult();
+    System.out.println("8878978978978977987897987987987" + result);
     return result;
   }
 
@@ -523,19 +525,46 @@ public class BaseEntityService {
   }
 
   public List<BaseEntity> findChildrenByAttributeLink(@NotNull final String sourceCode,
-      final String linkCode) {
+      final String linkCode, final boolean includeAttributes) {
 
-    final List<BaseEntity> eeResults = helper.getEntityManager().createQuery(
-        "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
-        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-        .getResultList();
+    final List<BaseEntity> eeResults;
+    final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
 
+    if (includeAttributes) {
+      Log.info("**************** ENTITY ENTITY WITH ATTRIBUTES!! ****************");
+      final List<EntityAttribute> eaResults = helper.getEntityManager().createQuery(
+          "SELECT ea FROM EntityAttribute ea,BaseEntity be,EntityEntity ee where ee.pk.target.code=ea.baseEntityCode and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+          .getResultList();
+      // now inject the eas into their intended bes
+      Log.info("Number of entityAttributes = " + eaResults.size());
+      for (final EntityAttribute ea : eaResults) {
+        final String beCode = ea.getBaseEntityCode();
+        Log.info(beCode + ":" + ea);
+        if (!beMap.containsKey(beCode)) {
+          beMap.put(beCode, ea.getBaseEntity());
+        }
+        if (beMap.get(beCode).getBaseEntityAttributes() == null) {
+          beMap.get(beCode).setBaseEntityAttributes(new HashSet<EntityAttribute>());
+        }
+        beMap.get(beCode).getBaseEntityAttributes().add(ea);
+      }
 
+    } else {
+      Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+
+      eeResults = helper.getEntityManager().createQuery(
+          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+          .getResultList();
+      for (final BaseEntity be : eeResults) {
+        beMap.put(be.getCode(), be);
+        Log.info("BECODE:" + be.getCode());
+      }
+    }
     // TODO: improve
-    // final List<BaseEntity> resultList = eeResults.stream()
-    // .map(x -> x.getTarget())
-    // .collect(Collectors.toList());
-    return eeResults;
+
+    return beMap.values().stream().collect(Collectors.toList());
   }
 
   public Setup setup(final KeycloakSecurityContext kContext) {
@@ -949,23 +978,23 @@ public class BaseEntityService {
       helper.getEntityManager().persist(attribute);
       attributeEventSrc.fire(attribute);
       // baseEntityEventSrc.fire(entity);
-    } catch (ConstraintViolationException e) {
-   // so update otherwise // TODO merge?
+    } catch (final ConstraintViolationException e) {
+      // so update otherwise // TODO merge?
       Attribute existing = findAttributeByCode(attribute.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (PersistenceException e) {
-   // so update otherwise // TODO merge?
+    } catch (final PersistenceException e) {
+      // so update otherwise // TODO merge?
       Attribute existing = findAttributeByCode(attribute.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (EJBException e) {
-   // so update otherwise // TODO merge?
+    } catch (final EJBException e) {
+      // so update otherwise // TODO merge?
       Attribute existing = findAttributeByCode(attribute.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();
-    } catch (IllegalStateException e) {
-   // so update otherwise // TODO merge?
+    } catch (final IllegalStateException e) {
+      // so update otherwise // TODO merge?
       Attribute existing = findAttributeByCode(attribute.getCode());
       existing = helper.getEntityManager().merge(existing);
       return existing.getId();

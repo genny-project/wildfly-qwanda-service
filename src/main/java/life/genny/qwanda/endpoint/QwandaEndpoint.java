@@ -212,7 +212,7 @@ public class QwandaEndpoint {
   public Response fetchAsks() {
     final List<Ask> entitys = service.findAsks();
 
-    System.out.println(entitys+"kkkkk");
+    System.out.println(entitys + "kkkkk");
     return Response.status(200).entity(entitys).build();
   }
 
@@ -383,7 +383,23 @@ public class QwandaEndpoint {
   @Produces("application/json")
   public Response getTargets(@PathParam("sourceCode") final String sourceCode,
       @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode) {
-    final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode);
+    final List<BaseEntity> targets =
+        service.findChildrenByAttributeLink(sourceCode, linkCode, false);
+
+    BaseEntity[] beArr = new BaseEntity[targets.size()];
+    beArr = targets.toArray(beArr);
+    final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
+
+    return Response.status(200).entity(msg).build();
+  }
+
+  @GET
+  @Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/attributes")
+  @Produces("application/json")
+  public Response getTargetsWithAttributes(@PathParam("sourceCode") final String sourceCode,
+      @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode) {
+    final List<BaseEntity> targets =
+        service.findChildrenByAttributeLink(sourceCode, linkCode, true);
 
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
