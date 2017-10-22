@@ -525,17 +525,19 @@ public class BaseEntityService {
   }
 
   public List<BaseEntity> findChildrenByAttributeLink(@NotNull final String sourceCode,
-      final String linkCode, final boolean includeAttributes) {
+      final String linkCode, final boolean includeAttributes, final Integer pageStart,
+      final Integer pageSize) {
 
     final List<BaseEntity> eeResults;
     final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
 
     if (includeAttributes) {
-      Log.info("**************** ENTITY ENTITY WITH ATTRIBUTES!! ****************");
+      Log.info("**************** ENTITY ENTITY WITH ATTRIBUTES!! pageStart = " + pageStart
+          + " pageSize=" + pageSize + " ****************");
       final List<EntityAttribute> eaResults = helper.getEntityManager().createQuery(
           "SELECT ea FROM EntityAttribute ea,BaseEntity be,EntityEntity ee where ee.pk.target.code=ea.baseEntityCode and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-          .getResultList();
+          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
       // now inject the eas into their intended bes
       Log.info("Number of entityAttributes = " + eaResults.size());
       for (final EntityAttribute ea : eaResults) {
@@ -556,7 +558,8 @@ public class BaseEntityService {
       eeResults = helper.getEntityManager().createQuery(
           "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-          .getResultList();
+          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
       for (final BaseEntity be : eeResults) {
         beMap.put(be.getCode(), be);
         Log.info("BECODE:" + be.getCode());

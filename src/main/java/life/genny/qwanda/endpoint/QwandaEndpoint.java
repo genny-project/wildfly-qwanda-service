@@ -28,6 +28,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -382,9 +383,26 @@ public class QwandaEndpoint {
   @Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}")
   @Produces("application/json")
   public Response getTargets(@PathParam("sourceCode") final String sourceCode,
-      @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode) {
+      @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
+      @Context final UriInfo uriInfo) {
+    Integer pageStart = 0;
+    Integer pageSize = 10; // default
+
+    final MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+
+    final String pageStartStr = params.getFirst("pageStart");
+    final String pageSizeStr = params.getFirst("pageSize");
+    if (pageStartStr != null && pageSizeStr != null) {
+      pageStart = Integer.decode(pageStartStr);
+      pageSize = Integer.decode(pageSizeStr);
+    }
     final List<BaseEntity> targets =
-        service.findChildrenByAttributeLink(sourceCode, linkCode, false);
+        service.findChildrenByAttributeLink(sourceCode, linkCode, false, pageStart, pageSize);
+
+    // remove the attributes
+    for (final BaseEntity be : targets) {
+      be.setBaseEntityAttributes(null);
+    }
 
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
@@ -397,9 +415,21 @@ public class QwandaEndpoint {
   @Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/attributes")
   @Produces("application/json")
   public Response getTargetsWithAttributes(@PathParam("sourceCode") final String sourceCode,
-      @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode) {
+      @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
+      @Context final UriInfo uriInfo) {
+    Integer pageStart = 0;
+    Integer pageSize = 10; // default
+
+    final MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+
+    final String pageStartStr = params.getFirst("pageStart");
+    final String pageSizeStr = params.getFirst("pageSize");
+    if (pageStartStr != null && pageSizeStr != null) {
+      pageStart = Integer.decode(pageStartStr);
+      pageSize = Integer.decode(pageSizeStr);
+    }
     final List<BaseEntity> targets =
-        service.findChildrenByAttributeLink(sourceCode, linkCode, true);
+        service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart, pageSize);
 
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
