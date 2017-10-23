@@ -527,7 +527,7 @@ public class BaseEntityService {
 
   public List<BaseEntity> findChildrenByAttributeLink(@NotNull final String sourceCode,
       final String linkCode, final boolean includeAttributes, final Integer pageStart,
-      final Integer pageSize) {
+      final Integer pageSize, final Integer level) {
 
     final List<BaseEntity> eeResults;
     final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
@@ -1109,6 +1109,8 @@ public class BaseEntityService {
 
   }
 
+
+
   public List<BaseEntity> findBaseEntitysByAttributeValues(
       final MultivaluedMap<String, String> params, final boolean includeAttributes,
       final Integer pageStart, final Integer pageSize) {
@@ -1134,6 +1136,9 @@ public class BaseEntityService {
         final List<String> valueList = new ArrayList<String>();
 
         for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+          if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
+            continue;
+          }
           final List<String> qvalueList = entry.getValue();
           if (!qvalueList.isEmpty()) {
             // create the value or
@@ -1188,6 +1193,121 @@ public class BaseEntityService {
     return beMap.values().stream().collect(Collectors.toList());
   }
 
+  public Long findBaseEntitysByAttributeValuesCount(final MultivaluedMap<String, String> params) {
 
+    final Long result;
+    new HashMap<String, BaseEntity>();
+
+
+    Log.info(
+        "**************** COUNT BE SEARCH WITH ATTRIBUTE VALUE WITH ATTRIBUTES!!  ****************");
+
+    // ugly and insecure
+    final Integer pairCount = params.size();
+    if (pairCount.equals(0)) {
+      result = (Long) helper.getEntityManager()
+          .createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
+          .getSingleResult();
+    } else {
+      String queryStr =
+          "SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee where  ";
+      int attributeCodeIndex = 0;
+      int valueIndex = 0;
+      final List<String> attributeCodeList = new ArrayList<String>();
+      final List<String> valueList = new ArrayList<String>();
+
+      for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+        if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
+          continue;
+        }
+
+        final List<String> qvalueList = entry.getValue();
+        if (!qvalueList.isEmpty()) {
+          // create the value or
+          String valueQuery = "(";
+          for (final String value : qvalueList) {
+            valueQuery += "bee.valueString=:valueString" + valueIndex + " or ";
+            valueList.add(valueIndex, value);
+            valueIndex++;
+          }
+          // remove last or
+          valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+          valueQuery += ")";
+          attributeCodeList.add(attributeCodeIndex, entry.getKey());
+          if (attributeCodeIndex > 0) {
+            queryStr += " and ";
+          }
+          queryStr +=
+              " bee.attributeCode=:attributeCode" + attributeCodeIndex + " and " + valueQuery;
+          System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+        }
+        attributeCodeIndex++;
+
+      }
+      System.out.println("Query=" + queryStr);
+      final Query query = helper.getEntityManager().createQuery(queryStr);
+      int index = 0;
+      for (final String attributeParm : attributeCodeList) {
+        query.setParameter("attributeCode" + index, attributeParm);
+        System.out.println("attributeCode" + index + "=:" + attributeParm);
+        index++;
+      }
+      index = 0;
+      for (final String valueParm : valueList) {
+        query.setParameter("valueString" + index, valueParm);
+        System.out.println("valueString" + index + "=:" + valueParm);
+        index++;
+      }
+      result = (Long) query.getSingleResult();
+
+    }
+
+    return result;
+
+
+  }
+
+
+  public List<BaseEntity> findDescendantsByAttributeLink(@NotNull final String sourceCode,
+      final String linkCode, final boolean includeAttributes, final Integer pageStart,
+      final Integer pageSize) {
+
+    final List<BaseEntity> eeResults;
+    final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
+
+    if (includeAttributes) {
+      Log.info("**************** ENTITY ENTITY DESCENDANTS WITH ATTRIBUTES!! pageStart = "
+          + pageStart + " pageSize=" + pageSize + " ****************");
+
+
+      eeResults = helper.getEntityManager().createQuery(
+          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+      if (eeResults.isEmpty()) {
+        System.out.println("EEE IS EMPTY");
+      } else {
+        System.out.println("EEE Count" + eeResults.size());
+        System.out.println("EEE" + eeResults);
+      }
+      return eeResults;
+
+    } else {
+      Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+
+      eeResults = helper.getEntityManager().createQuery(
+          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
+      for (final BaseEntity be : eeResults) {
+        beMap.put(be.getCode(), be);
+        Log.info("BECODE:" + be.getCode());
+      }
+    }
+    // TODO: improve
+
+    return beMap.values().stream().collect(Collectors.toList());
+  }
 
 }
