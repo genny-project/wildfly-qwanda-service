@@ -534,23 +534,37 @@ public class BaseEntityService {
     if (includeAttributes) {
       Log.info("**************** ENTITY ENTITY WITH ATTRIBUTES!! pageStart = " + pageStart
           + " pageSize=" + pageSize + " ****************");
-      final List<EntityAttribute> eaResults = helper.getEntityManager().createQuery(
-          "SELECT ea FROM EntityAttribute ea,BaseEntity be,EntityEntity ee where ee.pk.target.code=ea.baseEntityCode and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+      // final List<EntityAttribute> eaResults = helper.getEntityManager().createQuery(
+      // "SELECT ea FROM EntityAttribute ea,BaseEntity be,EntityEntity ee where
+      // ee.pk.target.code=ea.baseEntityCode and ee.pk.linkAttribute.code=:linkAttributeCode and
+      // ee.pk.source.code=:sourceCode")
+      // .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+      // .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+      // // now inject the eas into their intended bes
+      // Log.info("Number of entityAttributes = " + eaResults.size());
+      // for (final EntityAttribute ea : eaResults) {
+      // final String beCode = ea.getBaseEntityCode();
+      // Log.info(beCode + ":" + ea);
+      // if (!beMap.containsKey(beCode)) {
+      // beMap.put(beCode, ea.getBaseEntity());
+      // }
+      // if (beMap.get(beCode).getBaseEntityAttributes() == null) {
+      // beMap.get(beCode).setBaseEntityAttributes(new HashSet<EntityAttribute>());
+      // }
+      // beMap.get(beCode).getBaseEntityAttributes().add(ea);
+      // }
+
+      eeResults = helper.getEntityManager().createQuery(
+          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
-      // now inject the eas into their intended bes
-      Log.info("Number of entityAttributes = " + eaResults.size());
-      for (final EntityAttribute ea : eaResults) {
-        final String beCode = ea.getBaseEntityCode();
-        Log.info(beCode + ":" + ea);
-        if (!beMap.containsKey(beCode)) {
-          beMap.put(beCode, ea.getBaseEntity());
-        }
-        if (beMap.get(beCode).getBaseEntityAttributes() == null) {
-          beMap.get(beCode).setBaseEntityAttributes(new HashSet<EntityAttribute>());
-        }
-        beMap.get(beCode).getBaseEntityAttributes().add(ea);
+      if (eeResults.isEmpty()) {
+        System.out.println("EEE IS EMPTY");
+      } else {
+        System.out.println("EEE Count" + eeResults.size());
+        System.out.println("EEE" + eeResults);
       }
+      return eeResults;
 
     } else {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");

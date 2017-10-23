@@ -15,11 +15,6 @@
 
 	<web>
 		<link target="/">
-			<dir name="/Users/acrow/genny/wildfly-qwanda-service/target/m2e-wtp/web-resources">
-				<exclude name="/"/>
-			</dir>
-		</link>
-		<link target="/">
 			<dir name="/Users/acrow/genny/wildfly-qwanda-service/src/main/webapp">
 			</dir>
 		</link>
