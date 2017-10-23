@@ -20,6 +20,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -534,25 +535,7 @@ public class BaseEntityService {
     if (includeAttributes) {
       Log.info("**************** ENTITY ENTITY WITH ATTRIBUTES!! pageStart = " + pageStart
           + " pageSize=" + pageSize + " ****************");
-      // final List<EntityAttribute> eaResults = helper.getEntityManager().createQuery(
-      // "SELECT ea FROM EntityAttribute ea,BaseEntity be,EntityEntity ee where
-      // ee.pk.target.code=ea.baseEntityCode and ee.pk.linkAttribute.code=:linkAttributeCode and
-      // ee.pk.source.code=:sourceCode")
-      // .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-      // .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
-      // // now inject the eas into their intended bes
-      // Log.info("Number of entityAttributes = " + eaResults.size());
-      // for (final EntityAttribute ea : eaResults) {
-      // final String beCode = ea.getBaseEntityCode();
-      // Log.info(beCode + ":" + ea);
-      // if (!beMap.containsKey(beCode)) {
-      // beMap.put(beCode, ea.getBaseEntity());
-      // }
-      // if (beMap.get(beCode).getBaseEntityAttributes() == null) {
-      // beMap.get(beCode).setBaseEntityAttributes(new HashSet<EntityAttribute>());
-      // }
-      // beMap.get(beCode).getBaseEntityAttributes().add(ea);
-      // }
+
 
       eeResults = helper.getEntityManager().createQuery(
           "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
@@ -1125,4 +1108,86 @@ public class BaseEntityService {
     return entity.getId();
 
   }
+
+  public List<BaseEntity> findBaseEntitysByAttributeValues(
+      final MultivaluedMap<String, String> params, final boolean includeAttributes,
+      final Integer pageStart, final Integer pageSize) {
+
+    final List<BaseEntity> eeResults;
+    final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
+
+    if (includeAttributes) {
+      Log.info("**************** BE SEARCH WITH ATTRIBUTE VALUE WITH ATTRIBUTES!! pageStart = "
+          + pageStart + " pageSize=" + pageSize + " ****************");
+
+      // ugly and insecure
+      final Integer pairCount = params.size();
+      if (pairCount.equals(0)) {
+        eeResults = helper.getEntityManager()
+            .createQuery("SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes bee")
+            .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+      } else {
+        String queryStr = "SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes bee where  ";
+        int attributeCodeIndex = 0;
+        int valueIndex = 0;
+        final List<String> attributeCodeList = new ArrayList<String>();
+        final List<String> valueList = new ArrayList<String>();
+
+        for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+          final List<String> qvalueList = entry.getValue();
+          if (!qvalueList.isEmpty()) {
+            // create the value or
+            String valueQuery = "(";
+            for (final String value : qvalueList) {
+              valueQuery += "bee.valueString=:valueString" + valueIndex + " or ";
+              valueList.add(valueIndex, value);
+              valueIndex++;
+            }
+            // remove last or
+            valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+            valueQuery += ")";
+            attributeCodeList.add(attributeCodeIndex, entry.getKey());
+            if (attributeCodeIndex > 0) {
+              queryStr += " and ";
+            }
+            queryStr +=
+                " bee.attributeCode=:attributeCode" + attributeCodeIndex + " and " + valueQuery;
+            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+          }
+          attributeCodeIndex++;
+
+        }
+        System.out.println("Query=" + queryStr);
+        final Query query = helper.getEntityManager().createQuery(queryStr);
+        int index = 0;
+        for (final String attributeParm : attributeCodeList) {
+          query.setParameter("attributeCode" + index, attributeParm);
+          System.out.println("attributeCode" + index + "=:" + attributeParm);
+          index++;
+        }
+        index = 0;
+        for (final String valueParm : valueList) {
+          query.setParameter("valueString" + index, valueParm);
+          System.out.println("valueString" + index + "=:" + valueParm);
+          index++;
+        }
+        query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+        eeResults = query.getResultList();
+      }
+      if (eeResults.isEmpty()) {
+        System.out.println("EEE IS EMPTY");
+      } else {
+        System.out.println("EEE Count" + eeResults.size());
+        System.out.println("EEE" + eeResults);
+      }
+      return eeResults;
+
+    }
+    // TODO: improve
+
+    return beMap.values().stream().collect(Collectors.toList());
+  }
+
+
+
 }

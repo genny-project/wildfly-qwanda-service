@@ -438,6 +438,33 @@ public class QwandaEndpoint {
     return Response.status(200).entity(msg).build();
   }
 
+  @GET
+  @Path("/baseentitys/test2")
+  @Produces("application/json")
+  public Response findBaseEntitysByAttributeValues(@Context final UriInfo uriInfo) {
+    Integer pageStart = 0;
+    Integer pageSize = 10; // default
+    final MultivaluedMap<String, String> qparams = uriInfo.getQueryParameters();
+
+
+    final String pageStartStr = qparams.getFirst("pageStart");
+    final String pageSizeStr = qparams.getFirst("pageSize");
+    if (pageStartStr != null && pageSizeStr != null) {
+      pageStart = Integer.decode(pageStartStr);
+      pageSize = Integer.decode(pageSizeStr);
+      qparams.remove("pageStart");
+      qparams.remove("pageSize");
+    }
+    final List<BaseEntity> targets =
+        service.findBaseEntitysByAttributeValues(qparams, true, pageStart, pageSize);
+
+    BaseEntity[] beArr = new BaseEntity[targets.size()];
+    beArr = targets.toArray(beArr);
+    final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "");
+
+    return Response.status(200).entity(msg).build();
+  }
+
   @POST
   @Path("/baseentitys/uploadcsv")
   @Consumes("multipart/form-data")
