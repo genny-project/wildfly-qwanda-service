@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import javax.enterprise.context.RequestScoped;
@@ -345,8 +346,36 @@ public class QwandaEndpoint {
   @GET
   @Path("/baseentitys")
   @Produces("application/json")
-  public Response getAll() {
-    return Response.status(200).entity(service.getAll()).build();
+  public Response getBaseEntitys(@Context final UriInfo uriInfo) {
+    Integer pageStart = 0;
+    Integer pageSize = 10; // default
+    boolean includeAttributes = false;
+    MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+    qparams.putAll(params);
+
+
+    final String pageStartStr = params.getFirst("pageStart");
+    final String pageSizeStr = params.getFirst("pageSize");
+    final String includeAttributesStr = params.getFirst("attributes");
+    if (pageStartStr != null) {
+      pageStart = Integer.decode(pageStartStr);
+      qparams.remove("pageStart");
+    }
+    if (pageSizeStr != null) {
+      pageSize = Integer.decode(pageSizeStr);
+      qparams.remove("pageSize");
+    }
+    if (includeAttributesStr != null) {
+      includeAttributes = true;
+      qparams.remove("attributes");
+    }
+    final List<BaseEntity> targets =
+        service.findBaseEntitysByAttributeValues(qparams, includeAttributes, pageStart, pageSize);
+    if (!includeAttributes) {
+      targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
+    }
+    return Response.status(200).entity(targets).build();
   }
 
 
@@ -387,21 +416,35 @@ public class QwandaEndpoint {
       @Context final UriInfo uriInfo) {
     Integer pageStart = 0;
     Integer pageSize = 10; // default
+    boolean includeAttributes = false;
 
-    final MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+    qparams.putAll(params);
 
     final String pageStartStr = params.getFirst("pageStart");
     final String pageSizeStr = params.getFirst("pageSize");
-    if (pageStartStr != null && pageSizeStr != null) {
+    final String includeAttributesStr = params.getFirst("attributes");
+    if (pageStartStr != null) {
       pageStart = Integer.decode(pageStartStr);
-      pageSize = Integer.decode(pageSizeStr);
+      qparams.remove("pageStart");
     }
-    final List<BaseEntity> targets =
-        service.findChildrenByAttributeLink(sourceCode, linkCode, false, pageStart, pageSize, 1);
+    if (pageSizeStr != null) {
+      pageSize = Integer.decode(pageSizeStr);
+      qparams.remove("pageSize");
+    }
+    if (includeAttributesStr != null) {
+      includeAttributes = true;
+      qparams.remove("attributes");
+    }
+
+
+    final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode,
+        includeAttributes, pageStart, pageSize, 1, qparams);
 
     // remove the attributes
-    for (final BaseEntity be : targets) {
-      be.setBaseEntityAttributes(null);
+    if (!includeAttributes) {
+      targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
     }
 
     BaseEntity[] beArr = new BaseEntity[targets.size()];
@@ -421,21 +464,32 @@ public class QwandaEndpoint {
     Integer pageSize = 10; // default
     Integer level = 1;
 
-    final MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+    qparams.putAll(params);
 
     final String pageStartStr = params.getFirst("pageStart");
     final String pageSizeStr = params.getFirst("pageSize");
     final String levelStr = params.getFirst("level");
-    if (pageStartStr != null && pageSizeStr != null) {
+    if (pageStartStr != null) {
       pageStart = Integer.decode(pageStartStr);
+      qparams.remove("pageStart");
+    }
+    if (pageSizeStr != null) {
       pageSize = Integer.decode(pageSizeStr);
+      qparams.remove("pageSize");
     }
     if (levelStr != null) {
       level = Integer.decode(levelStr);
+      // params.remove("level");
     }
-    final List<BaseEntity> targets =
-        service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart, pageSize, level);
+    final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true,
+        pageStart, pageSize, level, qparams);
 
+    for (final BaseEntity be : targets) {
+      System.out.println("\n" + be.getCode() + " + attributes");
+      be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+    }
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
     final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
@@ -450,23 +504,29 @@ public class QwandaEndpoint {
   public Response findBaseEntitysByAttributeValues(@Context final UriInfo uriInfo) {
     Integer pageStart = 0;
     Integer pageSize = 10; // default
-    MultivaluedMap<String, String> qparams = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+    MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+    qparams.putAll(params);
 
 
-    final String pageStartStr = qparams.getFirst("pageStart");
-    final String pageSizeStr = qparams.getFirst("pageSize");
-    if (pageStartStr != null && pageSizeStr != null) {
+
+    final String pageStartStr = params.getFirst("pageStart");
+    final String pageSizeStr = params.getFirst("pageSize");
+    if (pageStartStr != null) {
       pageStart = Integer.decode(pageStartStr);
-      pageSize = Integer.decode(pageSizeStr);
-      // qparams.remove("pageStart"); // cannot modify map?
-      // qparams.remove("pageSize");
+      qparams.remove("pageStart");
     }
+    if (pageSizeStr != null) {
+      pageSize = Integer.decode(pageSizeStr);
+      qparams.remove("pageSize");
+    }
+
     final List<BaseEntity> targets =
         service.findBaseEntitysByAttributeValues(qparams, true, pageStart, pageSize);
 
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
-    final Long total = service.findBaseEntitysByAttributeValuesCount(qparams);
+    final Long total = service.findBaseEntitysByAttributeValuesCount(params);
 
     final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
 

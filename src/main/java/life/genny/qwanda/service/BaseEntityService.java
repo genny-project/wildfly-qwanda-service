@@ -198,41 +198,72 @@ public class BaseEntityService {
     try {
       BaseEntity beSource = null;
       BaseEntity beTarget = null;
+      Attribute attribute = null;
       Ask ask = null;
 
+      System.out.println("Answer:" + answer);
       if (answer.getAskId() != null) {
         ask = findAskById(answer.getAskId());
         beTarget = ask.getTarget();
         beSource = ask.getSource();
-        answer.setSourceCode(beSource.getCode());
-        answer.setTargetCode(beTarget.getCode());
+        attribute = ask.getQuestion().getAttribute();
+        if (!((answer.getSourceCode().equals(beSource.getCode()))
+            && (answer.getAttributeCode().equals(attribute.getCode()))
+            && (answer.getTargetCode().equals(beTarget.getCode())))) {
+          return -1L; // need to throw error
+        }
       } else {
         // Need to find source and target by their codes
         beSource = findBaseEntityByCode(answer.getSourceCode());
         beTarget = findBaseEntityByCode(answer.getTargetCode());
+        attribute = findAttributeByCode(answer.getAttributeCode());
       }
 
+      System.out.println("Found Source:" + beSource.getCode() + " AND Target:" + beTarget.getCode()
+          + " and attribute:" + attribute.getCode());
       // now look for existing answerlink
       answer.setAsk(ask);
+      if (ask == null) {
+        answer.setAttribute(attribute);
+      }
+
 
       helper.getEntityManager().persist(answer);
       // update answerlink
 
       // check if answerlink already there
-      AnswerLink answerLink =
-          findAnswerLinkByCodes(beTarget.getCode(), beSource.getCode(), answer.getAttributeCode());
+      AnswerLink answerLink = null;
 
-      if (answerLink == null) {
-        answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
-        beSource = helper.getEntityManager().merge(beSource);
-      } else {
+      try {
+        answerLink = findAnswerLinkByCodes(beTarget.getCode(), beSource.getCode(),
+            answer.getAttributeCode());
+        System.out.println("Merging AnswerLink");
         answerLink.setAnswer(answer);
         answerLink = helper.getEntityManager().merge(answerLink);
+
+      } catch (NoResultException e) {
+
+        answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
+        beTarget = helper.getEntityManager().merge(beTarget);
+        System.out.println("AnswerLink added to Target");
       }
 
-      if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
-        ask.getAnswerList().getAnswerList().add(answerLink);
-        ask = helper.getEntityManager().merge(ask);
+      // if (answerLink == null) {
+      //// answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
+      //// beTarget = helper.getEntityManager().merge(beTarget);
+      //// System.out.println("AnswerLink added to Target");
+      // } else {
+      // System.out.println("Merging AnswerLink");
+      // answerLink.setAnswer(answer);
+      // answerLink = helper.getEntityManager().merge(answerLink);
+      // }
+
+      if (ask != null) {
+        if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
+          System.out.println("Ask does not have answerLink");
+          ask.getAnswerList().getAnswerList().add(answerLink);
+          ask = helper.getEntityManager().merge(ask);
+        }
       }
       // baseEntityEventSrc.fire(entity);
 
@@ -240,6 +271,7 @@ public class BaseEntityService {
     } catch (final BadDataException e) {
 
     } catch (final EntityExistsException e) {
+      System.out.println("Answer Insert EntityExistsException");
       // so update otherwise // TODO merge?
       Answer existing = findAnswerById(answer.getId());
       existing = helper.getEntityManager().merge(existing);
@@ -369,6 +401,7 @@ public class BaseEntityService {
   public Long update(Attribute attribute) {
     // always check if attribute exists through check for unique code
     try {
+
       attribute = helper.getEntityManager().merge(attribute);
       attributeEventSrc.fire(attribute);
     } catch (final IllegalArgumentException e) {
@@ -527,28 +560,91 @@ public class BaseEntityService {
 
   public List<BaseEntity> findChildrenByAttributeLink(@NotNull final String sourceCode,
       final String linkCode, final boolean includeAttributes, final Integer pageStart,
-      final Integer pageSize, final Integer level) {
+      final Integer pageSize, final Integer level, final MultivaluedMap<String, String> params) {
 
     final List<BaseEntity> eeResults;
-    final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
+    new HashMap<String, BaseEntity>();
 
     if (includeAttributes) {
-      Log.info("**************** ENTITY ENTITY WITH ATTRIBUTES!! pageStart = " + pageStart
-          + " pageSize=" + pageSize + " ****************");
 
 
-      eeResults = helper.getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
-          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
-      if (eeResults.isEmpty()) {
-        System.out.println("EEE IS EMPTY");
+      // ugly and insecure
+      final Integer pairCount = params.size();
+      if (pairCount.equals(0)) {
+        eeResults = helper.getEntityManager().createQuery(
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+            .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
+
       } else {
-        System.out.println("EEE Count" + eeResults.size());
-        System.out.println("EEE" + eeResults);
-      }
-      return eeResults;
+        System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
+        String eaStrings = "";
+        String eaStringsQ = "(";
+        for (int i = 0; i < (pairCount); i++) {
+          eaStrings += ",EntityAttribute ea" + i;
+          eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+        }
+        eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+        eaStringsQ += ")";
 
+        String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
+            + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
+            + " and ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+        int attributeCodeIndex = 0;
+        int valueIndex = 0;
+        final List<String> attributeCodeList = new ArrayList<String>();
+        final List<String> valueList = new ArrayList<String>();
+
+        for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+          if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
+            continue;
+          }
+          final List<String> qvalueList = entry.getValue();
+          if (!qvalueList.isEmpty()) {
+            // create the value or
+            String valueQuery = "(";
+            for (final String value : qvalueList) {
+              valueQuery +=
+                  "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or ";
+              valueList.add(valueIndex, value);
+              valueIndex++;
+            }
+            // remove last or
+            valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+            valueQuery += ")";
+            attributeCodeList.add(attributeCodeIndex, entry.getKey());
+            if (attributeCodeIndex > 0) {
+              queryStr += " and ";
+            }
+            queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
+                + attributeCodeIndex + " and " + valueQuery;
+            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+          }
+          attributeCodeIndex++;
+
+        }
+        System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+        final Query query = helper.getEntityManager().createQuery(queryStr);
+        int index = 0;
+        for (final String attributeParm : attributeCodeList) {
+          query.setParameter("attributeCode" + index, attributeParm);
+          System.out.println("attributeCode" + index + "=:" + attributeParm);
+          index++;
+        }
+        index = 0;
+        for (final String valueParm : valueList) {
+          query.setParameter("valueString" + index, valueParm);
+          System.out.println("valueString" + index + "=:" + valueParm);
+          index++;
+        }
+        query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+
+        query.setFirstResult(pageStart).setMaxResults(pageSize);
+        eeResults = query.getResultList();
+
+
+      }
     } else {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
@@ -557,14 +653,11 @@ public class BaseEntityService {
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
-      for (final BaseEntity be : eeResults) {
-        beMap.put(be.getCode(), be);
-        Log.info("BECODE:" + be.getCode());
-      }
+
     }
     // TODO: improve
 
-    return beMap.values().stream().collect(Collectors.toList());
+    return eeResults;
   }
 
   public Setup setup(final KeycloakSecurityContext kContext) {
@@ -1116,20 +1209,35 @@ public class BaseEntityService {
       final Integer pageStart, final Integer pageSize) {
 
     final List<BaseEntity> eeResults;
-    final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
+    new HashMap<String, BaseEntity>();
 
     if (includeAttributes) {
-      Log.info("**************** BE SEARCH WITH ATTRIBUTE VALUE WITH ATTRIBUTES!! pageStart = "
-          + pageStart + " pageSize=" + pageSize + " ****************");
+
 
       // ugly and insecure
       final Integer pairCount = params.size();
       if (pairCount.equals(0)) {
         eeResults = helper.getEntityManager()
-            .createQuery("SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes bee")
+            .createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee ") // add
+                                                                                                    // company
+                                                                                                    // limiter
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
+
       } else {
-        String queryStr = "SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes bee where  ";
+        System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
+        String eaStrings = "";
+        String eaStringsQ = "(";
+        for (int i = 0; i < (pairCount); i++) {
+
+          eaStrings += ",EntityAttribute ea" + i;
+          eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+        }
+        eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+        eaStringsQ += ")";
+
+        String queryStr = "SELECT distinct be FROM BaseEntity be" + eaStrings
+            + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ + " and  ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -1144,7 +1252,8 @@ public class BaseEntityService {
             // create the value or
             String valueQuery = "(";
             for (final String value : qvalueList) {
-              valueQuery += "bee.valueString=:valueString" + valueIndex + " or ";
+              valueQuery +=
+                  "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or ";
               valueList.add(valueIndex, value);
               valueIndex++;
             }
@@ -1155,14 +1264,13 @@ public class BaseEntityService {
             if (attributeCodeIndex > 0) {
               queryStr += " and ";
             }
-            queryStr +=
-                " bee.attributeCode=:attributeCode" + attributeCodeIndex + " and " + valueQuery;
+            queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
+                + attributeCodeIndex + " and " + valueQuery;
             System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
           }
           attributeCodeIndex++;
 
         }
-        System.out.println("Query=" + queryStr);
         final Query query = helper.getEntityManager().createQuery(queryStr);
         int index = 0;
         for (final String attributeParm : attributeCodeList) {
@@ -1176,21 +1284,23 @@ public class BaseEntityService {
           System.out.println("valueString" + index + "=:" + valueParm);
           index++;
         }
-        query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
+        query.setFirstResult(pageStart).setMaxResults(pageSize);
         eeResults = query.getResultList();
+
+
       }
-      if (eeResults.isEmpty()) {
-        System.out.println("EEE IS EMPTY");
-      } else {
-        System.out.println("EEE Count" + eeResults.size());
-        System.out.println("EEE" + eeResults);
-      }
-      return eeResults;
+    } else {
+      Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+
+      eeResults = helper.getEntityManager().createQuery("SELECT be FROM BaseEntity be ")
+          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
 
     }
     // TODO: improve
 
-    return beMap.values().stream().collect(Collectors.toList());
+    return eeResults;
   }
 
   public Long findBaseEntitysByAttributeValuesCount(final MultivaluedMap<String, String> params) {
