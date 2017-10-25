@@ -23,6 +23,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -447,10 +448,13 @@ public class QwandaEndpoint {
       targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
     }
 
+    Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
+
+
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
-    final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
-
+    QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
+    msg.setTotal(total);
     return Response.status(200).entity(msg).build();
   }
 
@@ -486,14 +490,17 @@ public class QwandaEndpoint {
     final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true,
         pageStart, pageSize, level, qparams);
 
-    for (final BaseEntity be : targets) {
-      System.out.println("\n" + be.getCode() + " + attributes");
-      be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
-    }
+    // for (final BaseEntity be : targets) {
+    // System.out.println("\n" + be.getCode() + " + attributes");
+    // be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+    // }
+
+    Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
+
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     beArr = targets.toArray(beArr);
-    final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
-
+    QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
+    msg.setTotal(total);
     return Response.status(200).entity(msg).build();
   }
 
@@ -532,6 +539,21 @@ public class QwandaEndpoint {
 
     return Response.status(200).entity(msg).build();
   }
+
+  @GET
+  @Path("/baseentitys/importkeycloak")
+  @Produces("application/json")
+  // user MUST BE SUPERADMIN
+  public Response importKeycloakUsers(@QueryParam("keycloakurl") final String keycloakUrl,
+      @QueryParam("realm") final String realm, @QueryParam("username") final String username,
+      @QueryParam("password") final String password, @QueryParam("clientid") final String clientId,
+      @QueryParam("max") final Integer max) {
+
+    Long usersAddedCount =
+        service.importKeycloakUsers(keycloakUrl, realm, username, password, clientId, max);
+    return Response.status(200).entity(usersAddedCount).build();
+  }
+
 
   @POST
   @Path("/baseentitys/uploadcsv")

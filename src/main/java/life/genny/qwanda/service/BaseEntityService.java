@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
+import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,15 +26,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Decoder;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
@@ -190,6 +194,32 @@ public class BaseEntityService {
       return existing.getId();
     }
     return validation.getId();
+  }
+
+  public AnswerLink insert(final AnswerLink answerLink) {
+    // always check if rule exists through check for unique code
+    try {
+      helper.getEntityManager().persist(answerLink);
+      // baseEntityEventSrc.fire(entity);
+
+    } catch (final EntityExistsException e) {
+      // so update otherwise // TODO merge?
+      AnswerLink existing = findAnswerLinkByCodes(answerLink.getTargetCode(),
+          answerLink.getSourceCode(), answerLink.getAttributeCode());
+      existing.setValueString(answerLink.getValueString());
+      existing.setExpired(answerLink.getExpired());
+      existing.setRefused(answerLink.getRefused());
+      existing.setValueBoolean(answerLink.getValueBoolean());
+      existing.setValueDateTime(answerLink.getValueDateTime());
+      existing.setValueDouble(answerLink.getValueDouble());
+      existing.setValueLong(answerLink.getValueLong());
+      existing.setWeight(answerLink.getWeight());
+
+      existing = helper.getEntityManager().merge(existing);
+      return existing;
+
+    }
+    return answerLink;
   }
 
   public Long insert(final Answer answer) {
@@ -493,7 +523,17 @@ public class BaseEntityService {
     final Validation result = (Validation) helper.getEntityManager()
         .createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", co)
         .getSingleResult();
-    System.out.println("8878978978978977987897987987987" + result);
+    // System.out.println("8878978978978977987897987987987" + result);
+    return result;
+  }
+
+  public AttributeLink findAttributeLinkByCode(@NotNull final String code)
+      throws NoResultException {
+
+    final AttributeLink result = (AttributeLink) helper.getEntityManager()
+        .createQuery("SELECT a FROM AttributeLink a where a.code=:code")
+        .setParameter("code", code.toUpperCase()).getSingleResult();
+
     return result;
   }
 
@@ -571,17 +611,21 @@ public class BaseEntityService {
       } else {
         System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
         String eaStrings = "";
-        String eaStringsQ = "(";
-        for (int i = 0; i < (pairCount); i++) {
-          eaStrings += ",EntityAttribute ea" + i;
-          eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+        String eaStringsQ = "";
+        if (pairCount > 0) {
+          eaStringsQ = "(";
+          for (int i = 0; i < (pairCount); i++) {
+            eaStrings += ",EntityAttribute ea" + i;
+            eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+          }
+          eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+          eaStringsQ += ") and ";
         }
-        eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
-        eaStringsQ += ")";
+
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
-            + " and ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + "  ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -639,17 +683,174 @@ public class BaseEntityService {
     } else {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
-      eeResults = helper.getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
-          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
+      // ugly and insecure
+      final Integer pairCount = params.size();
+      if (pairCount == 0) {
+        eeResults = helper.getEntityManager().createQuery(
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+            .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+
+
+      } else {
+        System.out.println("PAIR COUNT  " + pairCount);
+        String eaStrings = "";
+        String eaStringsQ = "";
+        if (pairCount > 0) {
+          eaStringsQ = "(";
+          for (int i = 0; i < (pairCount); i++) {
+            eaStrings += ",EntityAttribute ea" + i;
+            eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+          }
+          eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+          eaStringsQ += ") and ";
+        }
+
+        String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
+            + "  where " + eaStringsQ
+            + " ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+        int attributeCodeIndex = 0;
+        int valueIndex = 0;
+        final List<String> attributeCodeList = new ArrayList<String>();
+        final List<String> valueList = new ArrayList<String>();
+
+        for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+          if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
+            continue;
+          }
+          final List<String> qvalueList = entry.getValue();
+          if (!qvalueList.isEmpty()) {
+            // create the value or
+            String valueQuery = "(";
+            for (final String value : qvalueList) {
+              valueQuery +=
+                  "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or ";
+              valueList.add(valueIndex, value);
+              valueIndex++;
+            }
+            // remove last or
+
+            valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+
+            valueQuery += ")";
+            attributeCodeList.add(attributeCodeIndex, entry.getKey());
+            if (attributeCodeIndex > 0) {
+              queryStr += " and ";
+            }
+            queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
+                + attributeCodeIndex + " and " + valueQuery;
+            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+          }
+          attributeCodeIndex++;
+
+        }
+        System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+        final Query query = helper.getEntityManager().createQuery(queryStr);
+        int index = 0;
+        for (final String attributeParm : attributeCodeList) {
+          query.setParameter("attributeCode" + index, attributeParm);
+          System.out.println("attributeCode" + index + "=:" + attributeParm);
+          index++;
+        }
+        index = 0;
+        for (final String valueParm : valueList) {
+          query.setParameter("valueString" + index, valueParm);
+          System.out.println("valueString" + index + "=:" + valueParm);
+          index++;
+        }
+        query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+
+        query.setFirstResult(pageStart).setMaxResults(pageSize);
+        eeResults = query.getResultList();
+        for (BaseEntity be : eeResults) {
+          be.setBaseEntityAttributes(null); // ugly
+        }
+
+      }
 
     }
     // TODO: improve
 
     return eeResults;
   }
+
+  public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode,
+      final String linkCode, final MultivaluedMap<String, String> params) {
+
+    Long total = 0L;
+    final Integer pairCount = params.size();
+    System.out.println("PAIR COUNT IS " + pairCount);
+    String eaStrings = "";
+    String eaStringsQ = "";
+    if (pairCount > 0) {
+      eaStringsQ = "(";
+      for (int i = 0; i < (pairCount); i++) {
+        eaStrings += ",EntityAttribute ea" + i;
+        eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+      }
+      eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+      eaStringsQ += ") and ";
+    }
+
+
+
+    String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
+        + "  where " + eaStringsQ
+        + "  ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
+    int attributeCodeIndex = 0;
+    int valueIndex = 0;
+    final List<String> attributeCodeList = new ArrayList<String>();
+    final List<String> valueList = new ArrayList<String>();
+
+    for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+      final List<String> qvalueList = entry.getValue();
+      if (!qvalueList.isEmpty()) {
+        // create the value or
+        String valueQuery = "(";
+        for (final String value : qvalueList) {
+          valueQuery +=
+              "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or ";
+          valueList.add(valueIndex, value);
+          valueIndex++;
+        }
+        // remove last or
+        valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+        valueQuery += ")";
+        attributeCodeList.add(attributeCodeIndex, entry.getKey());
+        if (attributeCodeIndex > 0) {
+          queryStr += " and ";
+        }
+        queryStr += " and  ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
+            + attributeCodeIndex + " and " + valueQuery;
+        System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+      }
+      attributeCodeIndex++;
+
+    }
+    System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+    final Query query = helper.getEntityManager().createQuery(queryStr);
+    int index = 0;
+    for (final String attributeParm : attributeCodeList) {
+      query.setParameter("attributeCode" + index, attributeParm);
+      System.out.println("attributeCode" + index + "=:" + attributeParm);
+      index++;
+    }
+    index = 0;
+    for (final String valueParm : valueList) {
+      query.setParameter("valueString" + index, valueParm);
+      System.out.println("valueString" + index + "=:" + valueParm);
+      index++;
+    }
+    query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+
+
+    total = (Long) query.getSingleResult();
+
+
+    return total;
+  }
+
 
   public Setup setup(final KeycloakSecurityContext kContext) {
     final Setup setup = new Setup();
@@ -697,7 +898,8 @@ public class BaseEntityService {
 
 
   public void importKeycloakUsers(final List<Group> parentGroupList,
-      final AttributeLink linkAttribute) throws IOException, BadDataException {
+      final AttributeLink linkAttribute, final Integer maxReturned)
+      throws IOException, BadDataException {
 
 
     final Map<String, String> envParams = System.getenv();
@@ -714,7 +916,7 @@ public class BaseEntityService {
 
     final KeycloakService kcs =
         new KeycloakService(keycloakUrl, realm, username, password, clientid, secret);
-    final List<LinkedHashMap> users = kcs.fetchKeycloakUsers();
+    final List<LinkedHashMap> users = kcs.fetchKeycloakUsers(maxReturned);
     for (final LinkedHashMap user : users) {
       final String name = user.get("firstName") + " " + user.get("lastName");
       final Person newUser = new Person(name);
@@ -1409,6 +1611,114 @@ public class BaseEntityService {
     // TODO: improve
 
     return beMap.values().stream().collect(Collectors.toList());
+  }
+
+  public Long importKeycloakUsers(final String keycloakUrl, final String realm,
+      final String username, final String password, final String clientId,
+      final Integer maxReturned) {
+    Long count = 0L;
+
+    AttributeLink linkAttribute = this.findAttributeLinkByCode("LNK_CORE");
+    BaseEntity userGroup = this.findBaseEntityByCode("GRP_USERS"); // careful as GRPUSERS needs to
+                                                                   // exist!
+    BaseEntity contactsGroup = this.findBaseEntityByCode("GRP_CONTACTS"); // careful as GRPCONTACTS
+                                                                          // needs to exist!
+
+    List<BaseEntity> parentGroupList = new ArrayList<BaseEntity>();
+    parentGroupList.add(userGroup);
+    parentGroupList.add(contactsGroup);
+
+    KeycloakService ks;
+    final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
+
+    try {
+      ks = new KeycloakService(keycloakUrl, realm, username, password, clientId);
+      final List<LinkedHashMap> users = ks.fetchKeycloakUsers(maxReturned);
+      for (final Object user : users) {
+        final LinkedHashMap map = (LinkedHashMap) user;
+        final Map<String, Object> userMap = new HashMap<String, Object>();
+        for (final Object key : map.keySet()) {
+          // System.out.println(key + ":" + map.get(key));
+          userMap.put((String) key, map.get(key));
+
+        }
+        usersMap.put((String) userMap.get("username"), userMap);
+        System.out.println();
+      }
+
+      System.out.println("finished");
+    } catch (final IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    for (final String kcusername : usersMap.keySet()) {
+      final MultivaluedMap params = new MultivaluedMapImpl();
+      params.add("PRI_USERNAME", kcusername);
+      final Map<String, Object> userMap = usersMap.get(kcusername);
+
+      final List<BaseEntity> users = findBaseEntitysByAttributeValues(params, true, 0, 1);
+      if (users.isEmpty()) {
+        final String code = "PER_CH40_" + username;
+        String firstName = (String) userMap.get("firstName");
+        firstName = firstName.replaceAll("\\.", " "); // replace dots
+        firstName = firstName.replaceAll("\\_", " "); // replace dots
+        String lastName = (String) userMap.get("lastName");
+        lastName = lastName.replaceAll("\\.", " "); // replace dots
+        lastName = lastName.replaceAll("\\_", " "); // replace dots
+        String name = firstName + " " + lastName;
+
+        final String email = (String) userMap.get("email");
+        final String id = (String) userMap.get("id");
+        final Long unixSeconds = (Long) userMap.get("createdTimestamp");
+        final Date date = new Date(unixSeconds); // *1000 is to convert seconds to milliseconds
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z"); // the format of
+                                                                                    // your date
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT+10")); // give a timezone reference for formating
+        sdf.format(date);
+        final Attribute firstNameAtt = findAttributeByCode("PRI_FIRSTNAME");
+        final Attribute lastNameAtt = findAttributeByCode("PRI_LASTNAME");
+        final Attribute nameAtt = findAttributeByCode("PRI_NAME");
+        final Attribute emailAtt = findAttributeByCode("PRI_EMAIL");
+        final Attribute uuidAtt = findAttributeByCode("PRI_UUID");
+        final Attribute usernameAtt = findAttributeByCode("PRI_USERNAME");
+
+        try {
+          final BaseEntity user = new BaseEntity(code, name);
+
+          user.addAttribute(firstNameAtt, 0.0, firstName);
+          user.addAttribute(lastNameAtt, 0.0, lastName);
+          user.addAttribute(nameAtt, 0.0, name);
+          user.addAttribute(emailAtt, 0.0, email);
+          user.addAttribute(uuidAtt, 0.0, id);
+          user.addAttribute(usernameAtt, 0.0, kcusername);
+          insert(user);
+
+          // Now link to groups
+          for (final BaseEntity parent : parentGroupList) {
+            if (!parent.containsTarget(user.getCode(), linkAttribute.getCode())) {
+              parent.addTarget(user, linkAttribute, 1.0);
+            }
+          }
+          count++;
+          System.out.println("BE:" + user);
+        } catch (final BadDataException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+
+      } else {
+        users.get(0);
+      }
+
+    }
+
+    // now save the parents
+    for (BaseEntity parent : parentGroupList) {
+      parent = helper.getEntityManager().merge(parent);
+    }
+
+    return count;
   }
 
 }

@@ -49,6 +49,22 @@ public class KeycloakService {
   Keycloak keycloak = null;
 
   public KeycloakService(final String keycloakUrl, final String realm, final String username,
+      final String password, final String clientid) throws IOException {
+
+
+    this.keycloakUrl = keycloakUrl;
+    this.realm = realm;
+    this.username = username;
+    this.password = password;
+    this.clientid = clientid;
+    this.secret = "public";
+
+
+    accessToken = getToken();
+
+  }
+
+  public KeycloakService(final String keycloakUrl, final String realm, final String username,
       final String password, final String clientid, final String secret) throws IOException {
 
 
@@ -79,8 +95,10 @@ public class KeycloakService {
       formParams.add(new BasicNameValuePair("username", username));
       formParams.add(new BasicNameValuePair("password", password));
       formParams.add(new BasicNameValuePair(OAuth2Constants.GRANT_TYPE, "password"));
-      formParams.add(new BasicNameValuePair(OAuth2Constants.CLIENT_ID, "security-admin-console"));
-      formParams.add(new BasicNameValuePair(OAuth2Constants.CLIENT_SECRET, secret));
+      formParams.add(new BasicNameValuePair(OAuth2Constants.CLIENT_ID, "admin-cli"));
+      if (!this.secret.equals("public")) {
+        formParams.add(new BasicNameValuePair(OAuth2Constants.CLIENT_SECRET, secret));
+      }
       final UrlEncodedFormEntity form = new UrlEncodedFormEntity(formParams, "UTF-8");
 
       post.setEntity(form);
@@ -128,11 +146,11 @@ public class KeycloakService {
 
   }
 
-  public List<LinkedHashMap> fetchKeycloakUsers() {
+  public List<LinkedHashMap> fetchKeycloakUsers(final Integer maxReturned) {
     final HttpClient client = new DefaultHttpClient();
     try {
-      final HttpGet get =
-          new HttpGet(this.keycloakUrl + "/auth/admin/realms/" + this.realm + "/users");
+      final HttpGet get = new HttpGet(
+          this.keycloakUrl + "/auth/admin/realms/" + this.realm + "/users?max=" + maxReturned);
       get.addHeader("Authorization", "Bearer " + this.accessToken.getToken());
       try {
         final HttpResponse response = client.execute(get);
