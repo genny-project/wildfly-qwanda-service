@@ -264,7 +264,7 @@ public class BaseEntityService {
       AnswerLink answerLink = null;
       try {
         answerLink = beTarget.addAnswer(answer, 1.0);
-        answerLink = update(answerLink);
+        answerLink = insert(answerLink);
         update(beTarget);
       } catch (final BadDataException e) {
         // TODO Auto-generated catch block
@@ -601,7 +601,7 @@ public class BaseEntityService {
 
       // ugly and insecure
       final Integer pairCount = params.size();
-      if (pairCount.equals(0)) {
+      if (pairCount == 0) {
         eeResults = helper.getEntityManager().createQuery(
             "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
@@ -763,10 +763,10 @@ public class BaseEntityService {
 
         query.setFirstResult(pageStart).setMaxResults(pageSize);
         eeResults = query.getResultList();
-        for (BaseEntity be : eeResults) {
-          be.setBaseEntityAttributes(null); // ugly
-        }
 
+      }
+      for (BaseEntity be : eeResults) {
+        be.setBaseEntityAttributes(null); // ugly
       }
 
     }
@@ -1409,7 +1409,7 @@ public class BaseEntityService {
 
       // ugly and insecure
       final Integer pairCount = params.size();
-      if (pairCount.equals(0)) {
+      if (pairCount == 0) {
         eeResults = helper.getEntityManager()
             .createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee ") // add
                                                                                                     // company
@@ -1507,7 +1507,7 @@ public class BaseEntityService {
 
     // ugly and insecure
     final Integer pairCount = params.size();
-    if (pairCount.equals(0)) {
+    if (pairCount == 0) {
       result = (Long) helper.getEntityManager()
           .createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
           .getSingleResult();
