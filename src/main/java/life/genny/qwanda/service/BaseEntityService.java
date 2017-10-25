@@ -219,7 +219,7 @@ public class BaseEntityService {
       }
 
       System.out.println("Found Source:" + beSource.getCode() + " AND Target:" + beTarget.getCode()
-          + " and attribute:" + attribute.getCode());
+          + " and attribute:" + attribute.getCode() + " with value [" + answer.getValue() + "]");
       // now look for existing answerlink
       answer.setAsk(ask);
       if (ask == null) {
