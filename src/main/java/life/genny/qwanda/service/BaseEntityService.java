@@ -34,7 +34,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
@@ -231,32 +230,16 @@ public class BaseEntityService {
       helper.getEntityManager().persist(answer);
       // update answerlink
 
-      // check if answerlink already there
+
       AnswerLink answerLink = null;
-
       try {
-        answerLink = findAnswerLinkByCodes(beTarget.getCode(), beSource.getCode(),
-            answer.getAttributeCode());
-        System.out.println("Merging AnswerLink");
-        answerLink.setAnswer(answer);
-        answerLink = helper.getEntityManager().merge(answerLink);
-
-      } catch (NoResultException e) {
-
-        answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
-        beTarget = helper.getEntityManager().merge(beTarget);
-        System.out.println("AnswerLink added to Target");
+        answerLink = beTarget.addAnswer(answer, 1.0);
+        answerLink = update(answerLink);
+        update(beTarget);
+      } catch (final BadDataException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
-
-      // if (answerLink == null) {
-      //// answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
-      //// beTarget = helper.getEntityManager().merge(beTarget);
-      //// System.out.println("AnswerLink added to Target");
-      // } else {
-      // System.out.println("Merging AnswerLink");
-      // answerLink.setAnswer(answer);
-      // answerLink = helper.getEntityManager().merge(answerLink);
-      // }
 
       if (ask != null) {
         if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
@@ -268,7 +251,6 @@ public class BaseEntityService {
       // baseEntityEventSrc.fire(entity);
 
 
-    } catch (final BadDataException e) {
 
     } catch (final EntityExistsException e) {
       System.out.println("Answer Insert EntityExistsException");
@@ -278,16 +260,16 @@ public class BaseEntityService {
       if (answer.getAskId() != null) {
         final Ask ask = findAskById(answer.getAsk().getId());
         BaseEntity be = ask.getTarget();
-        final Set<AnswerLink> answerLinks = be.getAnswers();
+        be.getAnswers();
         // dumbly check if existing answerLink there
-        for (final AnswerLink al : answerLinks) { // watch for duplicates
-          if (al.getAsk().getId().equals(ask.getId())) {
-            if (al.getCreated().equals(answer.getCreated())) {
-              // this is the same answer
-              al.setExpired(answer.getExpired());
-            }
-          }
-        }
+        // for (final AnswerLink al : answerLinks) { // watch for duplicates
+        // if (al.getAsk().getId().equals(ask.getId())) {
+        // if (al.getCreated().equals(answer.getCreated())) {
+        // // this is the same answer
+        // al.setExpired(answer.getExpired());
+        // }
+        // }
+        // }
         be = helper.getEntityManager().merge(be);
       }
       return existing.getId();
@@ -296,7 +278,16 @@ public class BaseEntityService {
     return answer.getId();
   }
 
-
+  public AnswerLink update(AnswerLink answerLink) {
+    // always check if answerLink exists through check for unique code
+    try {
+      answerLink = helper.getEntityManager().merge(answerLink);
+    } catch (final IllegalArgumentException e) {
+      // so persist otherwise
+      helper.getEntityManager().persist(answerLink);
+    }
+    return answerLink;
+  }
 
   public Long insert(final BaseEntity entity) {
     // always check if baseentity exists through check for unique code
