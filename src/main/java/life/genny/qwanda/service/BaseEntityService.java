@@ -122,8 +122,13 @@ public class BaseEntityService {
   public Long insert(final Ask ask) {
     // always check if question exists through check for unique code
     try {
+      this.findBaseEntityByCode(ask.getSourceCode());
+      this.findBaseEntityByCode(ask.getTargetCode());
+      if (ask.getQuestion() == null) {
+        Question question = this.findQuestionByCode(ask.getQuestionCode());
+        ask.setQuestion(question);
+      }
       helper.getEntityManager().persist(ask);
-      System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
@@ -595,13 +600,14 @@ public class BaseEntityService {
 
     final List<BaseEntity> eeResults;
     new HashMap<String, BaseEntity>();
-
+    System.out.println("findChildrenByAttributeLink");
     if (includeAttributes) {
-
+      System.out.println("findChildrenByAttributeLink - includesAttributes");
 
       // ugly and insecure
       final Integer pairCount = params.size();
-      if (pairCount == 0) {
+      if (pairCount.equals(0)) {
+        System.out.println("findChildrenByAttributeLink - PairCount==0");
         eeResults = helper.getEntityManager().createQuery(
             "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
@@ -609,7 +615,7 @@ public class BaseEntityService {
 
 
       } else {
-        System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
+        System.out.println("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
         String eaStrings = "";
         String eaStringsQ = "";
         if (pairCount > 0) {
@@ -654,17 +660,19 @@ public class BaseEntityService {
             }
             queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
                 + attributeCodeIndex + " and " + valueQuery;
-            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+            System.out.println("findChildrenByAttributeLink Key : " + entry.getKey() + " Value : "
+                + entry.getValue());
           }
           attributeCodeIndex++;
 
         }
-        System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+        System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
         final Query query = helper.getEntityManager().createQuery(queryStr);
         int index = 0;
         for (final String attributeParm : attributeCodeList) {
           query.setParameter("attributeCode" + index, attributeParm);
-          System.out.println("attributeCode" + index + "=:" + attributeParm);
+          System.out
+              .println("findChildrenByAttributeLink attributeCode" + index + "=:" + attributeParm);
           index++;
         }
         index = 0;
@@ -681,12 +689,13 @@ public class BaseEntityService {
 
       }
     } else {
-      Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+      System.out.println("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
 
       // ugly and insecure
       final Integer pairCount = params.size();
-      if (pairCount == 0) {
+      if (pairCount.equals(0)) {
+
         eeResults = helper.getEntityManager().createQuery(
             "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
@@ -694,7 +703,7 @@ public class BaseEntityService {
 
 
       } else {
-        System.out.println("PAIR COUNT  " + pairCount);
+        System.out.println("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
         String eaStrings = "";
         String eaStringsQ = "";
         if (pairCount > 0) {
@@ -740,12 +749,13 @@ public class BaseEntityService {
             }
             queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
                 + attributeCodeIndex + " and " + valueQuery;
-            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+            System.out.println("findChildrenByAttributeLink Key : " + entry.getKey() + " Value : "
+                + entry.getValue());
           }
           attributeCodeIndex++;
 
         }
-        System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+        System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
         final Query query = helper.getEntityManager().createQuery(queryStr);
         int index = 0;
         for (final String attributeParm : attributeCodeList) {
@@ -763,11 +773,12 @@ public class BaseEntityService {
 
         query.setFirstResult(pageStart).setMaxResults(pageSize);
         eeResults = query.getResultList();
+        System.out.println("findChildrenByAttributeLink NULL THE ATTRIBUTES");
+        // for (BaseEntity be : eeResults) {
+        // be.setBaseEntityAttributes(null); // ugly
+        // }
+      }
 
-      }
-      for (BaseEntity be : eeResults) {
-        be.setBaseEntityAttributes(null); // ugly
-      }
 
     }
     // TODO: improve
@@ -780,7 +791,7 @@ public class BaseEntityService {
 
     Long total = 0L;
     final Integer pairCount = params.size();
-    System.out.println("PAIR COUNT IS " + pairCount);
+    System.out.println("findChildrenByAttributeLinkCount PAIR COUNT IS " + pairCount);
     String eaStrings = "";
     String eaStringsQ = "";
     if (pairCount > 0) {
@@ -828,7 +839,7 @@ public class BaseEntityService {
       attributeCodeIndex++;
 
     }
-    System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+    System.out.println("findChildrenByAttributeLinkCount KIDS + ATTRIBUTE Query=" + queryStr);
     final Query query = helper.getEntityManager().createQuery(queryStr);
     int index = 0;
     for (final String attributeParm : attributeCodeList) {
@@ -1409,7 +1420,7 @@ public class BaseEntityService {
 
       // ugly and insecure
       final Integer pairCount = params.size();
-      if (pairCount == 0) {
+      if (pairCount.equals(0)) {
         eeResults = helper.getEntityManager()
             .createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee ") // add
                                                                                                     // company
@@ -1507,7 +1518,7 @@ public class BaseEntityService {
 
     // ugly and insecure
     final Integer pairCount = params.size();
-    if (pairCount == 0) {
+    if (pairCount.equals(0)) {
       result = (Long) helper.getEntityManager()
           .createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
           .getSingleResult();

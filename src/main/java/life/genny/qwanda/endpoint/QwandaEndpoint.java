@@ -121,6 +121,9 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/asks")
   public Response create(final Ask entity) {
+
+    // Fetch the associated BaseEntitys and Question
+
     service.insert(entity);
     return Response.created(
         UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
@@ -490,10 +493,10 @@ public class QwandaEndpoint {
     final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true,
         pageStart, pageSize, level, qparams);
 
-    // for (final BaseEntity be : targets) {
-    // System.out.println("\n" + be.getCode() + " + attributes");
-    // be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
-    // }
+    for (final BaseEntity be : targets) {
+      System.out.println("\n" + be.getCode() + " + attributes");
+      be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+    }
 
     Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
 
