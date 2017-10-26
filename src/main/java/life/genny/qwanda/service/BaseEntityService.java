@@ -1632,8 +1632,8 @@ public class BaseEntityService {
     AttributeLink linkAttribute = this.findAttributeLinkByCode("LNK_CORE");
     BaseEntity userGroup = this.findBaseEntityByCode("GRP_USERS"); // careful as GRPUSERS needs to
                                                                    // exist!
-    BaseEntity contactsGroup = this.findBaseEntityByCode("GRP_CONTACTS"); // careful as GRPCONTACTS
-                                                                          // needs to exist!
+    BaseEntity contactsGroup = this.findBaseEntityByCode("GRP_PEOPLE"); // careful as GRPCONTACTS
+                                                                        // needs to exist!
 
     List<BaseEntity> parentGroupList = new ArrayList<BaseEntity>();
     parentGroupList.add(userGroup);
