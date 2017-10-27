@@ -52,7 +52,7 @@
 	<repositories>
 		<repository>
 			<id>JBoss repository</id>
-			<url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+			<url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
 		</repository>
 	</repositories>
 	<dependencies>
