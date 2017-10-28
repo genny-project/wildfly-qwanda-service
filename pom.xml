@@ -56,7 +56,7 @@
 		</repository>
 		<repository>
 			<id>outcomelife</id>
-			<url>https://nexus.outcome-hub.com/nexus/content/repositories/outcomelife</url>
+			<url>http://nexus.outcome-hub.com/nexus/content/repositories/outcomelife</url>
 		</repository>
 
 	</repositories>
