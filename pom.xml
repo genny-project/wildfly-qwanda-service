@@ -51,8 +51,8 @@
 
 	<repositories>
 		<repository>
-			<id>Genny-Project</id>
-			<url>https://nexus.outcome-hub.com/nexus/content/repositories/outcomelife</url>
+			<id>life.genny</id>
+			<url>https://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
 		</repository>
 		<repository>
 			<id>JBoss repository</id>
