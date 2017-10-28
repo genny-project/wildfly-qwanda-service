@@ -52,7 +52,7 @@
 	<repositories>
 		<repository>
 			<id>outcomelife</id>
-			<url>http://nexus.outcome-hub.com/nexus/content/repositories/outcomelife</url>
+			<url>https://nexus.outcome-hub.com/nexus/content/repositories/outcomelife</url>
 		</repository>
 		<repository>
 			<id>JBoss repository</id>
