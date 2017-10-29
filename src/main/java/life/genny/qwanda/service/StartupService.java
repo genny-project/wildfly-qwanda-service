@@ -1,17 +1,17 @@
 package life.genny.qwanda.service;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
-import javax.persistence.NoResultException;
-import javax.persistence.OptimisticLockException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.inject.Inject;
+import javax.persistence.NoResultException;
+import javax.persistence.OptimisticLockException;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -229,7 +229,28 @@ public class StartupService {
       });
     }
 
-
+    List<Map> obj4 = null;
+    try {
+      obj4 = gennySheets.row2DoubleTuples(Question.class.getSimpleName());
+    } catch (final IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    obj4.stream().map(object -> {
+      final Map<String, Question> map = new HashMap<String, Question>();
+      final String code = (String) object.get("code");
+      final String name = (String) object.get("name");
+      final String attrCode = (String) object.get("attribute_code");
+      Attribute attr;
+      attr = service.findAttributeByCode(attrCode);
+      final Question q = new Question(code, name, attr);
+      service.insert(q);
+      map.put(code, q);
+      return map;
+    }).reduce((ac, acc) -> {
+      ac.putAll(acc);
+      return ac;
+    }).get();
 
   }
 
