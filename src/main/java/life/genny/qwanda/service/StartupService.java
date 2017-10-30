@@ -229,6 +229,9 @@ public class StartupService {
       });
     }
 
+    System.out.println(
+        "**************************** IMPORTING QUESTION - QUESTION*************************************");
+
     List<Map> obj4 = null;
     try {
       obj4 = gennySheets.row2DoubleTuples(Question.class.getSimpleName());
@@ -251,6 +254,41 @@ public class StartupService {
       ac.putAll(acc);
       return ac;
     }).get();
+
+    System.out.println(
+        "**************************** IMPORTING ASK - ASK*************************************");
+
+    List<Map> obj5 = null;
+    try {
+      obj5 = gennySheets.row2DoubleTuples(Ask.class.getSimpleName());
+    } catch (final IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    obj5.stream().map(object -> {
+      final Map<String, Ask> map = new HashMap<String, Ask>();
+      final String qCode = (String) object.get("question_code");
+      final String name = (String) object.get("name");
+      final String sourceCode = (String) object.get("sourceCode");
+      final String targetCode = (String) object.get("targetCode");
+      object.get("refused");
+      object.get("expired");
+
+
+      Question q;
+      q = service.findQuestionByCode(qCode);
+      final BaseEntity sourceObj = service.findBaseEntityByCode(sourceCode);
+      final BaseEntity targetObj = service.findBaseEntityByCode(targetCode);
+      final Ask a = new Ask(q, sourceObj, targetObj);
+      a.setName(name);
+      service.insert(a);
+      map.put(q.getCode() + sourceObj.getCode(), a);
+      return map;
+    }).reduce((ac, acc) -> {
+      ac.putAll(acc);
+      return ac;
+    }).get();
+
 
   }
 
