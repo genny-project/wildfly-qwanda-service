@@ -298,11 +298,12 @@ public class QwandaEndpoint {
   }
 
   @GET
-  @Path("/baseentitys/{id}/answers")
+  @Path("/baseentitys/{targetCode}/answers")
   @ApiOperation(value = "answers", notes = "BaseEntity AnswerLinks")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<AnswerLink> fetchAnswersByTargetBaseEntityId(@PathParam("id") final Long id) {
-    final List<AnswerLink> items = service.findAnswersByTargetBaseEntityId(id);
+  public List<AnswerLink> fetchAnswersByTargetBaseEntityId(
+      @PathParam("targetCode") final String targetCode) {
+    final List<AnswerLink> items = service.findAnswersByTargetBaseEntityCode(targetCode);
     return items;
   }
 

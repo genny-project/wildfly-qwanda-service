@@ -1346,7 +1346,23 @@ public class BaseEntityService {
 
   }
 
+  public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
+    final List<AnswerLink> results = helper.getEntityManager()
+        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.code=:baseEntityCode")
+        .setParameter("baseEntityCode", targetCode).getResultList();
 
+    return results;
+
+  }
+
+  public List<AnswerLink> findAnswersBySourceBaseEntityCode(final String sourceCode) {
+    final List<AnswerLink> results = helper.getEntityManager()
+        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
+        .setParameter("baseEntityCode", sourceCode).getResultList();
+
+    return results;
+
+  }
 
   public List<Question> findQuestions() throws NoResultException {
 
