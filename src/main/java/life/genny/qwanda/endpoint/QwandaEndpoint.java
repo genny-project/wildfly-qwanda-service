@@ -301,7 +301,7 @@ public class QwandaEndpoint {
   @Path("/baseentitys/{targetCode}/answers")
   @ApiOperation(value = "answers", notes = "BaseEntity AnswerLinks")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<AnswerLink> fetchAnswersByTargetBaseEntityId(
+  public List<AnswerLink> fetchAnswersByTargetBaseEntityCode(
       @PathParam("targetCode") final String targetCode) {
     final List<AnswerLink> items = service.findAnswersByTargetBaseEntityCode(targetCode);
     return items;
@@ -311,9 +311,9 @@ public class QwandaEndpoint {
   @Path("/answers")
   @ApiOperation(value = "answers", notes = "AnswerLinks")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<AnswerLink> fetchAnswerLinks() {
+  public Response fetchAnswerLinks() {
     final List<AnswerLink> items = service.findAnswerLinks();
-    return items;
+    return Response.status(200).entity(items).build();
   }
 
   // @GET
