@@ -46,7 +46,7 @@
 		<version.ee7>1.0.2.Final</version.ee7>
 		<version.resteasy>3.0.10.Final</version.resteasy>
 		<version.slf4j>1.7.21</version.slf4j>
-
+		<version.swagger>1.5.16</version.swagger>
 	</properties>
 
 	<repositories>
@@ -148,7 +148,7 @@
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-jaxrs</artifactId>
-			<version>1.5.0</version>
+			<version>${version.swagger}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.keycloak</groupId>
