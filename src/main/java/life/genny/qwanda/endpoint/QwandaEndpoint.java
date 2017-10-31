@@ -280,11 +280,20 @@ public class QwandaEndpoint {
 
 
   @GET
-  @Path("/baseentitys/{id}/asks/source")
+  @Path("/baseentitys/{code}/asks/source")
   @ApiOperation(value = "asks", notes = "Source BaseEntity Asks")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Ask> fetchAsksBySourceBaseEntityId(@PathParam("id") final Long id) {
-    final List<Ask> items = service.findAsksBySourceBaseEntityId(id);
+  public List<Ask> fetchAsksBySourceBaseEntityCode(@PathParam("code") final String code) {
+    final List<Ask> items = service.findAsksBySourceBaseEntityCode(code);
+    return items;
+  }
+
+  @GET
+  @Path("/baseentitys/{code}/asks/target")
+  @ApiOperation(value = "asks", notes = "Target BaseEntity Asks")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<Ask> fetchAsksByTargetBaseEntityCode(@PathParam("code") final String code) {
+    final List<Ask> items = service.findAsksByTargetBaseEntityCode(code);
     return items;
   }
 

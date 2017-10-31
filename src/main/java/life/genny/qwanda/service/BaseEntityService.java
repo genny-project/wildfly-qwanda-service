@@ -122,8 +122,8 @@ public class BaseEntityService {
   public Long insert(final Ask ask) {
     // always check if question exists through check for unique code
     try {
-      this.findBaseEntityByCode(ask.getSourceCode());
-      this.findBaseEntityByCode(ask.getTargetCode());
+      // BaseEntity source = this.findBaseEntityByCode(ask.getSourceCode());
+      // BaseEntity target = this.findBaseEntityByCode(ask.getTargetCode());
       if (ask.getQuestion() == null) {
         Question question = this.findQuestionByCode(ask.getQuestionCode());
         ask.setQuestion(question);
@@ -238,9 +238,9 @@ public class BaseEntityService {
       System.out.println("Answer:" + answer);
       if (answer.getAskId() != null) {
         ask = findAskById(answer.getAskId());
-        beTarget = ask.getTarget();
-        beSource = ask.getSource();
-        attribute = ask.getQuestion().getAttribute();
+        // beTarget = ask.getTarget();
+        // beSource = ask.getSource();
+        // attribute = ask.getQuestion().getAttribute();
         if (!((answer.getSourceCode().equals(beSource.getCode()))
             && (answer.getAttributeCode().equals(attribute.getCode()))
             && (answer.getTargetCode().equals(beTarget.getCode())))) {
@@ -256,7 +256,7 @@ public class BaseEntityService {
       System.out.println("Found Source:" + beSource.getCode() + " AND Target:" + beTarget.getCode()
           + " and attribute:" + attribute.getCode() + " with value [" + answer.getValue() + "]");
       // now look for existing answerlink
-      answer.setAsk(ask);
+      // answer.setAsk(ask);
       if (ask == null) {
         answer.setAttribute(attribute);
       }
@@ -277,11 +277,11 @@ public class BaseEntityService {
       }
 
       if (ask != null) {
-        if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
-          System.out.println("Ask does not have answerLink");
-          ask.getAnswerList().getAnswerList().add(answerLink);
-          ask = helper.getEntityManager().merge(ask);
-        }
+        // if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
+        // System.out.println("Ask does not have answerLink");
+        // ask.getAnswerList().getAnswerList().add(answerLink);
+        // ask = helper.getEntityManager().merge(ask);
+        // }
       }
       // baseEntityEventSrc.fire(entity);
 
@@ -292,21 +292,9 @@ public class BaseEntityService {
       // so update otherwise // TODO merge?
       Answer existing = findAnswerById(answer.getId());
       existing = helper.getEntityManager().merge(existing);
-      if (answer.getAskId() != null) {
-        final Ask ask = findAskById(answer.getAsk().getId());
-        BaseEntity be = ask.getTarget();
-        be.getAnswers();
-        // dumbly check if existing answerLink there
-        // for (final AnswerLink al : answerLinks) { // watch for duplicates
-        // if (al.getAsk().getId().equals(ask.getId())) {
-        // if (al.getCreated().equals(answer.getCreated())) {
-        // // this is the same answer
-        // al.setExpired(answer.getExpired());
-        // }
-        // }
-        // }
-        be = helper.getEntityManager().merge(be);
-      }
+      // if (answer.getAskId() != null) {
+      // findAskById(answer.getAsk().getId());
+      // }
       return existing.getId();
 
     }
@@ -1310,10 +1298,29 @@ public class BaseEntityService {
 
   }
 
+  public List<Ask> findAsksBySourceBaseEntityCode(final String code) {
+    final List<Ask> results = helper.getEntityManager()
+        .createQuery("SELECT ea FROM Ask ea where ea.source.code=:baseEntityCode")
+        .setParameter("baseEntityCode", code).getResultList();
+
+    return results;
+
+  }
+
+
   public List<Ask> findAsksByTargetBaseEntityId(final Long id) {
     final List<Ask> results = helper.getEntityManager()
         .createQuery("SELECT ea FROM Ask ea where ea.target.id=:baseEntityId")
         .setParameter("baseEntityId", id).getResultList();
+
+    return results;
+
+  }
+
+  public List<Ask> findAsksByTargetBaseEntityCode(final String code) {
+    final List<Ask> results = helper.getEntityManager()
+        .createQuery("SELECT ea FROM Ask ea where ea.target.code=:baseEntityCode")
+        .setParameter("baseEntityCode", code).getResultList();
 
     return results;
 
@@ -1374,8 +1381,8 @@ public class BaseEntityService {
 
   public List<Ask> findAsks() throws NoResultException {
 
-    final List<Ask> results =
-        helper.getEntityManager().createQuery("SELECT a FROM Ask a").getResultList();
+    final List<Ask> results = helper.getEntityManager()
+        .createQuery("SELECT a FROM Ask a JOIN a.question q").getResultList();
 
     return results;
   }

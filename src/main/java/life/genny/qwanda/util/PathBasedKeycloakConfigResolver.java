@@ -34,7 +34,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
   @Override
   public KeycloakDeployment resolve(final OIDCHttpFacade.Request request) {
     URL aURL = null;
-    String realm = "wildfly-swarm-keycloak-example";
+    String realm = "genny";
     String username = null;
 
     if (request != null) {
