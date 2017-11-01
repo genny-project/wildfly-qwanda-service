@@ -4,6 +4,7 @@ package life.genny.qwanda.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.json.JSONArray;
@@ -26,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -70,6 +72,11 @@ import life.genny.qwanda.validation.Validation;
 @Startup
 public class BaseEntityService {
 
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   @Inject
   private Event<BaseEntity> baseEntityEventSrc;
@@ -122,12 +129,15 @@ public class BaseEntityService {
   public Long insert(final Ask ask) {
     // always check if question exists through check for unique code
     try {
-      // BaseEntity source = this.findBaseEntityByCode(ask.getSourceCode());
-      // BaseEntity target = this.findBaseEntityByCode(ask.getTargetCode());
-      if (ask.getQuestion() == null) {
-        Question question = this.findQuestionByCode(ask.getQuestionCode());
-        ask.setQuestion(question);
-      }
+      // check that these bes exist
+      this.findBaseEntityByCode(ask.getSourceCode());
+      this.findBaseEntityByCode(ask.getTargetCode());
+      this.findAttributeByCode(ask.getAttributeCode());
+
+      // if (ask.getQuestion() == null) {
+      // Question question = this.findQuestionByCode(ask.getQuestionCode());
+      // ask.setQuestion(question);
+      // }
       helper.getEntityManager().persist(ask);
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
@@ -230,37 +240,24 @@ public class BaseEntityService {
   public Long insert(final Answer answer) {
     // always check if answer exists through check for unique code
     try {
-      BaseEntity beSource = null;
-      BaseEntity beTarget = null;
-      Attribute attribute = null;
+      findBaseEntityByCode(answer.getSourceCode());
+      BaseEntity beTarget = findBaseEntityByCode(answer.getTargetCode());
+
+      Attribute attribute = findAttributeByCode(answer.getAttributeCode());;
       Ask ask = null;
 
       System.out.println("Answer:" + answer);
       if (answer.getAskId() != null) {
         ask = findAskById(answer.getAskId());
-        // beTarget = ask.getTarget();
-        // beSource = ask.getSource();
-        // attribute = ask.getQuestion().getAttribute();
-        if (!((answer.getSourceCode().equals(beSource.getCode()))
-            && (answer.getAttributeCode().equals(attribute.getCode()))
-            && (answer.getTargetCode().equals(beTarget.getCode())))) {
-          return -1L; // need to throw error
+        if (!((answer.getSourceCode().equals(ask.getSourceCode()))
+            && (answer.getAttributeCode().equals(ask.getAttributeCode()))
+            && (answer.getTargetCode().equals(ask.getTargetCode())))) {
+          log.error("Answer codes do not match Ask codes! " + answer);
+          // return -1L; // need to throw error
         }
-      } else {
-        // Need to find source and target by their codes
-        beSource = findBaseEntityByCode(answer.getSourceCode());
-        beTarget = findBaseEntityByCode(answer.getTargetCode());
-        attribute = findAttributeByCode(answer.getAttributeCode());
       }
 
-      System.out.println("Found Source:" + beSource.getCode() + " AND Target:" + beTarget.getCode()
-          + " and attribute:" + attribute.getCode() + " with value [" + answer.getValue() + "]");
-      // now look for existing answerlink
-      // answer.setAsk(ask);
-      if (ask == null) {
-        answer.setAttribute(attribute);
-      }
-
+      answer.setAttribute(attribute);
 
       helper.getEntityManager().persist(answer);
       // update answerlink
@@ -1381,8 +1378,8 @@ public class BaseEntityService {
 
   public List<Ask> findAsks() throws NoResultException {
 
-    final List<Ask> results = helper.getEntityManager()
-        .createQuery("SELECT a FROM Ask a JOIN a.question q").getResultList();
+    final List<Ask> results =
+        helper.getEntityManager().createQuery("SELECT a FROM Ask a").getResultList();
 
     return results;
   }

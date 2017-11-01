@@ -11,6 +11,7 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
+import org.mortbay.log.Log;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
@@ -123,8 +124,25 @@ public class QwandaEndpoint {
   public Response create(final Ask entity) {
 
     // Fetch the associated BaseEntitys and Question
+    BaseEntity beSource = service.findBaseEntityByCode(entity.getSourceCode());
+    BaseEntity beTarget = service.findBaseEntityByCode(entity.getTargetCode());
+    Attribute attribute = service.findAttributeByCode(entity.getAttributeCode());
+    Question question = null;
+    Ask newAsk = null;
+    if (entity.getQuestionCode() != null) {
+      question = service.findQuestionByCode(entity.getQuestionCode());
+      newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
 
-    service.insert(entity);
+    } else {
+      newAsk =
+          new Ask(attribute.getCode(), beSource.getCode(), beTarget.getCode(), attribute.getName());
+
+    }
+    Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":"
+        + attribute.getCode() + ":" + (question == null ? "No Question" : question.getCode()));
+
+
+    service.insert(newAsk);
     return Response.created(
         UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
         .build();

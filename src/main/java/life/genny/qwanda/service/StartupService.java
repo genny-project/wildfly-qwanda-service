@@ -1,17 +1,17 @@
 package life.genny.qwanda.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -279,7 +279,7 @@ public class StartupService {
       q = service.findQuestionByCode(qCode);
       final BaseEntity sourceObj = service.findBaseEntityByCode(sourceCode);
       final BaseEntity targetObj = service.findBaseEntityByCode(targetCode);
-      final Ask a = new Ask(q, sourceObj, targetObj);
+      final Ask a = new Ask(q, sourceObj.getCode(), targetObj.getCode());
       a.setName(name);
       service.insert(a);
       map.put(q.getCode() + sourceObj.getCode(), a);
