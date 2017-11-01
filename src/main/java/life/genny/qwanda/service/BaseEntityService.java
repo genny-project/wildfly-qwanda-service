@@ -1701,8 +1701,9 @@ public class BaseEntityService {
 
       final List<BaseEntity> users = findBaseEntitysByAttributeValues(params, true, 0, 1);
       if (users.isEmpty()) {
-        final String code =
-            "PER_CH40_" + kcusername.toUpperCase().replaceAll("\\ ", "").replaceAll("\\.", "");
+        final String code = "PER_CH40_" + kcusername.toUpperCase().replaceAll("\\ ", "")
+            .replaceAll("\\.", "").replaceAll("\\&", "");
+        System.out.println("New User Code = " + code);
         String firstName = (String) userMap.get("firstName");
         firstName = firstName.replaceAll("\\.", " "); // replace dots
         firstName = firstName.replaceAll("\\_", " "); // replace dots
