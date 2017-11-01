@@ -1693,7 +1693,7 @@ public class BaseEntityService {
 
       final List<BaseEntity> users = findBaseEntitysByAttributeValues(params, true, 0, 1);
       if (users.isEmpty()) {
-        final String code = "PER_CH40_" + username;
+        final String code = "PER_CH40_" + kcusername.toUpperCase();
         String firstName = (String) userMap.get("firstName");
         firstName = firstName.replaceAll("\\.", " "); // replace dots
         firstName = firstName.replaceAll("\\_", " "); // replace dots
