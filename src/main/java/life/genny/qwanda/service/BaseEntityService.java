@@ -1649,18 +1649,26 @@ public class BaseEntityService {
 
   public Long importKeycloakUsers(final String keycloakUrl, final String realm,
       final String username, final String password, final String clientId,
-      final Integer maxReturned) {
+      final Integer maxReturned, final String parentGroupCodes) {
     Long count = 0L;
 
     AttributeLink linkAttribute = this.findAttributeLinkByCode("LNK_CORE");
-    BaseEntity userGroup = this.findBaseEntityByCode("GRP_USERS"); // careful as GRPUSERS needs to
-                                                                   // exist!
-    BaseEntity contactsGroup = this.findBaseEntityByCode("GRP_PEOPLE"); // careful as GRPCONTACTS
-                                                                        // needs to exist!
-
     List<BaseEntity> parentGroupList = new ArrayList<BaseEntity>();
-    parentGroupList.add(userGroup);
-    parentGroupList.add(contactsGroup);
+
+    String[] parentCodes = parentGroupCodes.split(",");
+    for (String parentCode : parentCodes) {
+      BaseEntity group = null;
+
+      try {
+        group = this.findBaseEntityByCode(parentCode); // careful as GRPUSERS needs to
+        parentGroupList.add(group);
+      } catch (NoResultException e) {
+        System.out.println("Group Code does not exist :" + parentCode);
+      }
+
+
+
+    }
 
     KeycloakService ks;
     final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
@@ -1693,7 +1701,8 @@ public class BaseEntityService {
 
       final List<BaseEntity> users = findBaseEntitysByAttributeValues(params, true, 0, 1);
       if (users.isEmpty()) {
-        final String code = "PER_CH40_" + kcusername.toUpperCase();
+        final String code =
+            "PER_CH40_" + kcusername.toUpperCase().replaceAll("\\ ", "").replaceAll("\\.", "");
         String firstName = (String) userMap.get("firstName");
         firstName = firstName.replaceAll("\\.", " "); // replace dots
         firstName = firstName.replaceAll("\\_", " "); // replace dots

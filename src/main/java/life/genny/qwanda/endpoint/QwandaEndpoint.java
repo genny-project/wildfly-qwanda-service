@@ -560,10 +560,11 @@ public class QwandaEndpoint {
   public Response importKeycloakUsers(@QueryParam("keycloakurl") final String keycloakUrl,
       @QueryParam("realm") final String realm, @QueryParam("username") final String username,
       @QueryParam("password") final String password, @QueryParam("clientid") final String clientId,
-      @QueryParam("max") final Integer max) {
+      @QueryParam("max") final Integer max,
+      @DefaultValue("GRP_USERS") @QueryParam("parentgroups") final String parentGroupCodes) {
 
-    Long usersAddedCount =
-        service.importKeycloakUsers(keycloakUrl, realm, username, password, clientId, max);
+    Long usersAddedCount = service.importKeycloakUsers(keycloakUrl, realm, username, password,
+        clientId, max, parentGroupCodes);
     return Response.status(200).entity(usersAddedCount).build();
   }
 
