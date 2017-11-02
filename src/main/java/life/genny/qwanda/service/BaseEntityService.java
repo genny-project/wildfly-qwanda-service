@@ -133,11 +133,10 @@ public class BaseEntityService {
       this.findBaseEntityByCode(ask.getSourceCode());
       this.findBaseEntityByCode(ask.getTargetCode());
       this.findAttributeByCode(ask.getAttributeCode());
-
-      // if (ask.getQuestion() == null) {
-      // Question question = this.findQuestionByCode(ask.getQuestionCode());
-      // ask.setQuestion(question);
-      // }
+      if (ask.getQuestionCode() != null) {
+        Question question = this.findQuestionByCode(ask.getQuestionCode());
+        ask.setQuestion(question);
+      }
       helper.getEntityManager().persist(ask);
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
@@ -1380,6 +1379,14 @@ public class BaseEntityService {
 
     final List<Ask> results =
         helper.getEntityManager().createQuery("SELECT a FROM Ask a").getResultList();
+
+    return results;
+  }
+
+  public List<Ask> findAsksWithQuestions() throws NoResultException {
+
+    final List<Ask> results = helper.getEntityManager()
+        .createQuery("SELECT a FROM Ask a JOIN a.question q").getResultList();
 
     return results;
   }

@@ -234,11 +234,13 @@ public class QwandaEndpoint {
   @GET
   @Path("/asks")
   public Response fetchAsks() {
-    final List<Ask> entitys = service.findAsks();
+    final List<Ask> entitys = service.findAsksWithQuestions();
 
     System.out.println(entitys + "kkkkk");
     return Response.status(200).entity(entitys).build();
   }
+
+
 
   @GET
   @Path("/asksmsg")
