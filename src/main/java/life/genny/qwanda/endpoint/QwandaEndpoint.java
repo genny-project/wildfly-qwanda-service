@@ -12,7 +12,8 @@ import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
-import javax.enterprise.context.RequestScoped;
+import javax.annotation.security.RolesAllowed;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.transaction.Transactional;
@@ -34,6 +35,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import io.swagger.annotations.Api;
@@ -51,6 +53,7 @@ import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.BaseEntityService;
+import life.genny.qwandautils.KeycloakUtils;
 
 
 
@@ -64,14 +67,17 @@ import life.genny.qwanda.service.BaseEntityService;
 @Api(value = "/qwanda", description = "Qwanda API", tags = "qwanda")
 @Produces(MediaType.APPLICATION_JSON)
 
-
-@RequestScoped
+@Stateless
+// @RequestScoped
 @Transactional
 
 public class QwandaEndpoint {
 
   @Context
   SecurityContext sc;
+
+  @Inject
+  private Principal principal;
 
   @Inject
   private BaseEntityService service;
@@ -101,6 +107,7 @@ public class QwandaEndpoint {
   @POST
   @Consumes("application/json")
   @Path("/attributes")
+
   public Response create(final Attribute entity) {
     service.insert(entity);
     return Response.created(
@@ -122,7 +129,8 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/asks")
   public Response create(final Ask entity) {
-
+    KeycloakSecurityContext user = getKeycloakUser();
+    System.out.println("User Realm is " + user.getRealm());
     // Fetch the associated BaseEntitys and Question
     BaseEntity beSource = service.findBaseEntityByCode(entity.getSourceCode());
     BaseEntity beTarget = service.findBaseEntityByCode(entity.getTargetCode());
@@ -145,6 +153,30 @@ public class QwandaEndpoint {
     service.insert(newAsk);
     return Response.created(
         UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        .build();
+  }
+
+  @POST
+  @Consumes("application/json")
+  @Path("/baseentitys/{sourceCode}/questions/{questionCode}/{targetCode}")
+  public Response createAsks(@PathParam("sourceCode") final String sourceCode,
+      @PathParam("questionCode") final String questionCode,
+      @PathParam("targetCode") final String targetCode, @Context final UriInfo uriInfo) {
+
+    // Fetch the associated BaseEntitys and Question
+    BaseEntity beSource = service.findBaseEntityByCode(sourceCode);
+    BaseEntity beTarget = service.findBaseEntityByCode(targetCode);
+    Question question = service.findQuestionByCode(questionCode);
+    Ask newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
+
+
+    Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":"
+        + question.getCode());
+
+
+    service.insert(newAsk);
+    return Response
+        .created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newAsk)).build())
         .build();
   }
 
@@ -223,6 +255,13 @@ public class QwandaEndpoint {
   }
 
   @GET
+  @Path("/questions/<questionCode}")
+  public Response fetchQuestions(@PathParam("questionCode") final String questionCode) {
+    final List<Question> entitys = service.findQuestions();
+    return Response.status(200).entity(entitys).build();
+  }
+
+  @GET
   @Path("/rules")
   public Response fetchRules() {
     final List<Rule> entitys = service.findRules();
@@ -233,9 +272,14 @@ public class QwandaEndpoint {
 
   @GET
   @Path("/asks")
+  @RolesAllowed("admin")
   public Response fetchAsks() {
+    System.out.println("hello " + principal);
+    KeycloakSecurityContext kc = getKeycloakUser();
+    System.out.println(kc.getRealm());;
     final List<Ask> entitys = service.findAsksWithQuestions();
-
+    Map<String, Object> user = KeycloakUtils.getJsonMap(kc.getTokenString());
+    System.out.println("User:" + user);
     System.out.println(entitys + "kkkkk");
     return Response.status(200).entity(entitys).build();
   }
@@ -639,5 +683,18 @@ public class QwandaEndpoint {
   }
 
 
+  private KeycloakSecurityContext getKeycloakUser() {
+    if (sc != null) {
+      if (sc.getUserPrincipal() != null) {
+        if (sc.getUserPrincipal() instanceof KeycloakPrincipal) {
+          final KeycloakPrincipal<KeycloakSecurityContext> kp =
+              (KeycloakPrincipal<KeycloakSecurityContext>) sc.getUserPrincipal();
+
+          return kp.getKeycloakSecurityContext();
+        }
+      }
+    }
+    throw new SecurityException("Unauthorised User");
+  }
 
 }
