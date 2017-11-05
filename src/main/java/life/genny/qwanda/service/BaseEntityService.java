@@ -1,6 +1,5 @@
 package life.genny.qwanda.service;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +12,6 @@ import org.json.JSONObject;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
 import javax.ejb.EJBException;
-import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -68,15 +66,23 @@ import life.genny.qwanda.validation.Validation;
  *
  * @author Adam Crow
  */
-@ApplicationScoped
-@Startup
-public class BaseEntityService {
 
+// @Startup
+
+@ApplicationScoped
+// @ConcurrencyManagement(javax.ejb.ConcurrencyManagementType.CONTAINER)
+// @Singleton
+
+public class BaseEntityService {
   /**
    * Stores logger object.
    */
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+
+  // @Inject
+  // SecurityService securityService;
 
   @Inject
   private Event<BaseEntity> baseEntityEventSrc;
@@ -127,17 +133,27 @@ public class BaseEntityService {
   }
 
   public Long insert(final Ask ask) {
+    // Fetch the associated BaseEntitys and Question
+
     // always check if question exists through check for unique code
     try {
+      Question question = null;
       // check that these bes exist
-      this.findBaseEntityByCode(ask.getSourceCode());
-      this.findBaseEntityByCode(ask.getTargetCode());
-      this.findAttributeByCode(ask.getAttributeCode());
+      BaseEntity beSource = findBaseEntityByCode(ask.getSourceCode());
+      BaseEntity beTarget = findBaseEntityByCode(ask.getTargetCode());
+      Attribute attribute = findAttributeByCode(ask.getAttributeCode());
+      Ask newAsk = null;
       if (ask.getQuestionCode() != null) {
-        Question question = this.findQuestionByCode(ask.getQuestionCode());
-        ask.setQuestion(question);
+        question = findQuestionByCode(ask.getQuestionCode());
+        newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
+      } else {
+        newAsk = new Ask(attribute.getCode(), beSource.getCode(), beTarget.getCode(),
+            attribute.getName());
       }
-      helper.getEntityManager().persist(ask);
+      Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":"
+          + attribute.getCode() + ":" + (question == null ? "No Question" : question.getCode()));
+
+      helper.getEntityManager().persist(newAsk);
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
@@ -309,6 +325,13 @@ public class BaseEntityService {
   }
 
   public Long insert(final BaseEntity entity) {
+
+    // get security
+    // if (securityService.isAuthorised()) {
+    // String realm = securityService.getRealm();
+    // System.out.println("Realm = " + realm);
+    // entity.setRealm(realm); // always override
+    entity.setRealm("genny");
     // always check if baseentity exists through check for unique code
     try {
       helper.getEntityManager().persist(entity);
@@ -335,6 +358,7 @@ public class BaseEntityService {
       baseEntityEventSrc.fire(entity);
       return entity.getId();
     }
+    // }
     return entity.getId();
   }
 
@@ -1385,6 +1409,8 @@ public class BaseEntityService {
 
   public List<Ask> findAsksWithQuestions() throws NoResultException {
 
+    // log.info("find asks Realm = " + securityService.getRealm());
+
     final List<Ask> results = helper.getEntityManager()
         .createQuery("SELECT a FROM Ask a JOIN a.question q").getResultList();
 
@@ -1768,5 +1794,7 @@ public class BaseEntityService {
 
     return count;
   }
+
+
 
 }

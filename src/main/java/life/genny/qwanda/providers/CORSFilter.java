@@ -28,6 +28,7 @@ package life.genny.qwanda.providers;
 // }
 //
 
+import org.apache.logging.log4j.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -35,10 +36,16 @@ import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 
 
 @Provider
 public class CORSFilter implements ContainerResponseFilter {
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   @Context
   private HttpServletRequest request;
@@ -49,14 +56,13 @@ public class CORSFilter implements ContainerResponseFilter {
     final String requestOrigin = request.getHeader("origin");
     final String allowedOrigins = System.getenv("CORS_ALLOWED_ORIGINS"); // ACC: This could come
                                                                          // form keycloak jwt?
-    System.out
-        .println("RequestOrigin:" + requestOrigin + " AllowedOrigins=[" + allowedOrigins + "]");
-    System.out.println("sysReq=" + request.getHeader("Authorization"));
+    log.debug("RequestOrigin:" + requestOrigin + " AllowedOrigins=[" + allowedOrigins + "]");
+    log.debug("sysReq=" + request.getHeader("Authorization"));
     if ((allowedOrigins != null) && (requestOrigin != null)) {
       // String[] originList = allowedOrigins.split(",");
       // for(String origin: originList){
       if (allowedOrigins.contains(requestOrigin)) {
-        System.out.println("requestOrigin Match" + requestOrigin);
+        log.debug("requestOrigin Match" + requestOrigin);
         /* Origins match let's allow it to access the API */
         responseContext.getHeaders().putSingle("Access-Control-Allow-Origin", requestOrigin);
         responseContext.getHeaders().putSingle("Access-Control-Allow-Methods",

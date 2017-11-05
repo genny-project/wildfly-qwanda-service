@@ -1,5 +1,6 @@
 package life.genny.qwanda.service;
 
+import org.apache.logging.log4j.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -8,6 +9,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +37,12 @@ import life.genny.qwandautils.GennySheets;
 @Startup
 public class StartupService {
 
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
   private final static String secret = System.getenv("GOOGLE_CLIENT_SECRET");
   private final static String genny = System.getenv("GOOGLE_SHEETID");
   private final static String channel40 = "1jNe-MOXx8DFxA2kDeCHjdZ7U-4Fqk1cqyhTgsZvUZ4o";
@@ -49,8 +57,12 @@ public class StartupService {
   @Inject
   private BaseEntityService service;
 
+  @Inject
+  private SecurityService securityService;
+
   @PostConstruct
   public void init2() {
+    securityService.setImportMode(true); // ugly way of getting past security
 
     System.out
         .println("**************************** IMPORTING  *************************************");
@@ -290,6 +302,7 @@ public class StartupService {
     }).get();
 
 
+    securityService.setImportMode(false);
   }
 
 

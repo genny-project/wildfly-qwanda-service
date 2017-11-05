@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -12,7 +13,6 @@ import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
-import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
@@ -35,7 +35,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Principal;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import io.swagger.annotations.Api;
@@ -53,7 +53,6 @@ import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.BaseEntityService;
-import life.genny.qwandautils.KeycloakUtils;
 
 
 
@@ -67,17 +66,21 @@ import life.genny.qwandautils.KeycloakUtils;
 @Api(value = "/qwanda", description = "Qwanda API", tags = "qwanda")
 @Produces(MediaType.APPLICATION_JSON)
 
-@Stateless
-// @RequestScoped
-@Transactional
 
+@Stateless
+@Transactional
 public class QwandaEndpoint {
+
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   @Context
   SecurityContext sc;
 
-  @Inject
-  private Principal principal;
+
 
   @Inject
   private BaseEntityService service;
@@ -129,28 +132,9 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/asks")
   public Response create(final Ask entity) {
-    KeycloakSecurityContext user = getKeycloakUser();
-    System.out.println("User Realm is " + user.getRealm());
-    // Fetch the associated BaseEntitys and Question
-    BaseEntity beSource = service.findBaseEntityByCode(entity.getSourceCode());
-    BaseEntity beTarget = service.findBaseEntityByCode(entity.getTargetCode());
-    Attribute attribute = service.findAttributeByCode(entity.getAttributeCode());
-    Question question = null;
-    Ask newAsk = null;
-    if (entity.getQuestionCode() != null) {
-      question = service.findQuestionByCode(entity.getQuestionCode());
-      newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
-
-    } else {
-      newAsk =
-          new Ask(attribute.getCode(), beSource.getCode(), beTarget.getCode(), attribute.getName());
-
-    }
-    Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":"
-        + attribute.getCode() + ":" + (question == null ? "No Question" : question.getCode()));
 
 
-    service.insert(newAsk);
+    service.insert(entity);
     return Response.created(
         UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
         .build();
@@ -272,15 +256,9 @@ public class QwandaEndpoint {
 
   @GET
   @Path("/asks")
-  @RolesAllowed("admin")
+  // @RolesAllowed("admin")
   public Response fetchAsks() {
-    System.out.println("hello " + principal);
-    KeycloakSecurityContext kc = getKeycloakUser();
-    System.out.println(kc.getRealm());;
     final List<Ask> entitys = service.findAsksWithQuestions();
-    Map<String, Object> user = KeycloakUtils.getJsonMap(kc.getTokenString());
-    System.out.println("User:" + user);
-    System.out.println(entitys + "kkkkk");
     return Response.status(200).entity(entitys).build();
   }
 
@@ -568,7 +546,7 @@ public class QwandaEndpoint {
         pageStart, pageSize, level, qparams);
 
     for (final BaseEntity be : targets) {
-      System.out.println("\n" + be.getCode() + " + attributes");
+      log.info("\n" + be.getCode() + " + attributes");
       be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
     }
 
@@ -683,18 +661,5 @@ public class QwandaEndpoint {
   }
 
 
-  private KeycloakSecurityContext getKeycloakUser() {
-    if (sc != null) {
-      if (sc.getUserPrincipal() != null) {
-        if (sc.getUserPrincipal() instanceof KeycloakPrincipal) {
-          final KeycloakPrincipal<KeycloakSecurityContext> kp =
-              (KeycloakPrincipal<KeycloakSecurityContext>) sc.getUserPrincipal();
-
-          return kp.getKeycloakSecurityContext();
-        }
-      }
-    }
-    throw new SecurityException("Unauthorised User");
-  }
 
 }

@@ -2,6 +2,7 @@ package life.genny.qwanda.util;
 
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.keycloak.adapters.KeycloakConfigResolver;
@@ -15,6 +16,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -24,6 +26,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
 
@@ -40,23 +47,23 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
     if (request != null) {
       // System.out.println("Keycloak Deployment Path incoming request:" + request);
       try {
-        System.out.println("Keycloak Deployment Path incoming request URI:" + request.getURI());
+        log.debug("Keycloak Deployment Path incoming request URI:" + request.getURI());
         // Now check for a token
 
         if (keycloakJsonMap.isEmpty()) {
           readFilenamesFromDirectory("./realm", keycloakJsonMap);
-          System.out.println("filenames loaded ...");
+          log.debug("filenames loaded ...");
         } else {
-          System.out.println("filenames already loaded ...");
+          log.debug("filenames already loaded ...");
         }
 
 
         if (request.getHeader("Authorization") != null) {
           // extract the token
           final String authTokenHeader = request.getHeader("Authorization");
-          System.out.println("authTokenHeader:" + authTokenHeader);
+          log.debug("authTokenHeader:" + authTokenHeader);
           final String bearerToken = authTokenHeader.substring(7);
-          System.out.println("bearerToken:" + bearerToken);
+          log.debug("bearerToken:" + bearerToken);
           // now extract the realm
           JSONObject jsonObj = null;
           String decodedJson = null;
@@ -66,19 +73,18 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
             final byte[] decodedClaims = decoder.decode(jwtToken[1]);
             decodedJson = new String(decodedClaims);
             jsonObj = new JSONObject(decodedJson);
-            System.out.println("******" + jsonObj);
+            log.debug("******" + jsonObj);
           } catch (final JSONException e1) {
-            System.out.println("bearerToken=" + bearerToken + "  decodedJson=" + decodedJson + ":"
+            log.error("bearerToken=" + bearerToken + "  decodedJson=" + decodedJson + ":"
                 + e1.getMessage());
           }
           try {
             username = (String) jsonObj.get("preferred_username");
             realm = (String) jsonObj.get("aud");
           } catch (final JSONException e1) {
-            System.out
-                .println("no customercode incuded with token for " + username + ":" + decodedJson);
+            log.error("no customercode incuded with token for " + username + ":" + decodedJson);
           } catch (final NullPointerException e2) {
-            System.out.println("NullPointerException for " + bearerToken + "::::::" + username + ":"
+            log.error("NullPointerException for " + bearerToken + "::::::" + username + ":"
                 + decodedJson);
           }
 
@@ -86,40 +92,35 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
           aURL = new URL(request.getURI());
           final String url = aURL.getHost();
-          System.out.println("received KeycloakConfigResolver url:" + url);
+          log.debug("received KeycloakConfigResolver url:" + url);
 
 
           final String keycloakJsonText = keycloakJsonMap.get(url);
-          System.out.println("Selected KeycloakJson:[" + keycloakJsonText + "]");
+          log.debug("Selected KeycloakJson:[" + keycloakJsonText + "]");
 
           // extract realm
           final JSONObject json = new JSONObject(keycloakJsonText);
-          System.out.println("json:" + json);
+          log.debug("json:" + json);
           realm = json.getString("realm");
         }
 
 
       } catch (final Exception e) {
-        System.out.println("Error in accessing request.getURI , spi issue?");
+        log.error("Error in accessing request.getURI , spi issue?");
       }
     }
 
 
-    System.out.println(">>>>> INCOMING REALM IS " + realm);
+    log.info(">>>>> INCOMING REALM IS " + realm);
 
     KeycloakDeployment deployment = cache.get(realm);
 
     if (null == deployment) {
-      System.getenv("JBOSS_HOME");
-      // is = new FileInputStream(fileName);
-      // if (is == null) {
-      // throw new IllegalStateException("Not able to find the file /" + realm + ".json");
-      // }
       InputStream is;
       try {
         is = new ByteArrayInputStream(
             keycloakJsonMap.get(realm).getBytes(StandardCharsets.UTF_8.name()));
-        System.out.println("Building deployment ");
+        log.info("Building deployment ");
         deployment = KeycloakDeploymentBuilder.build(is);
         cache.put(realm, deployment);
       } catch (final UnsupportedEncodingException e) {
@@ -129,14 +130,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 
     } else {
-      System.out.println("Deployment fetched from cache");
+      log.debug("Deployment fetched from cache");
     }
 
     if (deployment != null) {
-      System.out.println("Deployment is not null ");
-      System.out.println("accountUrl:" + deployment.getAccountUrl());
-      System.out.println("realm:" + deployment.getRealm());
-      System.out.println("resource name:" + deployment.getResourceName());
+      log.debug("Deployment is not null ");
+      log.debug("accountUrl:" + deployment.getAccountUrl());
+      log.debug("realm:" + deployment.getRealm());
+      log.debug("resource name:" + deployment.getResourceName());
 
 
     }
@@ -149,11 +150,11 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
     final File folder = new File(rootFilePath);
     final File[] listOfFiles = folder.listFiles();
     final String localIP = System.getenv("HOSTIP");
-    System.out.println("Loading Files! with HOSTIP=" + localIP);
+    log.info("Loading Files! with HOSTIP=" + localIP);
 
     for (int i = 0; i < listOfFiles.length; i++) {
       if (listOfFiles[i].isFile()) {
-        System.out.println("File " + listOfFiles[i].getName());
+        log.info("File " + listOfFiles[i].getName());
         try {
           String keycloakJsonText = getFileAsText(listOfFiles[i]);
           // Handle case where dev is in place with localhost
@@ -163,7 +164,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
           // }
           final String key = listOfFiles[i].getName().replaceAll(".json", "");
-          System.out.println("keycloak key:" + key + "," + keycloakJsonText);
+          log.info("keycloak key:" + key + "," + keycloakJsonText);
 
           keycloakJsonMap.put(key, keycloakJsonText);
         } catch (final IOException e) {
@@ -172,7 +173,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
         }
 
       } else if (listOfFiles[i].isDirectory()) {
-        System.out.println("Directory " + listOfFiles[i].getName());
+        log.info("Directory " + listOfFiles[i].getName());
         readFilenamesFromDirectory(listOfFiles[i].getName(), keycloakJsonMap);
       }
     }
