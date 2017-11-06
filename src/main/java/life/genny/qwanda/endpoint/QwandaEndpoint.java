@@ -13,7 +13,7 @@ import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
-import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.transaction.Transactional;
@@ -57,7 +57,7 @@ import life.genny.qwanda.service.BaseEntityService;
 
 
 /**
- * Transactional JAX-RS endpoint
+ * JAX-RS endpoint
  *
  * @author Adam Crow
  */
@@ -67,7 +67,7 @@ import life.genny.qwanda.service.BaseEntityService;
 @Produces(MediaType.APPLICATION_JSON)
 
 
-@Stateless
+@RequestScoped
 @Transactional
 public class QwandaEndpoint {
 

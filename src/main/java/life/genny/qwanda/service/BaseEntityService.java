@@ -71,6 +71,7 @@ import life.genny.qwanda.validation.Validation;
 
 @ApplicationScoped
 // @ConcurrencyManagement(javax.ejb.ConcurrencyManagementType.CONTAINER)
+// @Transactional
 // @Singleton
 
 public class BaseEntityService {
