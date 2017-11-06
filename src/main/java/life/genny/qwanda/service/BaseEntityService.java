@@ -290,11 +290,11 @@ public class BaseEntityService {
       }
 
       if (ask != null) {
-        if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
-          System.out.println("Ask does not have answerLink");
-          ask.getAnswerList().getAnswerList().add(answerLink);
-          ask = helper.getEntityManager().merge(ask);
-        }
+        // if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
+        // System.out.println("Ask does not have answerLink");
+        // ask.getAnswerList().getAnswerList().add(answerLink);
+        // ask = helper.getEntityManager().merge(ask);
+        // }
       }
       // baseEntityEventSrc.fire(entity);
 
