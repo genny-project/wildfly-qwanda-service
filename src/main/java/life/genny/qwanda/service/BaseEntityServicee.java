@@ -61,7 +61,7 @@ import life.genny.qwanda.validation.Validation;
 // @Transactional
 // @Singleton
 
-public class BaseEntityService {
+public class BaseEntityServicee {
   /**
    * Stores logger object.
    */

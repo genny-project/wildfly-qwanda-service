@@ -27,13 +27,13 @@ import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.model.Setup;
-import life.genny.qwanda.service.BaseEntityService;
+import life.genny.qwanda.service.BaseEntityServicee;
 import life.genny.qwanda.service.KeycloakService;
 
 public class KeycloakActions {
 
   @Inject
-  private static BaseEntityService service;
+  private static BaseEntityServicee service;
 
   public static Long importKeycloakUsers(final String keycloakUrl, final String realm,
       final String username, final String password, final String clientId,

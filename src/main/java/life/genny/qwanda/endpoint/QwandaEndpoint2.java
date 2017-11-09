@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import life.genny.daoservices.BaseEntityService;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -51,8 +52,9 @@ import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
-import life.genny.qwanda.service.BaseEntityServicee;
+// import life.genny.qwanda.service.BaseEntityService;
 import life.genny.qwanda.util.KeycloakActions;
+import life.genny.qwanda.util.PersistenceHelper;
 
 /**
  * JAX-RS endpoint
@@ -67,7 +69,7 @@ import life.genny.qwanda.util.KeycloakActions;
 @Stateless
 // @RequestScoped
 @Transactional
-public class QwandaEndpoint {
+public class QwandaEndpoint2 {
 
   /**
    * Stores logger object.
@@ -78,8 +80,13 @@ public class QwandaEndpoint {
   @Context
   SecurityContext sc;
 
+  // @Inject
+  // private BaseEntityService service;
+
   @Inject
-  private BaseEntityServicee service;
+  private PersistenceHelper helper;
+
+  // BaseEntityService service = Service.getBaseEntityService();
 
   public static class HibernateLazyInitializerSerializer
       extends JsonSerializer<JavassistLazyInitializer> {
@@ -96,9 +103,10 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/rules")
   public Response create(final Rule entity) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -107,9 +115,10 @@ public class QwandaEndpoint {
   @Path("/attributes")
 
   public Response create(final Attribute entity) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -117,9 +126,10 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/questions")
   public Response create(final Question entity) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -127,10 +137,10 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/asks")
   public Response create(final Ask entity) {
-
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -140,7 +150,7 @@ public class QwandaEndpoint {
   public Response createAsks(@PathParam("sourceCode") final String sourceCode,
       @PathParam("questionCode") final String questionCode,
       @PathParam("targetCode") final String targetCode, @Context final UriInfo uriInfo) {
-
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     // Fetch the associated BaseEntitys and Question
     BaseEntity beSource = service.findBaseEntityByCode(sourceCode);
     BaseEntity beTarget = service.findBaseEntityByCode(targetCode);
@@ -152,7 +162,8 @@ public class QwandaEndpoint {
 
     service.insert(newAsk);
     return Response
-        .created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newAsk)).build())
+        .created(
+            UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(newAsk)).build())
         .build();
   }
 
@@ -160,9 +171,10 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/gpss")
   public Response create(final GPS entity) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -170,10 +182,10 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/answers")
   public Response create(final Answer entity) {
-
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -181,9 +193,10 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   @Path("/baseentitys")
   public Response create(final BaseEntity entity) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
@@ -192,16 +205,18 @@ public class QwandaEndpoint {
   @Consumes("application/json")
   public Response create(@FormParam("name") final String name,
       @FormParam("uniqueCode") final String uniqueCode) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final BaseEntity entity = new BaseEntity(uniqueCode, name);
     service.insert(entity);
     return Response.created(
-        UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+        UriBuilder.fromResource(QwandaEndpoint2.class).path(String.valueOf(entity.getId())).build())
         .build();
   }
 
   @GET
   @Path("/rules/{id}")
   public Response fetchRuleById(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final Rule entity = service.findRuleById(id);
     return Response.status(200).entity(entity).build();
   }
@@ -210,7 +225,7 @@ public class QwandaEndpoint {
   @Path("/baseentitys/{sourceCode}")
   public Response fetchBaseEntityByCode(@Context final ServletContext servletContext,
       @PathParam("sourceCode") final String code) {
-
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final BaseEntity entity = service.findBaseEntityByCode(code);
     return Response.status(200).entity(entity).build();
   }
@@ -218,6 +233,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/questions/{id}")
   public Response fetchQuestionById(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final Question entity = service.findQuestionById(id);
     return Response.status(200).entity(entity).build();
   }
@@ -225,6 +241,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/questions")
   public Response fetchQuestions() {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Question> entitys = service.findQuestions();
     return Response.status(200).entity(entitys).build();
   }
@@ -232,6 +249,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/questions/<questionCode}")
   public Response fetchQuestions(@PathParam("questionCode") final String questionCode) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Question> entitys = service.findQuestions();
     return Response.status(200).entity(entitys).build();
   }
@@ -239,6 +257,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/rules")
   public Response fetchRules() {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Rule> entitys = service.findRules();
 
     System.out.println(entitys);
@@ -249,6 +268,7 @@ public class QwandaEndpoint {
   @Path("/asks")
   // @RolesAllowed("admin")
   public Response fetchAsks() {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Ask> entitys = service.findAsksWithQuestions();
     return Response.status(200).entity(entitys).build();
   }
@@ -256,6 +276,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/asksmsg")
   public Response fetchAsksMsg() {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Ask> entitys = service.findAsks();
     final QDataAskMessage qasks = new QDataAskMessage(entitys.toArray(new Ask[0]));
     System.out.println(qasks);
@@ -265,6 +286,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/attributes/{id}")
   public Response fetchAttributeById(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final Attribute entity = service.findAttributeById(id);
     return Response.status(200).entity(entity).build();
   }
@@ -272,6 +294,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/asks/{id}")
   public Response fetchAskById(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final Ask entity = service.findAskById(id);
     return Response.status(200).entity(entity).build();
   }
@@ -279,6 +302,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/answers/{id}")
   public Response fetchAnswerById(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final Answer entity = service.findAnswerById(id);
     return Response.status(200).entity(entity).build();
   }
@@ -286,6 +310,7 @@ public class QwandaEndpoint {
   @GET
   @Path("/contexts/{id}")
   public Response fetchContextById(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final life.genny.qwanda.Context entity = service.findContextById(id);
     return Response.status(200).entity(entity).build();
   }
@@ -296,6 +321,7 @@ public class QwandaEndpoint {
   @Produces(MediaType.APPLICATION_JSON)
   public List<EntityAttribute> fetchAttributesByBaseEntityCode(
       @PathParam("sourceCode") final String code) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<EntityAttribute> entityAttributes = service.findAttributesByBaseEntityCode(code);
     return entityAttributes;
   }
@@ -305,6 +331,7 @@ public class QwandaEndpoint {
   @ApiOperation(value = "gps", notes = "Target BaseEntity GPS")
   @Produces(MediaType.APPLICATION_JSON)
   public List<GPS> fetchGPSByTargetBaseEntityId(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<GPS> items = service.findGPSByTargetBaseEntityId(id);
     return items;
   }
@@ -314,6 +341,7 @@ public class QwandaEndpoint {
   @ApiOperation(value = "asks", notes = "Source BaseEntity Asks")
   @Produces(MediaType.APPLICATION_JSON)
   public List<Ask> fetchAsksBySourceBaseEntityCode(@PathParam("code") final String code) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Ask> items = service.findAsksBySourceBaseEntityCode(code);
     return items;
   }
@@ -323,6 +351,7 @@ public class QwandaEndpoint {
   @ApiOperation(value = "asks", notes = "Target BaseEntity Asks")
   @Produces(MediaType.APPLICATION_JSON)
   public List<Ask> fetchAsksByTargetBaseEntityCode(@PathParam("code") final String code) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Ask> items = service.findAsksByTargetBaseEntityCode(code);
     return items;
   }
@@ -332,6 +361,7 @@ public class QwandaEndpoint {
   @ApiOperation(value = "asks", notes = "BaseEntity Asks about Targets")
   @Produces(MediaType.APPLICATION_JSON)
   public List<Ask> fetchAsksByTargetBaseEntityId(@PathParam("id") final Long id) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<Ask> items = service.findAsksBySourceBaseEntityId(id);
     return items;
   }
@@ -342,6 +372,7 @@ public class QwandaEndpoint {
   @Produces(MediaType.APPLICATION_JSON)
   public List<AnswerLink> fetchAnswersByTargetBaseEntityCode(
       @PathParam("targetCode") final String targetCode) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<AnswerLink> items = service.findAnswersByTargetBaseEntityCode(targetCode);
     return items;
   }
@@ -351,6 +382,7 @@ public class QwandaEndpoint {
   @ApiOperation(value = "answers", notes = "AnswerLinks")
   @Produces(MediaType.APPLICATION_JSON)
   public Response fetchAnswerLinks() {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final List<AnswerLink> items = service.findAnswerLinks();
     return Response.status(200).entity(items).build();
   }
@@ -374,6 +406,7 @@ public class QwandaEndpoint {
   @Path("/init")
   @Produces("application/json")
   public Response init() {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     if (sc != null) {
       if (sc.getUserPrincipal() != null) {
         if (sc.getUserPrincipal() instanceof KeycloakPrincipal) {
@@ -391,6 +424,7 @@ public class QwandaEndpoint {
   @Path("/baseentitys")
   @Produces("application/json")
   public Response getBaseEntitys(@Context final UriInfo uriInfo) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     Integer pageStart = 0;
     Integer pageSize = 10; // default
     boolean includeAttributes = false;
@@ -425,6 +459,7 @@ public class QwandaEndpoint {
   @Path("/setup")
   @Produces("application/json")
   public Response getSetup() {
+    new BaseEntityService(helper.getEntityManager());
     Setup setup = new Setup();
     setup.setLayout("error-layout1");
 
@@ -455,6 +490,7 @@ public class QwandaEndpoint {
   public Response getTargets(@PathParam("sourceCode") final String sourceCode,
       @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
       @Context final UriInfo uriInfo) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     Integer pageStart = 0;
     Integer pageSize = 10; // default
     boolean includeAttributes = false;
@@ -502,6 +538,7 @@ public class QwandaEndpoint {
   public Response getTargetsWithAttributes(@PathParam("sourceCode") final String sourceCode,
       @DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
       @Context final UriInfo uriInfo) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     Integer pageStart = 0;
     Integer pageSize = 10; // default
     Integer level = 1;
@@ -546,6 +583,7 @@ public class QwandaEndpoint {
   @Path("/baseentitys/test2")
   @Produces("application/json")
   public Response findBaseEntitysByAttributeValues(@Context final UriInfo uriInfo) {
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     Integer pageStart = 0;
     Integer pageSize = 10; // default
     MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
@@ -584,7 +622,7 @@ public class QwandaEndpoint {
       @QueryParam("password") final String password, @QueryParam("clientid") final String clientId,
       @QueryParam("max") final Integer max,
       @DefaultValue("GRP_USERS") @QueryParam("parentgroups") final String parentGroupCodes) {
-
+    new BaseEntityService(helper.getEntityManager());
     Long usersAddedCount = KeycloakActions.importKeycloakUsers(keycloakUrl, realm, username,
         password, clientId, max, parentGroupCodes);
     return Response.status(200).entity(usersAddedCount).build();
@@ -594,7 +632,7 @@ public class QwandaEndpoint {
   @Path("/baseentitys/uploadcsv")
   @Consumes("multipart/form-data")
   public Response uploadFile(final MultipartFormDataInput input) throws IOException {
-
+    BaseEntityService service = new BaseEntityService(helper.getEntityManager());
     final Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
     // Get file data to save
@@ -624,7 +662,7 @@ public class QwandaEndpoint {
   }
 
   private String getFileName(final MultivaluedMap<String, String> header) {
-
+    new BaseEntityService(helper.getEntityManager());
     final String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
 
     for (final String filename : contentDisposition) {
