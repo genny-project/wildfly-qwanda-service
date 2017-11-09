@@ -108,13 +108,13 @@
 			<version>2.1</version>
 		</dependency>
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda</artifactId>
 			<version>${qwanda.version}</version>
 			<scope>compile</scope>
 
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>dom4j</groupId>
 			<artifactId>dom4j</artifactId>

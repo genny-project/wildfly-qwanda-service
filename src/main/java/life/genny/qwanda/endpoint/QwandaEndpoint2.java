@@ -62,8 +62,8 @@ import life.genny.qwanda.util.PersistenceHelper;
  * @author Adam Crow
  */
 
-@Path("/qwanda")
-@Api(value = "/qwanda", description = "Qwanda API", tags = "qwanda")
+@Path("/qwanda2")
+@Api(value = "/qwanda2", description = "Qwanda API", tags = "qwanda")
 @Produces(MediaType.APPLICATION_JSON)
 
 @Stateless

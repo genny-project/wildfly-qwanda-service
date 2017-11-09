@@ -18,6 +18,7 @@ public class RestApplication extends Application {
   public Set<Class<?>> getClasses() {
     final Set<Class<?>> resources = new HashSet<Class<?>>();
     resources.add(JsonDateTimeProvider.class);
+    resources.add(QwandaEndpoint.class);
     resources.add(QwandaEndpoint2.class);
     resources.add(VersionEndpoint.class);
     resources.add(CORSFilter.class);

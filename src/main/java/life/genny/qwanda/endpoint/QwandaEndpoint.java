@@ -52,7 +52,6 @@ import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.BaseEntityServicee;
-import life.genny.qwanda.util.KeycloakActions;
 
 /**
  * JAX-RS endpoint
@@ -441,7 +440,7 @@ public class QwandaEndpoint {
           // name)
 
           System.out.println("kc context:" + kp.getKeycloakSecurityContext());
-          setup = KeycloakActions.setup(kp.getKeycloakSecurityContext());
+          setup = service.setup(kp.getKeycloakSecurityContext());
         }
       }
     }
@@ -585,8 +584,8 @@ public class QwandaEndpoint {
       @QueryParam("max") final Integer max,
       @DefaultValue("GRP_USERS") @QueryParam("parentgroups") final String parentGroupCodes) {
 
-    Long usersAddedCount = KeycloakActions.importKeycloakUsers(keycloakUrl, realm, username,
-        password, clientId, max, parentGroupCodes);
+    Long usersAddedCount = service.importKeycloakUsers(keycloakUrl, realm, username, password,
+        clientId, max, parentGroupCodes);
     return Response.status(200).entity(usersAddedCount).build();
   }
 
