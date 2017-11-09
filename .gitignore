@@ -13,7 +13,7 @@ jboss/server/minimal/log/*.log
 jboss/server/minimal/tmp/**/*
 jboss/server/minimal/data/**/*
 jboss/server/minimal/work/**/*
-
+src/main/resources/git.properties
 # deployed package files #
 
 *.DEPLOYED
