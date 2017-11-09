@@ -59,6 +59,7 @@ import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.entity.Product;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.util.PersistenceHelper;
@@ -84,8 +85,11 @@ public class BaseEntityService {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	// @Inject
-	// SecurityService securityService;
+	@Inject
+	SecurityService securityService;
+
+	@Inject
+	private Event<QEventAttributeValueChangeMessage> qEventAttributeValueChangeMessageEventSrc;
 
 	@Inject
 	private Event<BaseEntity> baseEntityEventSrc;
@@ -228,15 +232,22 @@ public class BaseEntityService {
 
 	public AnswerLink insert(final AnswerLink answerLink) {
 		// always check if rule exists through check for unique code
-		try {
-			helper.getEntityManager().persist(answerLink);
-			// baseEntityEventSrc.fire(entity);
 
-		} catch (final EntityExistsException e) {
+		AnswerLink existing = findAnswerLinkByCodes(answerLink.getTargetCode(), answerLink.getSourceCode(),
+				answerLink.getAttributeCode());
+		if (existing == null) {
+			helper.getEntityManager().persist(answerLink);
+			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
+					answerLink.getTargetCode(), answerLink.getAttributeCode(), null, answerLink.getValue(),
+					"DUMMY_TOKEN");
+
+			qEventAttributeValueChangeMessageEventSrc.fire(msg);
+		}
+
+		else {
 			// so update otherwise // TODO merge?
-			AnswerLink existing = findAnswerLinkByCodes(answerLink.getTargetCode(), answerLink.getSourceCode(),
-					answerLink.getAttributeCode());
-			existing.setValueString(answerLink.getValueString());
+			Object oldValue = existing.getValue();
+			existing.setValue(answerLink.getValue());
 			existing.setExpired(answerLink.getExpired());
 			existing.setRefused(answerLink.getRefused());
 			existing.setValueBoolean(answerLink.getValueBoolean());
@@ -246,6 +257,12 @@ public class BaseEntityService {
 			existing.setWeight(answerLink.getWeight());
 
 			existing = helper.getEntityManager().merge(existing);
+			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
+					answerLink.getTargetCode(), answerLink.getAttributeCode(), oldValue.toString(),
+					answerLink.getValue(), "DUMMY-UPDATE_TOKEN"/* securityService.getToken() */);
+
+			qEventAttributeValueChangeMessageEventSrc.fire(msg);
+
 			return existing;
 
 		}
@@ -547,12 +564,16 @@ public class BaseEntityService {
 	public AnswerLink findAnswerLinkByCodes(@NotNull final String targetCode, @NotNull final String sourceCode,
 			@NotNull final String attributeCode) {
 
-		final AnswerLink result = (AnswerLink) helper.getEntityManager().createQuery(
+		final List<AnswerLink> results = helper.getEntityManager().createQuery(
 				"SELECT a FROM AnswerLink a where a.targetCode=:targetCode and a.sourceCode=:sourceCode and  attributeCode=:attributeCode")
 				.setParameter("targetCode", targetCode).setParameter("sourceCode", sourceCode)
-				.setParameter("attributeCode", attributeCode).getSingleResult();
+				.setParameter("attributeCode", attributeCode).getResultList();
 
-		return result;
+		if (results.isEmpty()) {
+			return null; // throw new NoResultException(sourceCode + ":" + targetCode + ":" +
+							// attributeCode);
+		} else
+			return results.get(0); // return first one for now TODO
 
 	}
 
