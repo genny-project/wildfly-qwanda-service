@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Decoder;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
+import javax.ejb.Asynchronous;
 import javax.ejb.EJBException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
@@ -42,10 +44,13 @@ import org.mortbay.log.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -64,6 +69,7 @@ import life.genny.qwanda.model.Setup;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.QwandaUtils;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -111,6 +117,24 @@ public class BaseEntityService {
 
 	@Inject
 	private PersistenceHelper helper;
+
+	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
+
+	@Asynchronous
+	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
+		// Send a vertx message broadcasting an attribute value Change
+		log.info("ATTRIBUTE CHANGE EVENT!" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
+		Gson gson = gsonBuilder.create();
+		try {
+			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
+		} catch (IOException e) {
+
+			log.error(
+					"Error in posting to Vertx bridge:" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
+		}
+
+	}
 
 	public Long insert(final Question question) {
 		// always check if question exists through check for unique code
@@ -241,7 +265,8 @@ public class BaseEntityService {
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), null, answerLink.getValue(),
 					"DUMMY_TOKEN");
 
-			qEventAttributeValueChangeMessageEventSrc.fire(msg);
+			// qEventAttributeValueChangeMessageEventSrc.fire(msg);
+			sendQEventAttributeValueChangeMessage(msg);
 		}
 
 		else {
@@ -261,7 +286,8 @@ public class BaseEntityService {
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), oldValue.toString(),
 					answerLink.getValue(), "DUMMY-UPDATE_TOKEN"/* securityService.getToken() */);
 
-			qEventAttributeValueChangeMessageEventSrc.fire(msg);
+			// qEventAttributeValueChangeMessageEventSrc.fire(msg);
+			sendQEventAttributeValueChangeMessage(msg);
 
 			return existing;
 

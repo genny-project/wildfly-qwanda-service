@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 
+import javax.ejb.Asynchronous;
 import javax.enterprise.event.Observes;
 
 import org.apache.logging.log4j.Logger;
@@ -25,6 +26,7 @@ public class InsertObservers {
 	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
+	@Asynchronous
 	public void attributeValueChangeEvent(@Observes final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
 		log.info("ATTRIBUTE CHANGE EVENT!" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
