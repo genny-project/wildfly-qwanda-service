@@ -1,9 +1,9 @@
 package life.genny.qwanda.endpoint;
 
-import java.util.HashSet;
-import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
+import java.util.HashSet;
+import java.util.Set;
 import life.genny.qwanda.providers.CORSFilter;
 import life.genny.qwanda.providers.JsonDateTimeProvider;
 
@@ -19,7 +19,6 @@ public class RestApplication extends Application {
     final Set<Class<?>> resources = new HashSet<Class<?>>();
     resources.add(JsonDateTimeProvider.class);
     resources.add(QwandaEndpoint.class);
-    resources.add(QwandaEndpoint2.class);
     resources.add(VersionEndpoint.class);
     resources.add(CORSFilter.class);
 

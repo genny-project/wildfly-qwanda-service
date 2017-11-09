@@ -14,6 +14,7 @@
 		<qwanda.version>0.5.5</qwanda.version>
 		<qwanda-utils.version>0.4</qwanda-utils.version>
 		<qwanda-services.version>0.0.1-SNAPSHOT</qwanda-services.version>
+		
 		<version.wildfly-swarm>2017.7.0-SNAPSHOT</version.wildfly-swarm>
 		<version.wildfly.maven.plugin>1.0.2.Final</version.wildfly.maven.plugin>
 
@@ -64,13 +65,14 @@
 	<dependencies>
 		<dependency>
 			<groupId>life.genny</groupId>
-			<artifactId>qwanda-utils</artifactId>
-			<version>${qwanda-utils.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>life.genny</groupId>
 			<artifactId>qwanda-services</artifactId>
 			<version>${qwanda-services.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda-utils</artifactId>
+			<version>${qwanda-utils.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -108,13 +110,13 @@
 			<version>2.1</version>
 		</dependency>
 
-		<!-- <dependency>
+		<dependency>
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda</artifactId>
 			<version>${qwanda.version}</version>
 			<scope>compile</scope>
 
-		</dependency> -->
+		</dependency>
 		<dependency>
 			<groupId>dom4j</groupId>
 			<artifactId>dom4j</artifactId>
@@ -278,16 +280,16 @@
 
 	</dependencies>
 	<build>
-	<resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <filtering>true</filtering>
-            <includes>
-                <include>**/*.properties</include>
-                <include>**/*.xml</include>
-            </includes>
-        </resource>
-    </resources>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.properties</include>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 
 			<plugin>
