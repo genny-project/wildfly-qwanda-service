@@ -297,10 +297,11 @@ public class BaseEntityService {
 
 	public Long insert(final Answer answer) {
 		// always check if answer exists through check for unique code
+		BaseEntity beTarget = null;
+		Attribute attribute = null;
 		try {
-			BaseEntity beTarget = findBaseEntityByCode(answer.getTargetCode());
-
-			Attribute attribute = findAttributeByCode(answer.getAttributeCode());
+			beTarget = findBaseEntityByCode(answer.getTargetCode());
+			attribute = findAttributeByCode(answer.getAttributeCode());
 			;
 			Ask ask = null;
 
@@ -343,6 +344,17 @@ public class BaseEntityService {
 			return existing.getId();
 
 		}
+
+		// Update the BaseEntity_Attribute item
+		// check if it exists
+		if (beTarget.containsEntityAttribute(attribute.getCode())) {
+
+		} else {
+
+		}
+
+		// update or create it
+
 		return answer.getId();
 	}
 
