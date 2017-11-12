@@ -1,10 +1,12 @@
 FROM gennyproject/wildfly:latest 
 
 USER root
-RUN set -x \
-    && apt-get update --quiet \
-    && apt-get install --quiet --yes --no-install-recommends jq sed  iputils-ping vim sed \
-    && apt-get clean
+RUN apk update && apk add sed 
+
+#RUN set -x \
+#    && apt-get update --quiet \
+#    && apt-get install --quiet --yes --no-install-recommends jq sed  iputils-ping vim sed \
+#    && apt-get clean
 
 RUN ln -s /bin/sed /usr/bin/sed
 RUN chmod a+x /usr/bin/sed
@@ -19,7 +21,7 @@ ADD gennyC /root/.credentials/sheets.googleapis.com-java-quickstart/StoredCreden
 ADD channel /root/.credentials/channel/StoredCredential
 RUN touch $JBOSS_HOME/standalone/deployments/$PROJECT.war.dodeploy
 USER root
-RUN chown -R jboss:jboss $JBOSS_HOME/standalone/deployments/$PROJECT.war
+RUN chown -R root:root $JBOSS_HOME/standalone/deployments/$PROJECT.war
 RUN chmod -Rf 777 $JBOSS_HOME/standalone/deployments/$PROJECT.war
 
 RUN mkdir /opt/realm
@@ -30,7 +32,7 @@ ADD realm /opt/realm
 ADD google $JBOSS_HOME/google
 ADD docker-entrypoint2.sh /opt/jboss/
 
-USER jboss
+#USER jboss
 USER root
 EXPOSE 8998
 EXPOSE 8787

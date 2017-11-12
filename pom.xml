@@ -39,11 +39,11 @@
 		<project.http.version>1.19.0</project.http.version>
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<version.jboss.bom>10.1.0.Final</version.jboss.bom>
+		<version.jboss.bom>11.0.0.Final</version.jboss.bom>
 		<drools.version>6.4.0.Final</drools.version>
 		<jbpm.version>6.4.0.Final</jbpm.version>
-		<keycloak-core.version>3.2.0.Final</keycloak-core.version>
-		<keycloak-adapter-core.version>3.2.0.Final</keycloak-adapter-core.version>
+		<keycloak-core.version>3.3.0.Final</keycloak-core.version>
+		<keycloak-adapter-core.version>3.3.0.Final</keycloak-adapter-core.version>
 
 		<version.ee7>1.0.2.Final</version.ee7>
 		<version.resteasy>3.0.10.Final</version.resteasy>
