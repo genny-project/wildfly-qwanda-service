@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
-import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -67,8 +66,7 @@ import life.genny.qwanda.service.Service;
 @Produces(MediaType.APPLICATION_JSON)
 
 @Stateless
-// @RequestScoped
-@Transactional
+
 public class QwandaEndpoint {
 
 	/**
@@ -483,7 +481,14 @@ public class QwandaEndpoint {
 		}
 
 		log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
-		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
+		Long total = -1L;
+
+		try {
+			total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			total = -1L;
+		}
 
 		BaseEntity[] beArr = new BaseEntity[targets.size()];
 		beArr = targets.toArray(beArr);

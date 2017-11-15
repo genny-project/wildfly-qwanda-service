@@ -5,8 +5,13 @@ import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.logging.log4j.Logger;
 
@@ -20,6 +25,9 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.services.BaseEntityService2;
 
 @ApplicationScoped
+@Singleton
+// @SessionScoped
+@Lock(LockType.READ)
 public class Service extends BaseEntityService2 {
 
 	/**
@@ -59,4 +67,12 @@ public class Service extends BaseEntityService2 {
 		}
 
 	}
+
+	@Override
+	@Lock(LockType.READ)
+	public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode, final String linkCode,
+			final MultivaluedMap<String, String> params) {
+		return super.findChildrenByAttributeLinkCount(sourceCode, linkCode, params);
+	}
+
 }
