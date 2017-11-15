@@ -38,7 +38,7 @@ EXPOSE 8998
 EXPOSE 8787
 
 
-HEALTHCHECK --interval=10s --timeout=3s --retries=15 CMD curl -f / http://localhost:8080/version || exit 1 
+#HEALTHCHECK --interval=10s --timeout=3s --retries=15 CMD curl -f / http://localhost:8080/version || exit 1 
 
 ENTRYPOINT [ "/opt/jboss/docker-entrypoint2.sh" ]
 CMD ["-b", "0.0.0.0"]

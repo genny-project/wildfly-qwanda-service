@@ -449,6 +449,7 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	public Response getTargets(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
+		log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
@@ -481,6 +482,7 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
+		log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
 
 		BaseEntity[] beArr = new BaseEntity[targets.size()];

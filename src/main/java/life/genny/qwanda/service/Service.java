@@ -13,11 +13,11 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import life.genny.daoservices.BaseEntityService2;
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.services.BaseEntityService2;
 
 @ApplicationScoped
 public class Service extends BaseEntityService2 {
@@ -44,6 +44,7 @@ public class Service extends BaseEntityService2 {
 		this.setEm(helper.getEntityManager());
 	}
 
+	@Override
 	@javax.ejb.Asynchronous
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
