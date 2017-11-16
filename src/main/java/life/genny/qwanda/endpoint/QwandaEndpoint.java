@@ -691,4 +691,14 @@ public class QwandaEndpoint {
 				.build();
 	}
 
+	@GET
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}")
+	@ApiOperation(value = "baseentitys/{targetCode}/links", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response fetchLinks(@PathParam("targetCode") final String targetCode,
+			@PathParam("linkCode") final String linkCode) {
+		final List<EntityEntity> items = service.findLinks(targetCode, linkCode);
+		return Response.status(200).entity(items).build();
+	}
+
 }
