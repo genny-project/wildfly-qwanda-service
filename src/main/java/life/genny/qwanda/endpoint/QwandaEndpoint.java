@@ -10,6 +10,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -50,6 +51,8 @@ import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.EntityEntity;
+import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
@@ -636,6 +639,56 @@ public class QwandaEndpoint {
 			}
 		}
 		return "unknown";
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/entityentitys")
+	@Produces("application/json")
+	public Response addLink(final EntityEntity ee) {
+
+		Log.info("Creating new Link " + ee.getParentCode() + ":" + ee.getTargetCode() + ":" + ee.getLinkCode());
+
+		EntityEntity newEntityEntity = null;
+
+		try {
+			newEntityEntity = service.addLink(ee.getParentCode(), ee.getTargetCode(), ee.getLinkCode(), ee.getValue(),
+					ee.getWeight());
+		} catch (IllegalArgumentException | BadDataException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return Response
+				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newEntityEntity)).build())
+				.build();
+	}
+
+	@DELETE
+	@Consumes("application/json")
+	@Path("/entityentitys")
+	@Produces("application/json")
+	public Response removeLink(final EntityEntity ee) {
+
+		Log.info("Removing Link " + ee.getParentCode() + ":" + ee.getTargetCode() + ":"
+				+ ee.getLinkAttribute().getCode());
+
+		service.removeLink(ee.getParentCode(), ee.getTargetCode(), ee.getLinkCode());
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/move/{targetCode}")
+	@Produces("application/json")
+	public Response moveLink(@PathParam("targetCode") final String targetCode, final EntityEntity ee) {
+
+		Log.info("moving Link " + ee.getParentCode() + ":" + ee.getTargetCode() + ":" + ee.getLinkCode()
+				+ " to new Parent " + targetCode);
+		EntityEntity newEntityEntity = service.moveLink(ee.getParentCode(), ee.getTargetCode(), ee.getLinkCode(),
+				targetCode);
+		return Response
+				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newEntityEntity)).build())
+				.build();
 	}
 
 }
