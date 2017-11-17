@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.logging.log4j.Logger;
+import org.keycloak.representations.AccessToken;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -81,7 +82,8 @@ public class Service extends BaseEntityService2 {
 	@Override
 	protected String getCurrentToken() {
 		String token = securityService.getToken();
-
+		AccessToken token2 = securityService.getAccessToken();
+		System.out.println(token2);
 		return token;
 	}
 

@@ -7,17 +7,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 
 import org.apache.logging.log4j.Logger;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.representations.AccessToken;
 
 import life.genny.qwanda.CoreEntity;
-import life.genny.qwandautils.KeycloakUtils;
 
 /**
  * Transactional Security Service
@@ -25,7 +27,7 @@ import life.genny.qwandautils.KeycloakUtils;
  * @author Adam Crow
  */
 
-@Stateless
+@RequestScoped
 
 public class SecurityService implements Serializable {
 	/**
@@ -40,6 +42,14 @@ public class SecurityService implements Serializable {
 	@Inject
 	private Principal principal;
 
+	@Inject
+	private HttpServletRequest request;
+
+	@Produces
+	public AccessToken getAccessToken() {
+		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken();
+	}
+
 	KeycloakSecurityContext kc = null;
 
 	Map<String, Object> user = new HashMap<String, Object>();
@@ -49,22 +59,20 @@ public class SecurityService implements Serializable {
 	@PostConstruct
 	public void init() {
 		if (!importMode) {
-			log.info("hello " + principal);
-			kc = getKeycloakUser();
-			if (kc != null) {
-				user = KeycloakUtils.getJsonMap(kc.getTokenString());
-				log.info("User:" + user);
-			} else {
-				log.error("cannot init kc (keycloak user)");
-			}
-		} else {
-			log.info("Import Mode Security off");
+			user.put("username", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext()
+					.getToken().getPreferredUsername());
+			user.put("realm", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm());
+			user.put("email", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken()
+					.getEmail());
+			user.put("name",
+					((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getName());
 		}
+
 	}
 
 	public String getRealm() {
 		if (!importMode) {
-			return kc.getRealm();
+			return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
 		} else {
 			return CoreEntity.DEFAULT_REALM;
 		}
@@ -99,11 +107,8 @@ public class SecurityService implements Serializable {
 	}
 
 	public String getToken() {
-		if (kc == null) {
-			log.error("No keycloak context in SecurityService");
-			return "NO KEYCLOAK CONTEXT";
-		}
-		return kc.getTokenString();
+		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getTokenString();
+
 	}
 
 }
