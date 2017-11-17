@@ -1,12 +1,13 @@
 package life.genny.qwanda.service;
 
+import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
@@ -24,9 +25,9 @@ import life.genny.qwandautils.KeycloakUtils;
  * @author Adam Crow
  */
 
-@RequestScoped
+@Stateless
 
-public class SecurityService {
+public class SecurityService implements Serializable {
 	/**
 	 * Stores logger object.
 	 */
@@ -50,8 +51,12 @@ public class SecurityService {
 		if (!importMode) {
 			log.info("hello " + principal);
 			kc = getKeycloakUser();
-			user = KeycloakUtils.getJsonMap(kc.getTokenString());
-			log.info("User:" + user);
+			if (kc != null) {
+				user = KeycloakUtils.getJsonMap(kc.getTokenString());
+				log.info("User:" + user);
+			} else {
+				log.error("cannot init kc (keycloak user)");
+			}
 		} else {
 			log.info("Import Mode Security off");
 		}
@@ -94,6 +99,10 @@ public class SecurityService {
 	}
 
 	public String getToken() {
+		if (kc == null) {
+			log.error("No keycloak context in SecurityService");
+			return "NO KEYCLOAK CONTEXT";
+		}
 		return kc.getTokenString();
 	}
 

@@ -6,7 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
@@ -56,6 +56,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
+import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 
 /**
@@ -68,7 +69,7 @@ import life.genny.qwanda.service.Service;
 @Api(value = "/qwanda", description = "Qwanda API", tags = "qwanda")
 @Produces(MediaType.APPLICATION_JSON)
 
-@Stateless
+@RequestScoped
 
 public class QwandaEndpoint {
 
@@ -83,6 +84,9 @@ public class QwandaEndpoint {
 
 	@Inject
 	private Service service;
+
+	@Inject
+	private SecurityService securityService;
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -170,6 +174,7 @@ public class QwandaEndpoint {
 	@Path("/answers")
 	public Response create(final Answer entity) {
 
+		System.out.println(securityService.getToken());
 		service.insert(entity);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())

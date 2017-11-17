@@ -43,6 +43,9 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private PersistenceHelper helper;
 
+	@Inject
+	private SecurityService securityService;
+
 	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
@@ -73,6 +76,13 @@ public class Service extends BaseEntityService2 {
 	public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode, final String linkCode,
 			final MultivaluedMap<String, String> params) {
 		return super.findChildrenByAttributeLinkCount(sourceCode, linkCode, params);
+	}
+
+	@Override
+	protected String getCurrentToken() {
+		String token = securityService.getToken();
+
+		return token;
 	}
 
 }
