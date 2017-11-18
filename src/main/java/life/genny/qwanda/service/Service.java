@@ -10,6 +10,7 @@ import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -28,7 +29,8 @@ import life.genny.services.BaseEntityService2;
 @ApplicationScoped
 @Singleton
 // @SessionScoped
-@Lock(LockType.READ)
+// @Transactional
+// @Lock(LockType.READ)
 public class Service extends BaseEntityService2 {
 
 	/**
@@ -53,7 +55,7 @@ public class Service extends BaseEntityService2 {
 	@PostConstruct
 	public void init() {
 
-		this.setEm(helper.getEntityManager());
+		// this.setEm(helper.getEntityManager());
 	}
 
 	@Override
@@ -85,6 +87,11 @@ public class Service extends BaseEntityService2 {
 		AccessToken token2 = securityService.getAccessToken();
 		System.out.println(token2);
 		return token;
+	}
+
+	@Override
+	protected EntityManager getEntityManager() {
+		return helper.getEntityManager();
 	}
 
 }

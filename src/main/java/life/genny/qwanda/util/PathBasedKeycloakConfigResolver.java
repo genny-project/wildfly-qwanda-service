@@ -43,22 +43,24 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		if (request != null) {
 			// System.out.println("Keycloak Deployment Path incoming request:" + request);
 			try {
-				System.out.println("Keycloak Deployment Path incoming request URI:" + request.getURI());
+				// System.out.println("Keycloak Deployment Path incoming request URI:" +
+				// request.getURI());
 				// Now check for a token
 
 				if (keycloakJsonMap.isEmpty()) {
 					readFilenamesFromDirectory("./realm", keycloakJsonMap);
-					System.out.println("filenames loaded ...");
+					// System.out.println("filenames loaded ...");
 				} else {
-					System.out.println("filenames already loaded ...");
+					// System.out.println("filenames already loaded ...");
 				}
 
 				if (request.getHeader("Authorization") != null) {
+
 					// extract the token
 					final String authTokenHeader = request.getHeader("Authorization");
-					System.out.println("authTokenHeader:" + authTokenHeader);
+					// System.out.println("authTokenHeader:" + authTokenHeader);
 					final String bearerToken = authTokenHeader.substring(7);
-					System.out.println("bearerToken:" + bearerToken);
+					// System.out.println("bearerToken:" + bearerToken);
 					// now extract the realm
 					JSONObject jsonObj = null;
 					String decodedJson = null;
@@ -68,7 +70,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 						final byte[] decodedClaims = decoder.decode(jwtToken[1]);
 						decodedJson = new String(decodedClaims);
 						jsonObj = new JSONObject(decodedJson);
-						System.out.println("******" + jsonObj);
+						// System.out.println("******" + jsonObj);
 					} catch (final JSONException e1) {
 						log.error(
 								"bearerToken=" + bearerToken + "  decodedJson=" + decodedJson + ":" + e1.getMessage());
@@ -86,14 +88,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
-					System.out.println("received KeycloakConfigResolver url:" + url);
+					// System.out.println("received KeycloakConfigResolver url:" + url);
 
 					final String keycloakJsonText = keycloakJsonMap.get(url);
-					System.out.println("Selected KeycloakJson:[" + keycloakJsonText + "]");
+					// System.out.println("Selected KeycloakJson:[" + keycloakJsonText + "]");
 
 					// extract realm
 					final JSONObject json = new JSONObject(keycloakJsonText);
-					System.out.println("json:" + json);
+					// System.out.println("json:" + json);
 					realm = json.getString("realm");
 				}
 
@@ -102,7 +104,10 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			}
 		}
 
-		System.out.println(">>>>> INCOMING REALM IS " + realm);
+		// don't bother showing Docker health checks
+		if (!request.getURI().equals("http://localhost:8080/version")) {
+			System.out.println(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI());
+		}
 
 		KeycloakDeployment deployment = cache.get(realm);
 
@@ -110,7 +115,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			InputStream is;
 			try {
 				is = new ByteArrayInputStream(keycloakJsonMap.get(realm).getBytes(StandardCharsets.UTF_8.name()));
-				System.out.println("Building deployment ");
+				// System.out.println("Building deployment ");
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 			} catch (final UnsupportedEncodingException e) {
@@ -119,14 +124,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			}
 
 		} else {
-			System.out.println("Deployment fetched from cache");
+			// System.out.println("Deployment fetched from cache");
 		}
 
 		if (deployment != null) {
-			System.out.println("Deployment is not null ");
-			System.out.println("accountUrl:" + deployment.getAccountUrl());
-			System.out.println("realm:" + deployment.getRealm());
-			System.out.println("resource name:" + deployment.getResourceName());
+			// System.out.println("Deployment is not null ");
+			// System.out.println("accountUrl:" + deployment.getAccountUrl());
+			// System.out.println("realm:" + deployment.getRealm());
+			// System.out.println("resource name:" + deployment.getResourceName());
 
 		}
 

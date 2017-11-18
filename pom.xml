@@ -63,6 +63,8 @@
 		<version.org.jboss.arquillian>1.1.5.Final</version.org.jboss.arquillian>
 		<version.org.wildfly>8.2.1.Final</version.org.wildfly>
 		<version.junit>4.12</version.junit>
+
+		<vertx.version>3.4.2</vertx.version>
 	</properties>
 
 	<repositories>
@@ -308,7 +310,23 @@
 			<artifactId>arquillian-protocol-servlet</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- <dependency> <groupId>io.vertx</groupId> <artifactId>vertx-core</artifactId> 
+			<version>${vertx.version}</version> </dependency> <dependency> <groupId>io.vertx</groupId> 
+			<artifactId>vertx-hazelcast</artifactId> <version>${vertx.version}</version> 
+			</dependency> <dependency> <groupId>io.vertx</groupId> <artifactId>vertx-jca-api</artifactId> 
+			<version>${vertx.version}</version> </dependency> -->
 
+		<dependency>
+			<groupId>org.jboss.weld</groupId>
+			<artifactId>weld-core</artifactId>
+			<version>2.4.5.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.weld</groupId>
+			<artifactId>weld-spi</artifactId>
+			<version>3.0.Final</version>
+		</dependency>
 
 	</dependencies>
 
