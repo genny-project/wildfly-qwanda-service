@@ -11,6 +11,7 @@ import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -22,12 +23,12 @@ import com.google.gson.GsonBuilder;
 
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
-import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.services.BaseEntityService2;
 
 @ApplicationScoped
 @Singleton
+// @RequestScoped
 // @SessionScoped
 // @Transactional
 // @Lock(LockType.READ)
@@ -43,8 +44,11 @@ public class Service extends BaseEntityService2 {
 		// TODO Auto-generated constructor stub
 	}
 
-	@Inject
-	private PersistenceHelper helper;
+	@PersistenceContext(unitName = "genny-persistence-unit")
+	private EntityManager em2;
+
+	// @Inject
+	// private PersistenceHelper helper;
 
 	@Inject
 	private SecurityService securityService;
@@ -91,7 +95,8 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	protected EntityManager getEntityManager() {
-		return helper.getEntityManager();
+		// return helper.getEntityManager();
+		return em2;
 	}
 
 }

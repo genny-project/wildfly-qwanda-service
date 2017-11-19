@@ -6,7 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.context.RequestScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
@@ -23,7 +23,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -32,8 +31,6 @@ import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -56,7 +53,6 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
-import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 
 /**
@@ -69,8 +65,7 @@ import life.genny.qwanda.service.Service;
 @Api(value = "/qwanda", description = "Qwanda API", tags = "qwanda")
 @Produces(MediaType.APPLICATION_JSON)
 
-@RequestScoped
-
+@Stateless
 public class QwandaEndpoint {
 
 	/**
@@ -79,14 +74,8 @@ public class QwandaEndpoint {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	@Context
-	SecurityContext sc;
-
 	@Inject
 	private Service service;
-
-	@Inject
-	private SecurityService securityService;
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -174,7 +163,6 @@ public class QwandaEndpoint {
 	@Path("/answers")
 	public Response create(final Answer entity) {
 
-		System.out.println(securityService.getToken());
 		service.insert(entity);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
@@ -370,23 +358,6 @@ public class QwandaEndpoint {
 	// }
 	// return Response.status(200).entity("Logged Out").build();
 	// }
-
-	@GET
-	@Path("/init")
-	@Produces("application/json")
-	public Response init() {
-		if (sc != null) {
-			if (sc.getUserPrincipal() != null) {
-				if (sc.getUserPrincipal() instanceof KeycloakPrincipal) {
-					final KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) sc
-							.getUserPrincipal();
-
-					service.init(kp.getKeycloakSecurityContext());
-				}
-			}
-		}
-		return Response.status(200).entity("Initialised").build();
-	}
 
 	@GET
 	@Path("/baseentitys")

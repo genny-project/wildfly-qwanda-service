@@ -6,11 +6,12 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.entity.BaseEntity;
-import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.services.BatchLoading;
 
 /**
@@ -34,17 +35,28 @@ public class StartupService {
 	@Inject
 	private SecurityService securityService;
 
-	@Inject
-	private PersistenceHelper helper;
+	// @PersistenceContext(unitName = "genny-persistence-unit", type =
+	// PersistenceContextType.EXTENDED)
+	@PersistenceContext
+	private EntityManager em;
+
+	// @PersistenceUnit(unitName = "genny-persistence-unit")
+	// EntityManagerFactory emf;
+
+	// @Inject
+	// private PersistenceHelper helper;
 
 	@PostConstruct
 	public void init() {
 		securityService.setImportMode(true); // ugly way of getting past security
 
-		BatchLoading bl = new BatchLoading(helper.getEntityManager());
+		// em = emf.createEntityManager();
+		BatchLoading bl = new BatchLoading(em/* helper.getEntityManager() */);
 		bl.persistProject();
 		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
 		securityService.setImportMode(false);
+		// em.close();
+		// emf.close();
 	}
 
 }
