@@ -12,6 +12,7 @@ import javax.persistence.PersistenceContext;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 
 /**
@@ -29,8 +30,8 @@ public class StartupService {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	// @Inject
-	// private BaseEntityService service;
+	@Inject
+	private BaseEntityService2 service;
 
 	@Inject
 	private SecurityService securityService;
@@ -51,7 +52,7 @@ public class StartupService {
 		securityService.setImportMode(true); // ugly way of getting past security
 
 		// em = emf.createEntityManager();
-		BatchLoading bl = new BatchLoading(em/* helper.getEntityManager() */);
+		BatchLoading bl = new BatchLoading(service);
 		bl.persistProject();
 		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
 		securityService.setImportMode(false);
