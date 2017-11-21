@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.keycloak.representations.AccessToken;
 
@@ -65,7 +66,8 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
-		log.info("ATTRIBUTE CHANGE EVENT!" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
+		System.out.println("!!!!!!ATTRIBUTE CHANGE EVENT!!!!!!!" + event.getTargetBaseEntityCode() + ":"
+				+ event.getNewValue() + " token=" + StringUtils.abbreviateMiddle(event.getToken(), "...", 30));
 		Gson gson = gsonBuilder.create();
 		try {
 			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
