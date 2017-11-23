@@ -634,7 +634,7 @@ public class QwandaEndpoint {
 		// ee.setLinkAttribute(link);
 		// ee.setSource(parent);
 		// ee.setTarget(target);
-		ee.setValue("TEST");
+		// ee.setValue("TEST");
 		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
 
 		EntityEntity newEntityEntity = null;
@@ -675,6 +675,10 @@ public class QwandaEndpoint {
 				+ " to new Parent " + targetCode);
 		Link newEntityEntity = service.moveLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 				targetCode);
+		// TODO: This is a terrible hack.but logically will work
+		newEntityEntity.setAttributeCode(ee.getAttributeCode());
+		newEntityEntity.setSourceCode(targetCode);
+		newEntityEntity.setTargetCode(ee.getTargetCode());
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newEntityEntity)).build())
 				.build();
@@ -684,9 +688,11 @@ public class QwandaEndpoint {
 	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}")
 	@ApiOperation(value = "baseentitys/{targetCode}/links", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public Response fetchLinks(@PathParam("targetCode") final String targetCode,
 			@PathParam("linkCode") final String linkCode) {
-		final List<EntityEntity> items = service.findLinks(targetCode, linkCode);
+		final List<Link> items = service.findLinks(targetCode, linkCode);
+
 		return Response.status(200).entity(items).build();
 	}
 
