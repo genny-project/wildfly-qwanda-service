@@ -6,9 +6,10 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
+import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -44,6 +45,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.GPS;
+import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
@@ -65,7 +67,8 @@ import life.genny.qwanda.service.Service;
 @Api(value = "/qwanda", description = "Qwanda API", tags = "qwanda")
 @Produces(MediaType.APPLICATION_JSON)
 
-@Stateless
+// @Stateless
+@RequestScoped
 public class QwandaEndpoint {
 
 	/**
@@ -221,7 +224,7 @@ public class QwandaEndpoint {
 	}
 
 	@GET
-	@Path("/questions/<questionCode}")
+	@Path("/questions/{questionCode}")
 	public Response fetchQuestions(@PathParam("questionCode") final String questionCode) {
 		final List<Question> entitys = service.findQuestions();
 		return Response.status(200).entity(entitys).build();
@@ -621,15 +624,24 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-	public Response addLink(final EntityEntity ee) {
+	@Transactional
+	public Response addLink(final Link ee) {
 
-		Log.info("Creating new Link " + ee.getParentCode() + ":" + ee.getTargetCode() + ":" + ee.getLinkCode());
+		// BaseEntity parent = service.findBaseEntityByCode(ee.getParentCode());
+		// BaseEntity target = service.findBaseEntityByCode(ee.getTargetCode());
+		// AttributeLink link = service.findAttributeLinkByCode(ee.getLinkCode());
+
+		// ee.setLinkAttribute(link);
+		// ee.setSource(parent);
+		// ee.setTarget(target);
+		ee.setValue("TEST");
+		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
 
 		EntityEntity newEntityEntity = null;
 
 		try {
-			newEntityEntity = service.addLink(ee.getParentCode(), ee.getTargetCode(), ee.getLinkCode(), ee.getValue(),
-					ee.getWeight());
+			newEntityEntity = service.addLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(), "LINK",
+					1.0);
 		} catch (IllegalArgumentException | BadDataException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -643,12 +655,12 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-	public Response removeLink(final EntityEntity ee) {
+	@Transactional
+	public Response removeLink(final Link ee) {
 
-		Log.info("Removing Link " + ee.getParentCode() + ":" + ee.getTargetCode() + ":"
-				+ ee.getLinkAttribute().getCode());
+		Log.info("Removing Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
 
-		service.removeLink(ee.getParentCode(), ee.getTargetCode(), ee.getLinkCode());
+		service.removeLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode());
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
 
@@ -656,11 +668,12 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/baseentitys/move/{targetCode}")
 	@Produces("application/json")
-	public Response moveLink(@PathParam("targetCode") final String targetCode, final EntityEntity ee) {
+	@Transactional
+	public Response moveLink(@PathParam("targetCode") final String targetCode, final Link ee) {
 
-		Log.info("moving Link " + ee.getParentCode() + ":" + ee.getTargetCode() + ":" + ee.getLinkCode()
+		Log.info("moving Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
 				+ " to new Parent " + targetCode);
-		EntityEntity newEntityEntity = service.moveLink(ee.getParentCode(), ee.getTargetCode(), ee.getLinkCode(),
+		Link newEntityEntity = service.moveLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 				targetCode);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newEntityEntity)).build())
