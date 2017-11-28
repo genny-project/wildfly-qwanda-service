@@ -635,12 +635,12 @@ public class QwandaEndpoint {
 		// ee.setSource(parent);
 		// ee.setTarget(target);
 		// ee.setValue("TEST");
-		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
+		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode() + ":" + ee.getLinkValue());
 
 		EntityEntity newEntityEntity = null;
 
 		try {
-			newEntityEntity = service.addLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(), "LINK",
+			newEntityEntity = service.addLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(), ee.getLinkValue(),
 					1.0);
 		} catch (IllegalArgumentException | BadDataException e) {
 			// TODO Auto-generated catch block
