@@ -14,6 +14,7 @@ jboss/server/minimal/tmp/**/*
 jboss/server/minimal/data/**/*
 jboss/server/minimal/work/**/*
 /src/main/resources/git.properties
+src/main/resources/rebel.xml
 # deployed package files #
 
 *.DEPLOYED
