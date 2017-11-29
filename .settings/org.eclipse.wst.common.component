@@ -5,13 +5,13 @@
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
         <wb-resource deploy-path="/" source-path="/"/>
-        <dependent-module archiveName="qwanda-services-0.0.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/daoservices/daoservices">
+        <dependent-module archiveName="qwanda-services-0.8.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda-services/qwanda-services">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="qwanda-utils-0.4.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda-utils/qwanda-utils">
+        <dependent-module archiveName="qwanda-utils-0.8.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda-utils/qwanda-utils">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="qwanda-0.5.5.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda/qwanda">
+        <dependent-module archiveName="qwanda-0.8.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda/qwanda">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="wildfly-qwanda-service"/>
