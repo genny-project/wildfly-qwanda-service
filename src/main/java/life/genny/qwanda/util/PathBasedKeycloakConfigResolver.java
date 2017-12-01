@@ -39,6 +39,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		URL aURL = null;
 		String realm = "genny";
 		String username = null;
+                String key = "genny.json";
 
 		if (request != null) {
 			// System.out.println("Keycloak Deployment Path incoming request:" + request);
@@ -78,6 +79,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					try {
 						username = (String) jsonObj.get("preferred_username");
 						realm = (String) jsonObj.get("aud");
+	                                        key = realm+".json";
 					} catch (final JSONException e1) {
 						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
 					} catch (final NullPointerException e2) {
@@ -90,13 +92,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					final String url = aURL.getHost();
 					// System.out.println("received KeycloakConfigResolver url:" + url);
 
-					final String keycloakJsonText = keycloakJsonMap.get(url);
+					final String keycloakJsonText = keycloakJsonMap.get(url+".json");
 					// System.out.println("Selected KeycloakJson:[" + keycloakJsonText + "]");
 
 					// extract realm
 					final JSONObject json = new JSONObject(keycloakJsonText);
 					// System.out.println("json:" + json);
 					realm = json.getString("realm");
+                                        key = realm + ".json";
 				}
 
 			} catch (final Exception e) {
@@ -114,7 +117,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		if (null == deployment) {
 			InputStream is;
 			try {
-				is = new ByteArrayInputStream(keycloakJsonMap.get(realm).getBytes(StandardCharsets.UTF_8.name()));
+				is = new ByteArrayInputStream(keycloakJsonMap.get(key).getBytes(StandardCharsets.UTF_8.name()));
 				// System.out.println("Building deployment ");
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
@@ -147,7 +150,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile()) {
-				System.out.println("File " + listOfFiles[i].getName());
+				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$File " + listOfFiles[i].getName());
 				try {
 					String keycloakJsonText = getFileAsText(listOfFiles[i]);
 					// Handle case where dev is in place with localhost
@@ -156,10 +159,10 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					keycloakJsonText = keycloakJsonText.replaceAll("localhost", localIP);
 
 					// }
-					final String key = listOfFiles[i].getName().replaceAll(".json", "");
+					final String key = listOfFiles[i].getName(); //.replaceAll(".json", "");
 					System.out.println("keycloak key:" + key + "," + keycloakJsonText);
 
-					keycloakJsonMap.put(key+".json", keycloakJsonText);
+					keycloakJsonMap.put(key, keycloakJsonText);
 				} catch (final IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
