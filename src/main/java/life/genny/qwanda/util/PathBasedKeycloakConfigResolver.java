@@ -159,7 +159,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					final String key = listOfFiles[i].getName().replaceAll(".json", "");
 					System.out.println("keycloak key:" + key + "," + keycloakJsonText);
 
-					keycloakJsonMap.put(key, keycloakJsonText);
+					keycloakJsonMap.put(key+".json", keycloakJsonText);
 				} catch (final IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
