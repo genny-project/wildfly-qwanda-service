@@ -3,6 +3,7 @@ package life.genny.qwanda.service;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
@@ -15,12 +16,14 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.representations.AccessToken;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import life.genny.qwanda.DateTimeDeserializer;
+import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwandautils.QwandaUtils;
@@ -98,6 +101,26 @@ public class Service extends BaseEntityService2 {
 	protected EntityManager getEntityManager() {
 		return helper.getEntityManager();
 		// return em2;
+	}
+
+	@Override
+	public BaseEntity getUser() {
+		BaseEntity user = null;
+		String username = (String) securityService.getUserMap().get("username");
+		Integer pageStart = 0;
+		Integer pageSize = 10; // default
+		Integer level = 1;
+
+		final MultivaluedMap params = new MultivaluedMapImpl();
+		params.add("PRI_USERNAME", username);
+
+		List<BaseEntity> users = this.findBaseEntitysByAttributeValues(params, true, 0, 1);
+
+		if (!((users == null) || (users.isEmpty()))) {
+			user = users.get(0);
+
+		}
+		return user;
 	}
 
 }

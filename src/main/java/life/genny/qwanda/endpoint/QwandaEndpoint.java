@@ -55,6 +55,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
+import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 
 /**
@@ -79,6 +80,9 @@ public class QwandaEndpoint {
 
 	@Inject
 	private Service service;
+
+	@Inject
+	private SecurityService securityService;
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -142,16 +146,10 @@ public class QwandaEndpoint {
 			@PathParam("questionCode") final String questionCode, @PathParam("targetCode") final String targetCode,
 			@Context final UriInfo uriInfo) {
 
-		// Fetch the associated BaseEntitys and Question
-		BaseEntity beSource = service.findBaseEntityByCode(sourceCode);
-		BaseEntity beTarget = service.findBaseEntityByCode(targetCode);
-		Question question = service.findQuestionByCode(questionCode);
-		Ask newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
+		List<Ask> asks = service.createAsksByQuestionCode(questionCode, sourceCode, targetCode);
+		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 
-		Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":" + question.getCode());
-
-		service.insert(newAsk);
-		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newAsk)).build())
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
 				.build();
 	}
 
@@ -262,6 +260,16 @@ public class QwandaEndpoint {
 		final QDataAskMessage qasks = new QDataAskMessage(entitys.toArray(new Ask[0]));
 		System.out.println(qasks);
 		return Response.status(200).entity(qasks).build();
+	}
+
+	@GET
+	@Path("/asksmsg/{questionCode}")
+	public Response fetchAsksMsgByQuestionCode(@PathParam("questionCode") final String questionCode) {
+		// work out who the sourceCode and targetCode
+		BaseEntity user = service.getUser();
+		List<Ask> asks = service.createAsksByQuestionCode(questionCode, user.getCode(), user.getCode());
+		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+		return Response.status(200).entity(askMsgs).build();
 	}
 
 	@GET
