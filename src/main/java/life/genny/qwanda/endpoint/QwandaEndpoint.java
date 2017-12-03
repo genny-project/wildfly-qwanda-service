@@ -138,9 +138,11 @@ public class QwandaEndpoint {
 				.build();
 	}
 
-	@POST
+	// TODO: should be POST
+	@GET
 	@Consumes("application/json")
-	@Path("/baseentitys/{sourceCode}/questions/{questionCode}/{targetCode}")
+	@Path("/baseentitys/{sourceCode}/asks/{questionCode}/{targetCode}")
+	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response createAsks(@PathParam("sourceCode") final String sourceCode,
 			@PathParam("questionCode") final String questionCode, @PathParam("targetCode") final String targetCode,
@@ -149,8 +151,10 @@ public class QwandaEndpoint {
 		List<Ask> asks = service.createAsksByQuestionCode(questionCode, sourceCode, targetCode);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 
-		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
-				.build();
+		// return
+		// Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
+		// .build();
+		return Response.status(200).entity(askMsgs).build();
 	}
 
 	@POST
@@ -262,8 +266,10 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(qasks).build();
 	}
 
+	// TODO: This should be deprecated
 	@GET
 	@Path("/asksmsg/{questionCode}")
+	@Transactional
 	public Response fetchAsksMsgByQuestionCode(@PathParam("questionCode") final String questionCode) {
 		// work out who the sourceCode and targetCode
 		BaseEntity user = service.getUser();
