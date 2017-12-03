@@ -17,6 +17,7 @@ jboss/server/minimal/work/**/*
 src/main/resources/rebel.xml
 # deployed package files #
 .project
+.classpath
 *.DEPLOYED
 /target/
 
