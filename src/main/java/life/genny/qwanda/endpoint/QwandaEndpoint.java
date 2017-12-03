@@ -13,7 +13,6 @@ import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -191,17 +190,18 @@ public class QwandaEndpoint {
 				.build();
 	}
 
-	@POST
-	@Path("/baseentitys")
-	@Consumes("application/json")
-	@Transactional
-	public Response create(@FormParam("name") final String name, @FormParam("uniqueCode") final String uniqueCode) {
-		final BaseEntity entity = new BaseEntity(uniqueCode, name);
-		service.insert(entity);
-		return Response
-				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
-				.build();
-	}
+	// @POST
+	// @Path("/baseentitys")
+	// @Consumes("application/json")
+	// @Transactional
+	// public Response create(@FormParam("name") final String name,
+	// @FormParam("uniqueCode") final String uniqueCode) {
+	// final BaseEntity entity = new BaseEntity(uniqueCode, name);
+	// service.insert(entity);
+	// return Response
+	// .created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+	// .build();
+	// }
 
 	@GET
 	@Path("/rules/{id}")

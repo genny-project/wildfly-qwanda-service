@@ -22,3 +22,4 @@ src/main/resources/rebel.xml
 /target/
 
 npm-debug.log
+/bin/

@@ -8,10 +8,12 @@ import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.service.SecurityService;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 
@@ -22,6 +24,7 @@ import life.genny.services.BatchLoading;
  */
 @Singleton
 @Startup
+@Transactional
 public class StartupService {
 
 	/**
@@ -52,6 +55,7 @@ public class StartupService {
 		securityService.setImportMode(true); // ugly way of getting past security
 
 		// em = emf.createEntityManager();
+		System.out.println("Starting Transaction for loading");
 		BatchLoading bl = new BatchLoading(service);
 		bl.persistProject();
 		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
