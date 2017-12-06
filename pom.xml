@@ -37,10 +37,6 @@
 
 		<version.jodatime>2.7</version.jodatime>
 
-		<version.hibernate>5.2.10.Final</version.hibernate>
-		<version.hibernate-validator>5.4.0.Final</version.hibernate-validator>
-		<version.hibernate.envers>5.2.10.Final</version.hibernate.envers>
-		<version.hsqldb>2.3.4</version.hsqldb>
 		<version.h2db>1.4.193</version.h2db>
 		<jackson.version>2.6.3</jackson.version>
 
