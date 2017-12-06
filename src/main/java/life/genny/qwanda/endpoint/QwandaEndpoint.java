@@ -156,6 +156,24 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(askMsgs).build();
 	}
 
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/{sourceCode}/asks2/{questionCode}/{targetCode}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response createAsks2(@PathParam("sourceCode") final String sourceCode,
+			@PathParam("questionCode") final String questionCode, @PathParam("targetCode") final String targetCode,
+			@Context final UriInfo uriInfo) {
+
+		List<Ask> asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
+		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+
+		// return
+		// Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
+		// .build();
+		return Response.status(200).entity(askMsgs).build();
+	}
+
 	@POST
 	@Consumes("application/json")
 	@Path("/gpss")
