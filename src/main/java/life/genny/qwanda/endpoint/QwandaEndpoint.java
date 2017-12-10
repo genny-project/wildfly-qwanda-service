@@ -31,6 +31,7 @@ import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
+import org.json.JSONObject;
 import org.mortbay.log.Log;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -56,6 +57,7 @@ import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.security.SecureResources;
 
 /**
  * JAX-RS endpoint
@@ -754,4 +756,54 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(items).build();
 	}
 
+	@GET
+	@Path("/realms/sync")
+	@ApiOperation(value = "syncrealms", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response syncrealms() {
+		System.out.println("Sync Keycloak Realms");
+		String keycloakRealms = SecureResources.reload();
+		return Response.status(200).entity(keycloakRealms).build();
+	}
+
+	@GET
+	@Path("/realms")
+	@ApiOperation(value = "syncrealms", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchrealms() {
+		System.out.println("Fetch Keycloak Realms");
+		String keycloakRealms = SecureResources.fetchRealms();
+		return Response.status(200).entity(keycloakRealms).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/realms")
+	@Transactional
+	public Response createRealm(final String entity) {
+		System.out.println("Add Keycloak Realm");
+
+		JSONObject json = new JSONObject(entity);
+		String key = json.getString("clientId");
+		key = key + ".json";
+
+		SecureResources.addRealm(key, entity);
+
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
+
+	@DELETE
+	@Consumes("application/json")
+	@Path("/realms")
+	@Produces("application/json")
+	@Transactional
+	public Response removeRealm(final String key) {
+
+		Log.info("Removing Realm " + key);
+
+		SecureResources.removeRealm(key);
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
 }
