@@ -49,6 +49,7 @@ import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
+import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -806,4 +807,18 @@ public class QwandaEndpoint {
 		SecureResources.removeRealm(key);
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
+
+	Controller ctl = new Controller();
+
+	@GET
+	@Path("/synchronize/{sheetId}/{tables}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
+			@PathParam("tables") final String tables) {
+		String response = "Success";
+		ctl.getProject(service, sheetId, tables);
+		return Response.status(200).entity(response).build();
+	}
+
 }
