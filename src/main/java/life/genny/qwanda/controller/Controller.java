@@ -33,7 +33,7 @@ public class Controller {
           merge.put(map.getKey(), map);
         }
       });
-      System.out.println(merge);
+      System.out.println("323232" + saveProjectData);
     }
     if (tablesLC.contains("datatype")) {
       table2Update.put("dataType", bl.sheets.newGetDType());
