@@ -194,6 +194,10 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response create(final Answer entity) {
 
+		if (entity.getAttribute() == null) {
+			Attribute attribute = service.findAttributeByCode(entity.getAttributeCode());
+			entity.setAttribute(attribute);
+		}
 		service.insert(entity);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
