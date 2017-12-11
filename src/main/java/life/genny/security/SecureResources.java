@@ -34,7 +34,35 @@ public class SecureResources {
 		keycloakJsonMap.clear();
 	}
 
-	public static void readFilenamesFromDirectory(final String rootFilePath) {
+	public static void addRealm(final String key, String keycloakJsonText) {
+		final String localIP = System.getenv("HOSTIP");
+		keycloakJsonText = keycloakJsonText.replaceAll("localhost", localIP);
+		System.out.println("Adding keycloak key:" + key + "," + keycloakJsonText);
+
+		keycloakJsonMap.put(key, keycloakJsonText);
+	}
+
+	public static void removeRealm(final String key) {
+		System.out.println("Removing keycloak key:" + key);
+
+		keycloakJsonMap.remove(key);
+	}
+
+	public static String reload() {
+		keycloakJsonMap.clear();
+		return readFilenamesFromDirectory(realmDir);
+	}
+
+	public static String fetchRealms() {
+		String ret = "";
+		for (String keycloakRealmKey : keycloakJsonMap.keySet()) {
+			ret += keycloakRealmKey + ":" + keycloakJsonMap.get(keycloakRealmKey) + "\n";
+		}
+		return ret;
+	}
+
+	public static String readFilenamesFromDirectory(final String rootFilePath) {
+		String ret = "";
 		final File folder = new File(rootFilePath);
 		final File[] listOfFiles = folder.listFiles();
 		final String localIP = System.getenv("HOSTIP");
@@ -55,6 +83,7 @@ public class SecureResources {
 					System.out.println("keycloak key:" + key + "," + keycloakJsonText);
 
 					keycloakJsonMap.put(key, keycloakJsonText);
+					ret += keycloakJsonText + "\n";
 				} catch (final IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -65,6 +94,7 @@ public class SecureResources {
 				readFilenamesFromDirectory(listOfFiles[i].getName());
 			}
 		}
+		return ret;
 	}
 
 	private static String getFileAsText(final File file) throws IOException {
