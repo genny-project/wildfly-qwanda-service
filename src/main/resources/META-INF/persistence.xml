@@ -39,6 +39,7 @@
 		<class>life.genny.qwanda.validation.Validation</class>
 		<class>life.genny.qwanda.validation.ValidationList</class>
 		<class>life.genny.qwanda.QuestionQuestion</class>
+		<class>life.genny.qwanda.message.QBaseMSGMessageTemplate</class>
 		
 		<validation-mode>CALLBACK</validation-mode>
 		<properties>
