@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.servlet.ServletContext;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -26,11 +27,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
+import org.json.JSONObject;
 import org.mortbay.log.Log;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -47,7 +50,9 @@ import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
+import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -56,6 +61,7 @@ import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.security.SecureResources;
 
 /**
  * JAX-RS endpoint
@@ -191,6 +197,20 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response create(final Answer entity) {
 
+		if (entity.getAttribute() == null) {
+			Attribute attribute = null;
+
+			try {
+				attribute = service.findAttributeByCode(entity.getAttributeCode());
+			} catch (NoResultException e) {
+				// Create it (ideally if user is admin)
+				attribute = new AttributeText(entity.getAttributeCode(),
+						StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+				service.insert(attribute);
+				attribute = service.findAttributeByCode(entity.getAttributeCode());
+			}
+			entity.setAttribute(attribute);
+		}
 		service.insert(entity);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
@@ -373,6 +393,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/{targetCode}/answers")
 	@ApiOperation(value = "answers", notes = "BaseEntity AnswerLinks")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public List<AnswerLink> fetchAnswersByTargetBaseEntityCode(@PathParam("targetCode") final String targetCode) {
 		final List<AnswerLink> items = service.findAnswersByTargetBaseEntityCode(targetCode);
 		return items;
@@ -382,6 +403,7 @@ public class QwandaEndpoint {
 	@Path("/answers")
 	@ApiOperation(value = "answers", notes = "AnswerLinks")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public Response fetchAnswerLinks() {
 		final List<AnswerLink> items = service.findAnswerLinks();
 		return Response.status(200).entity(items).build();
@@ -750,6 +772,70 @@ public class QwandaEndpoint {
 		final List<Link> items = service.findChildLinks(sourceCode, linkCode);
 
 		return Response.status(200).entity(items).build();
+	}
+
+	@GET
+	@Path("/realms/sync")
+	@ApiOperation(value = "syncrealms", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response syncrealms() {
+		System.out.println("Sync Keycloak Realms");
+		String keycloakRealms = SecureResources.reload();
+		return Response.status(200).entity(keycloakRealms).build();
+	}
+
+	@GET
+	@Path("/realms")
+	@ApiOperation(value = "syncrealms", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchrealms() {
+		System.out.println("Fetch Keycloak Realms");
+		String keycloakRealms = SecureResources.fetchRealms();
+		return Response.status(200).entity(keycloakRealms).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/realms")
+	@Transactional
+	public Response createRealm(final String entity) {
+		System.out.println("Add Keycloak Realm");
+
+		JSONObject json = new JSONObject(entity);
+		String key = json.getString("clientId");
+		key = key + ".json";
+
+		SecureResources.addRealm(key, entity);
+
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
+
+	@DELETE
+	@Consumes("application/json")
+	@Path("/realms")
+	@Produces("application/json")
+	@Transactional
+	public Response removeRealm(final String key) {
+
+		Log.info("Removing Realm " + key);
+
+		SecureResources.removeRealm(key);
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
+
+	Controller ctl = new Controller();
+
+	@GET
+	@Path("/synchronize/{sheetId}/{tables}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
+			@PathParam("tables") final String tables) {
+		String response = "Success";
+		ctl.getProject(service, sheetId, tables);
+		return Response.status(200).entity(response).build();
 	}
 
 }

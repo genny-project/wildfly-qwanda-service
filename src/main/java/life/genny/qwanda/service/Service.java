@@ -107,10 +107,6 @@ public class Service extends BaseEntityService2 {
 	public BaseEntity getUser() {
 		BaseEntity user = null;
 		String username = (String) securityService.getUserMap().get("username");
-		Integer pageStart = 0;
-		Integer pageSize = 10; // default
-		Integer level = 1;
-
 		final MultivaluedMap params = new MultivaluedMapImpl();
 		params.add("PRI_USERNAME", username);
 
@@ -121,6 +117,18 @@ public class Service extends BaseEntityService2 {
 
 		}
 		return user;
+	}
+
+	@Override
+	public Long insert(final BaseEntity entity) {
+		if (securityService.isAuthorised()) {
+			String realm = securityService.getRealm();
+			// System.out.println("Realm = " + realm);
+			entity.setRealm(realm); // always override
+			return super.insert(entity);
+		}
+
+		return null; // TODO throw Exception
 	}
 
 }
