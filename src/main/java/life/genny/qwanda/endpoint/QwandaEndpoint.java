@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.servlet.ServletContext;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -26,6 +27,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -48,6 +50,7 @@ import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
@@ -194,6 +197,20 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response create(final Answer entity) {
 
+		if (entity.getAttribute() == null) {
+			Attribute attribute = null;
+
+			try {
+				attribute = service.findAttributeByCode(entity.getAttributeCode());
+			} catch (NoResultException e) {
+				// Create it (ideally if user is admin)
+				attribute = new AttributeText(entity.getAttributeCode(),
+						StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+				service.insert(attribute);
+				attribute = service.findAttributeByCode(entity.getAttributeCode());
+			}
+			entity.setAttribute(attribute);
+		}
 		service.insert(entity);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
