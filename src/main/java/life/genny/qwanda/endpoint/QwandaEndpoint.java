@@ -56,6 +56,7 @@ import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
@@ -411,9 +412,11 @@ public class QwandaEndpoint {
 
 	// @GET
 	// @Path("/logout")
-	// @ApiOperation(value = "Logout", notes = "Logout", response = String.class)
+	// @ApiOperation(value = "Logout", notes = "Logout", response =
+	// String.class)
 	// @Produces(MediaType.APPLICATION_JSON)
-	// public Response logout(@Context final javax.servlet.http.HttpServletRequest
+	// public Response logout(@Context final
+	// javax.servlet.http.HttpServletRequest
 	// request) {
 	// try {
 	// request.logout();
@@ -629,7 +632,8 @@ public class QwandaEndpoint {
 			@QueryParam("max") final Integer max,
 			@DefaultValue("GRP_USERS") @QueryParam("parentgroups") final String parentGroupCodes) {
 		log.error("IMPORT KEYCLOAK DISABLED IN CODE");
-		Long usersAddedCount = 0L; // service.importKeycloakUsers(keycloakUrl, realm, username,
+		Long usersAddedCount = 0L; // service.importKeycloakUsers(keycloakUrl,
+									// realm, username,
 									// password, clientId,
 									// max, parentGroupCodes);
 		return Response.status(200).entity(usersAddedCount).build();
@@ -694,7 +698,8 @@ public class QwandaEndpoint {
 
 		// BaseEntity parent = service.findBaseEntityByCode(ee.getParentCode());
 		// BaseEntity target = service.findBaseEntityByCode(ee.getTargetCode());
-		// AttributeLink link = service.findAttributeLinkByCode(ee.getLinkCode());
+		// AttributeLink link =
+		// service.findAttributeLinkByCode(ee.getLinkCode());
 
 		// ee.setLinkAttribute(link);
 		// ee.setSource(parent);
@@ -836,6 +841,15 @@ public class QwandaEndpoint {
 		String response = "Success";
 		ctl.getProject(service, sheetId, tables);
 		return Response.status(200).entity(response).build();
+	}
+
+	@GET
+	@Path("/templates/{templateCode}")
+	@Produces("application/json")
+	public Response getMessageTemplates(@PathParam("templateCode") final String code) {
+		QBaseMSGMessageTemplate template = service.findTemplateByCode(code);
+
+		return Response.status(200).entity(template).build();
 	}
 
 }
