@@ -90,7 +90,8 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		// don't bother showing Docker health checks
 		if (!request.getURI().equals("http://localhost:8080/version")) {
-			System.out.println(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI());
+			System.out
+					.println(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod());
 		}
 
 		KeycloakDeployment deployment = cache.get(realm);
@@ -100,11 +101,9 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			try {
 				is = new ByteArrayInputStream(
 						SecureResources.getKeycloakJsonMap().get(key).getBytes(StandardCharsets.UTF_8.name()));
-				// System.out.println("Building deployment ");
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 			} catch (final UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
