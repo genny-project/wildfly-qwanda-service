@@ -69,15 +69,15 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
-		System.out.println("!!!!!!ATTRIBUTE CHANGE EVENT!!!!!!!" + event.getTargetBaseEntityCode() + ":"
-				+ event.getNewValue() + " token=" + StringUtils.abbreviateMiddle(event.getToken(), "...", 30));
+		System.out.println("!!!!!!ATTRIBUTE CHANGE EVENT!!!!!!!" + event.getAnswer().getTargetCode() + ":"
+				+ event.getAnswer().getValue() + " token=" + StringUtils.abbreviateMiddle(event.getToken(), "...", 30));
 		Gson gson = gsonBuilder.create();
 		try {
 			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
 		} catch (IOException e) {
 
-			log.error(
-					"Error in posting to Vertx bridge:" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
+			log.error("Error in posting to Vertx bridge:" + event.getAnswer().getValue() + " -> was "
+					+ event.getOldValue());
 		}
 
 	}

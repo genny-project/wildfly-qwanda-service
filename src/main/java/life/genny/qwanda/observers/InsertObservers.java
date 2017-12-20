@@ -29,14 +29,15 @@ public class InsertObservers {
 	@Asynchronous
 	public void attributeValueChangeEvent(@Observes final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
-		log.info("ATTRIBUTE CHANGE EVENT!" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
+		log.info("ATTRIBUTE CHANGE EVENT!" + event.getAnswer().getTargetCode() + ":" + event.getAnswer().getValue()
+				+ " -> was " + event.getOldValue());
 		Gson gson = gsonBuilder.create();
 		try {
 			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
 		} catch (IOException e) {
 
-			log.error(
-					"Error in posting to Vertx bridge:" + event.getTargetBaseEntityCode() + ":" + event.getNewValue());
+			log.error("Error in posting to Vertx bridge:" + event.getAnswer().getTargetCode() + ":"
+					+ event.getAnswer().getValue() + " -> was " + event.getOldValue());
 		}
 
 	}
