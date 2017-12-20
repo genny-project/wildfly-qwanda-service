@@ -131,4 +131,8 @@ public class Service extends BaseEntityService2 {
 		return null; // TODO throw Exception
 	}
 
+	@Override
+	protected String getRealm() {
+		return securityService.getRealm();
+	}
 }
