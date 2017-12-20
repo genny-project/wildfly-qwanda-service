@@ -71,11 +71,13 @@ public class SecurityService implements Serializable {
 	}
 
 	public String getRealm() {
-		if (!importMode) {
-			return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
-		} else {
-			return CoreEntity.DEFAULT_REALM;
-		}
+		return CoreEntity.DEFAULT_REALM;
+		// if (!importMode) {
+		// return ((KeycloakPrincipal)
+		// request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+		// } else {
+		// return CoreEntity.DEFAULT_REALM;
+		// }
 	}
 
 	public Map<String, Object> getUserMap() {
