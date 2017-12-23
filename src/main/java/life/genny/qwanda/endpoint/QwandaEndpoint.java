@@ -3,6 +3,7 @@ package life.genny.qwanda.endpoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -40,12 +41,15 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
@@ -173,12 +177,20 @@ public class QwandaEndpoint {
 			@Context final UriInfo uriInfo) {
 
 		List<Ask> asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		Gson gson = null;
 
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		String json = gson.toJson(askMsgs);
+		System.out.println("askMsgs=" + json);
 		// return
 		// Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
 		// .build();
-		return Response.status(200).entity(askMsgs).build();
+		return Response.status(200).entity(json).build();
 	}
 
 	@POST
