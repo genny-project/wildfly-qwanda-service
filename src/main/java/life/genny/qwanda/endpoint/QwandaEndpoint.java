@@ -173,11 +173,21 @@ public class QwandaEndpoint {
 			@Context final UriInfo uriInfo) {
 
 		List<Ask> asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-
+		// GsonBuilder gsonBuilder = new GsonBuilder();
+		// Gson gson = null;
+		//
+		// gsonBuilder.registerTypeAdapter(LocalDateTime.class, new
+		// DateTimeDeserializer());
+		// gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		// String json = gson.toJson(askMsgs);
+		// System.out.println("askMsgs=" + json);
 		// return
 		// Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
 		// .build();
+		// return Response.status(200).entity(json).build();
 		return Response.status(200).entity(askMsgs).build();
 	}
 
