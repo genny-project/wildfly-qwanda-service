@@ -359,6 +359,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/{sourceCode}/attributes")
 	@ApiOperation(value = "attributes", notes = "BaseEntity Attributes")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public List<EntityAttribute> fetchAttributesByBaseEntityCode(@PathParam("sourceCode") final String code) {
 		final List<EntityAttribute> entityAttributes = service.findAttributesByBaseEntityCode(code);
 		return entityAttributes;
@@ -368,6 +369,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/{id}/gps")
 	@ApiOperation(value = "gps", notes = "Target BaseEntity GPS")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public List<GPS> fetchGPSByTargetBaseEntityId(@PathParam("id") final Long id) {
 		final List<GPS> items = service.findGPSByTargetBaseEntityId(id);
 		return items;
