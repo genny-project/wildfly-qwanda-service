@@ -264,7 +264,13 @@ public class QwandaEndpoint {
 	public Response fetchBaseEntityByCode(@Context final ServletContext servletContext,
 			@PathParam("sourceCode") final String code) {
 
-		final BaseEntity entity = service.findBaseEntityByCode(code);
+		BaseEntity entity = null;
+
+		try {
+			entity = service.findBaseEntityByCode(code);
+		} catch (NoResultException e) {
+			return Response.status(204).build();
+		}
 		return Response.status(200).entity(entity).build();
 	}
 
