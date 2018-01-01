@@ -2,7 +2,6 @@ package life.genny.qwanda.service;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +30,11 @@ import life.genny.qwanda.CoreEntity;
 
 public class SecurityService implements Serializable {
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Stores logger object.
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
@@ -38,9 +42,6 @@ public class SecurityService implements Serializable {
 
 	@Context
 	SecurityContext sc;
-
-	@Inject
-	private Principal principal;
 
 	@Inject
 	private HttpServletRequest request;

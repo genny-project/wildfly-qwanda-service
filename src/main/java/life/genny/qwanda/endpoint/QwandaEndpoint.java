@@ -57,6 +57,7 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
+import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.rule.Rule;
@@ -204,8 +205,35 @@ public class QwandaEndpoint {
 
 	@POST
 	@Consumes("application/json")
+	@Path("/answers/bulk")
+
+	public Response create(final QDataAnswerMessage entitys) {
+
+		for (Answer entity : entitys.getItems()) {
+			if (entity.getAttribute() == null) {
+				Attribute attribute = null;
+
+				try {
+					attribute = service.findAttributeByCode(entity.getAttributeCode());
+				} catch (NoResultException e) {
+					// Create it (ideally if user is admin)
+					attribute = new AttributeText(entity.getAttributeCode(),
+							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					service.insert(attribute);
+					attribute = service.findAttributeByCode(entity.getAttributeCode());
+				}
+				entity.setAttribute(attribute);
+			}
+			service.insert(entity);
+
+		}
+		return Response.status(200).build();
+	}
+
+	@POST
+	@Consumes("application/json")
 	@Path("/answers")
-	@Transactional
+
 	public Response create(final Answer entity) {
 
 		if (entity.getAttribute() == null) {

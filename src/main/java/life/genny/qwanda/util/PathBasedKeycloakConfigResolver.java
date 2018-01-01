@@ -37,7 +37,6 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		String key = "genny.json";
 
 		if (request != null) {
-			// System.out.println("Keycloak Deployment Path incoming request:" + request);
 			try {
 				// Now check for a token
 
@@ -45,9 +44,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 					// extract the token
 					final String authTokenHeader = request.getHeader("Authorization");
-					// System.out.println("authTokenHeader:" + authTokenHeader);
 					final String bearerToken = authTokenHeader.substring(7);
-					// System.out.println("bearerToken:" + bearerToken);
 					// now extract the realm
 					JSONObject jsonObj = null;
 					String decodedJson = null;
@@ -57,7 +54,6 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 						final byte[] decodedClaims = decoder.decode(jwtToken[1]);
 						decodedJson = new String(decodedClaims);
 						jsonObj = new JSONObject(decodedJson);
-						// System.out.println("******" + jsonObj);
 					} catch (final JSONException e1) {
 						log.error(
 								"bearerToken=" + bearerToken + "  decodedJson=" + decodedJson + ":" + e1.getMessage());
@@ -90,8 +86,8 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		// don't bother showing Docker health checks
 		if (!request.getURI().equals("http://localhost:8080/version")) {
-			System.out
-					.println(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod());
+			System.out.println(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
+					+ ":" + request.getRemoteAddr());
 		}
 
 		KeycloakDeployment deployment = cache.get(realm);

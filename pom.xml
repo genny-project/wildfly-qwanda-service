@@ -64,17 +64,28 @@
 	</properties>
 
 	<repositories>
-<!--		<repository>
-			<id>life.genny</id>
-			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
-		</repository>
-		<repository>
-			<id>JBoss repository</id>
-			<url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-		</repository>
--->
+		<!-- <repository> <id>life.genny</id> <url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url> 
+			</repository> -->
+			<repository> <id>JBoss repository</id> <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url> 
+			</repository> 
 	</repositories>
 	<dependencies>
+<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-ejb-client-bom -->
+<dependency>
+    <groupId>org.wildfly</groupId>
+    <artifactId>wildfly-ejb-client-bom</artifactId>
+    <version>10.1.0.Final</version>
+    <type>pom</type>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jms-client-bom -->
+<dependency>
+    <groupId>org.wildfly</groupId>
+    <artifactId>wildfly-jms-client-bom</artifactId>
+    <version>10.1.0.Final</version>
+    <type>pom</type>
+</dependency>
+
 		<dependency>
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda-services</artifactId>

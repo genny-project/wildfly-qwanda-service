@@ -1,6 +1,5 @@
 package life.genny.qwanda.service;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,10 +13,8 @@ import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-import org.keycloak.representations.AccessToken;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,6 +23,8 @@ import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.util.PersistenceHelper;
+import life.genny.qwanda.util.WildFlyJmsQueueSender;
+import life.genny.qwanda.util.WildflyJms;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.services.BaseEntityService2;
 
@@ -44,11 +43,8 @@ public class Service extends BaseEntityService2 {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	public Service() {
-		// TODO Auto-generated constructor stub
-	}
 
-	// @PersistenceContext(unitName = "genny-persistence-unit")
-	// private EntityManager em2;
+	}
 
 	@Inject
 	private PersistenceHelper helper;
@@ -56,28 +52,31 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecurityService securityService;
 
+	@Inject
+	private WildFlyJmsQueueSender jms;
+
+	@Inject
+	private WildflyJms jms2;
+
 	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	@PostConstruct
 	public void init() {
 
-		// this.setEm(helper.getEntityManager());
 	}
 
 	@Override
 	@javax.ejb.Asynchronous
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
-		System.out.println("!!!!!!ATTRIBUTE CHANGE EVENT!!!!!!!" + event.getAnswer().getTargetCode() + ":"
-				+ event.getAnswer().getValue() + " token=" + StringUtils.abbreviateMiddle(event.getToken(), "...", 30));
+		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
 		Gson gson = gsonBuilder.create();
 		try {
+			// jms2.send(gson.toJson(event));
 			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
-		} catch (IOException e) {
-
-			log.error("Error in posting to Vertx bridge:" + event.getAnswer().getValue() + " -> was "
-					+ event.getOldValue());
+		} catch (Exception e) {
+			log.error("Error in posting to JMS:" + event);
 		}
 
 	}
@@ -92,15 +91,12 @@ public class Service extends BaseEntityService2 {
 	@Override
 	protected String getCurrentToken() {
 		String token = securityService.getToken();
-		AccessToken token2 = securityService.getAccessToken();
-		System.out.println(token2);
 		return token;
 	}
 
 	@Override
 	protected EntityManager getEntityManager() {
 		return helper.getEntityManager();
-		// return em2;
 	}
 
 	@Override
@@ -123,7 +119,6 @@ public class Service extends BaseEntityService2 {
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
 			String realm = securityService.getRealm();
-			// System.out.println("Realm = " + realm);
 			entity.setRealm(realm); // always override
 			return super.insert(entity);
 		}
