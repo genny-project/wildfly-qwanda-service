@@ -170,7 +170,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Consumes("application/json")
-	@Path("/baseentitys/{sourceCode}/" + "/{questionCode}/{targetCode}")
+	@Path("/baseentitys/{sourceCode}/asks3" + "/{questionCode}/{targetCode}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response createAsks2(@PathParam("sourceCode") final String sourceCode,
@@ -195,7 +195,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Consumes("application/json")
-	@Path("/baseentitys2/{sourceCode}/" + "/{questionCode}/{targetCode}")
+	@Path("/baseentitys/{sourceCode}/asks2" + "/{questionCode}/{targetCode}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response createAsks3(@PathParam("sourceCode") final String sourceCode,
