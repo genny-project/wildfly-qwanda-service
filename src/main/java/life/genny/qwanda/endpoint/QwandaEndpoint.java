@@ -201,7 +201,9 @@ public class QwandaEndpoint {
 	public Response createAsks3(@PathParam("sourceCode") final String sourceCode,
 			@PathParam("questionCode") final String questionCode, @PathParam("targetCode") final String targetCode,
 			@Context final UriInfo uriInfo) {
-		List<Ask> asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
+		List<Ask> asks = null;
+
+		asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
