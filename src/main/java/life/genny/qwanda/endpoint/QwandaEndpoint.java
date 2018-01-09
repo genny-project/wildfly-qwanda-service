@@ -853,6 +853,42 @@ public class QwandaEndpoint {
 	}
 
 	@GET
+	@Path("/entityentitys/{sourceCode}/linkcodes/{linkCode}/children/{linkValue}")
+	@ApiOperation(value = "baseentitys/{sourceCode}/linkcodes/{linkCode}/children/{linkValue}", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchChildLinks(@PathParam("sourceCode") final String sourceCode,
+			@PathParam("linkCode") final String linkCode, @PathParam("linkValue") final String linkValue) {
+		final List<Link> items = service.findChildLinks(sourceCode, linkCode, linkValue);
+
+		return Response.status(200).entity(items).build();
+	}
+
+	@GET
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/parents")
+	@ApiOperation(value = "baseentitys/{targetCode}/linkcodes/{linkCode}/parents", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchParentLinks(@PathParam("targetCode") final String targetCode,
+			@PathParam("linkCode") final String linkCode) {
+		final List<Link> items = service.findParentLinks(targetCode, linkCode);
+
+		return Response.status(200).entity(items).build();
+	}
+
+	@GET
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/children/{linkValue}")
+	@ApiOperation(value = "baseentitys/{targetCode}/linkcodes/{linkCode}/children/{linkValue}", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchParentLinks(@PathParam("targetCode") final String targetCode,
+			@PathParam("linkCode") final String linkCode, @PathParam("linkValue") final String linkValue) {
+		final List<Link> items = service.findParentLinks(targetCode, linkCode, linkValue);
+
+		return Response.status(200).entity(items).build();
+	}
+
+	@GET
 	@Path("/realms/sync")
 	@ApiOperation(value = "syncrealms", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
