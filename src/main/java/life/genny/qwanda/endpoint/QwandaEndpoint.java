@@ -799,7 +799,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-	@Transactional
+
 	public Response removeLink(final Link ee) {
 
 		Log.info("Removing Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
