@@ -64,8 +64,8 @@
 	</properties>
 
 	<repositories>
-		<!-- <repository> <id>life.genny</id> <url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url> 
-			</repository> -->
+		 <repository> <id>life.genny</id> <url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url> 
+			</repository> 
 			<repository> <id>JBoss repository</id> <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url> 
 			</repository> 
 	</repositories>
@@ -90,13 +90,9 @@
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda-services</artifactId>
 			<version>${qwanda-services.version}</version>
+			<scope>compile</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>life.genny</groupId>
-			<artifactId>qwanda-utils</artifactId>
-			<version>${qwanda-utils.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -138,7 +134,12 @@
 			<artifactId>qwanda</artifactId>
 			<version>${qwanda.version}</version>
 			<scope>compile</scope>
-
+		</dependency>
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda-utils</artifactId>
+			<version>${qwanda-utils.version}</version>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>dom4j</groupId>
