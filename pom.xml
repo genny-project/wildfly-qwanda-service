@@ -64,6 +64,8 @@
 	</properties>
 
 	<repositories>
+			<repository> <id> Maven repository</id> <url>https://mvnrepository.com/artifact/org.wildfly/wildfly-dist/</url> 
+			</repository> 
 			<repository> <id>JBoss repository</id> <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url> 
 			</repository> 
 		 <repository> <id>life.genny</id> <url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url> 
