@@ -26,7 +26,7 @@
 		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
 
 		<version.wildfly-swarm>2017.7.0-SNAPSHOT</version.wildfly-swarm>
-		<version.wildfly.maven.plugin>1.0.2.Final</version.wildfly.maven.plugin>
+		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
 
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -57,14 +57,25 @@
 		<version.swagger>1.5.16</version.swagger>
 
 		<version.org.jboss.arquillian>1.1.5.Final</version.org.jboss.arquillian>
-		<version.org.wildfly>8.2.1.Final</version.org.wildfly>
+		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
 		<version.junit>4.12</version.junit>
 
 		<vertx.version>3.4.2</vertx.version>
 	</properties>
 
 	<repositories>
-			<repository> <id> Maven repository</id> <url>https://mvnrepository.com/artifact/org.wildfly/wildfly-dist/</url> 
+            
+			<repository> <id> Maven repository</id> <url>https://mvnrepository.com/artifact/org.wildfly.arquillian/wildfly-arquillian-container-managed/</url> 
+			</repository> 
+			<repository> <id> Maven repository2</id> <url>https://mvnrepository.com/artifact/org.wildfly/wildfly-dist/</url> 
+			</repository> 
+			<repository> <id> Maven repository3</id> <url>https://mvnrepository.com/artifact/org.jboss.logging/jboss-logging/</url> 
+			</repository> 
+			<repository> <id> Maven repository4</id> <url>https://mvnrepository.com/artifact/org.jboss.remoting/jboss-remoting/</url> 
+			</repository> 
+			<repository> <id> Maven repository5</id> <url>https://mvnrepository.com/artifact/org.wildfly.common/wildfly-common/</url> 
+			</repository> 
+			<repository> <id> Maven repository6</id> <url>https://mvnrepository.com/artifact/org.jboss.xnio/xnio-api/</url> 
 			</repository> 
 			<repository> <id>JBoss repository</id> <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url> 
 			</repository> 
@@ -160,12 +171,6 @@
 			<artifactId>javaee-api</artifactId>
 			<version>7.0</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-validator-provider-11 -->
 		<dependency>
@@ -337,6 +342,30 @@
 			<artifactId>weld-spi</artifactId>
 			<version>3.0.Final</version>
 		</dependency>
+<!-- https://mvnrepository.com/artifact/org.jboss.logging/jboss-logging -->
+<dependency>
+    <groupId>org.jboss.logging</groupId>
+    <artifactId>jboss-logging</artifactId>
+    <version>3.3.1.Final</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.jboss.remoting/jboss-remoting -->
+<dependency>
+    <groupId>org.jboss.remoting</groupId>
+    <artifactId>jboss-remoting</artifactId>
+    <version>5.0.5.Final</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.wildfly.common/wildfly-common -->
+<dependency>
+    <groupId>org.wildfly.common</groupId>
+    <artifactId>wildfly-common</artifactId>
+    <version>1.2.0.Final</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.jboss.xnio/xnio-api -->
+<dependency>
+    <groupId>org.jboss.xnio</groupId>
+    <artifactId>xnio-api</artifactId>
+    <version>3.5.4.Final</version>
+</dependency>
 
 	</dependencies>
 
@@ -610,6 +639,11 @@
 					</lifecycleMappingMetadata>
 				</configuration>
 			</plugin>
+<plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <version>1.2.1.Final</version>
+            </plugin>
 		</plugins>
 		<finalName>${project.name}</finalName>
 	</build>
@@ -623,12 +657,14 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<dependencies>
-				<dependency>
-					<groupId>org.wildfly</groupId>
-					<artifactId>wildfly-arquillian-container-managed</artifactId>
-					<version>8.2.0.Final</version>
-					<scope>test</scope>
-				</dependency>
+<!-- https://mvnrepository.com/artifact/org.wildfly.arquillian/wildfly-arquillian-container-managed -->
+<dependency>
+    <groupId>org.wildfly.arquillian</groupId>
+    <artifactId>wildfly-arquillian-container-managed</artifactId>
+    <version>2.1.0.Final</version>
+    <scope>test</scope>
+</dependency>
+
 			</dependencies>
 			<build>
 				<testResources>
@@ -652,7 +688,7 @@
 										<artifactItem>
 											<groupId>org.wildfly</groupId>
 											<artifactId>wildfly-dist</artifactId>
-											<version>8.2.0.Final</version>
+											<version>10.1.0.Final</version>
 											<type>zip</type>
 											<overWrite>true</overWrite>
 											<outputDirectory>${project.build.directory}</outputDirectory>
