@@ -766,7 +766,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-	@Transactional
+
 	public Response addLink(final Link ee) {
 
 		// BaseEntity parent = service.findBaseEntityByCode(ee.getParentCode());
