@@ -19,9 +19,9 @@
 	</licenses>
 
 	<properties>
-		<qwanda.version>0.8</qwanda.version>
-		<qwanda-utils.version>0.8</qwanda-utils.version>
-		<qwanda-services.version>0.8</qwanda-services.version>
+		<qwanda.version>0.9</qwanda.version>
+		<qwanda-utils.version>0.9</qwanda-utils.version>
+		<qwanda-services.version>0.9</qwanda-services.version>
 
 		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
 
