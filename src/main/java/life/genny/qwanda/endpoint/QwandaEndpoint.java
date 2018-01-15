@@ -17,6 +17,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -760,6 +761,30 @@ public class QwandaEndpoint {
 			}
 		}
 		return "unknown";
+	}
+
+	@PUT
+	@Consumes("application/json")
+	@Path("/links")
+	@Produces("application/json")
+
+	public Response updateLink(final Link link) {
+
+		Log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
+				+ ":" + link.getLinkValue());
+
+		EntityEntity updatedEntityEntity = null;
+
+		try {
+			updatedEntityEntity = service.updateLink(link);
+		} catch (IllegalArgumentException | BadDataException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return Response
+				.created(
+						UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(updatedEntityEntity)).build())
+				.build();
 	}
 
 	@POST
