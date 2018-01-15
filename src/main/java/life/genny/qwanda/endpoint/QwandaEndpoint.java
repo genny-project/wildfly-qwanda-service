@@ -238,6 +238,10 @@ public class QwandaEndpoint {
 	public Response create(final QDataAnswerMessage entitys) {
 
 		for (Answer entity : entitys.getItems()) {
+			if (entity == null) {
+				log.error("Null Entity posted");
+				continue;
+			}
 			if (entity.getAttribute() == null) {
 				Attribute attribute = null;
 
