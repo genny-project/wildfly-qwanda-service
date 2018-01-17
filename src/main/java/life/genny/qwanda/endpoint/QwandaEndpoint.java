@@ -808,13 +808,13 @@ public class QwandaEndpoint {
 		// ee.setTarget(target);
 		// ee.setValue("TEST");
 		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
-				+ ":" + ee.getLinkValue());
+				+ ":" + ee.getLinkValue() + ":" + ee.getWeight());
 
 		EntityEntity newEntityEntity = null;
 
 		try {
 			newEntityEntity = service.addLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
-					ee.getLinkValue(), 1.0);
+					ee.getLinkValue(), ee.getWeight());
 		} catch (IllegalArgumentException | BadDataException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

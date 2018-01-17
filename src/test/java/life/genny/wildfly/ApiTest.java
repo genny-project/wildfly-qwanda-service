@@ -4,7 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +28,16 @@ import org.keycloak.constants.ServiceUrlConstants;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
 
 import life.genny.qwanda.DateTimeDeserializer;
+import life.genny.qwanda.Link;
+import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwandautils.QwandaUtils;
 
 public class ApiTest {
@@ -157,4 +168,136 @@ public class ApiTest {
 		}
 
 	}
+
+	@Test
+	public void linkTest() {
+		if (System.getenv("GENNY_DEV") != null) { // only run when in eclipse dev mode
+
+			String hostip = System.getenv("HOSTIP");
+			if (hostip == null)
+				hostip = "localhost";
+
+			final Gson gson = new GsonBuilder()
+					.registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
+						@Override
+						public LocalDateTime deserialize(final JsonElement json, final Type type,
+								final JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+							return ZonedDateTime.parse(json.getAsJsonPrimitive().getAsString()).toLocalDateTime();
+						}
+
+						public JsonElement serialize(final LocalDateTime date, final Type typeOfSrc,
+								final JsonSerializationContext context) {
+							return new JsonPrimitive(date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)); // "yyyy-mm-dd"
+						}
+					}).create();
+
+			String qwandaurl = System.getenv("QWANDA_URL");
+			if (qwandaurl == null) {
+				qwandaurl = "http://" + hostip + ":8280";
+			}
+
+			String keycloakurl = System.getenv("KEYCLOAK_URL");
+			if (keycloakurl == null) {
+				keycloakurl = "http://" + hostip + ":8180";
+			}
+
+			String secret = System.getenv("SECRET");
+			if (secret == null) {
+				secret = "056b73c1-7078-411d-80ec-87d41c55c3b4";
+			}
+			String accessTokenResponse = null;
+			try {
+				accessTokenResponse = getAccessToken(keycloakurl, "genny", "genny", secret, "user1", "password1");
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			JSONObject json = new JSONObject(accessTokenResponse);
+			String token = json.getString("access_token");
+
+			try {
+				// Add a new Link
+				Link newLink = new Link("GRP_USERS", "PER_USER1", "LNK_TEST", "1.2", new Double(3.14));
+				String ret = QwandaUtils.apiPostEntity(qwandaurl + "/qwanda/entityentitys", gson.toJson(newLink),
+						token);
+
+				EntityEntity ee = gson.fromJson(ret, EntityEntity.class);
+
+				log.info("EE returned for new link is " + ee);
+
+				// Update Link
+				Link updatedLink = new Link("GRP_USERS", "PER_USER1", "LNK_TEST", "1.3", new Double(6.14));
+				ret = QwandaUtils.apiPutEntity(qwandaurl + "/qwanda/links", gson.toJson(updatedLink), token);
+				log.info("ret fro link update is " + ret);
+				ee = gson.fromJson(ret, EntityEntity.class);
+
+				log.info("EE returned for updated link is " + ee);
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else {
+			log.info("GENNY_DEV not enabled for API testing");
+		}
+
+		// try {
+		// EntityEntity ee = service.addLink(testGroup.getCode(), user1.getCode(),
+		// "LNK_TEST", new Double(3.14), 1.2);
+		//
+		// assertEquals(ee.getPk().getAttribute().getCode(),"LNK_TEST");
+		//
+		// // fetch link
+		// EntityEntity newEntity = service.findEntityEntity(testGroup.getCode(),
+		// user1.getCode(), "LNK_TEST");
+		// assertEquals(newEntity.getPk().getAttribute().getCode(),"LNK_TEST");
+		// assertEquals(newEntity.getPk().getSource().getCode(),testGroup.getCode());
+		// assertEquals(newEntity.getPk().getTargetCode(),user1.getCode());
+		//
+		// final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String,
+		// String>();
+		// // params.add("pageStart", "0");
+		// // params.add("pageSize", "2");
+		//
+		//
+		// List<BaseEntity> baseEntitys =
+		// service.findChildrenByAttributeLink(testGroup.getCode(), "LNK_TEST", false,
+		// 0, 10, 2, params);
+		// List<BaseEntity> baseEntitys2 =
+		// service.findChildrenByAttributeLink(testGroup2.getCode(), "LNK_TEST", false,
+		// 0, 10, 2, params);
+		// // Check baseEntitys has testGroup and no testGroup2
+		// assertEquals(baseEntitys.contains(user1),true);
+		// assertEquals(baseEntitys2.contains(user1),false);
+		//
+		//
+		// // Move link!
+		//
+		// service.moveLink(testGroup.getCode(), user1.getCode(), "LNK_TEST",
+		// testGroup2.getCode());
+		// List<BaseEntity> baseEntitysA =
+		// service.findChildrenByAttributeLink(testGroup.getCode(), "LNK_TEST", false,
+		// 0, 10, 2, params);
+		// List<BaseEntity> baseEntitys2A =
+		// service.findChildrenByAttributeLink(testGroup2.getCode(), "LNK_TEST", false,
+		// 0, 10, 2, params);
+		// // Check baseEntitys has testGroup and no testGroup2
+		// assertEquals(baseEntitysA.contains(user1),false);
+		// assertEquals(baseEntitys2A.contains(user1),true);
+		//
+		// // now fetch all the links for a target
+		// List<Link> links = service.findLinks(user1.getCode(), "LNK_TEST");
+		// Integer linkCount = links.size();
+		// assertEquals(linkCount==1,true);
+		// assertEquals(links.get(0).getSourceCode().equals(testGroup2.getCode()),true);
+		// // check it moved
+		// } catch (IllegalArgumentException | BadDataException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// getEm().getTransaction().commit(
+	}
+
 }
