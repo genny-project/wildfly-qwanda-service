@@ -6,7 +6,7 @@
 	<groupId>life.genny</groupId>
 	<artifactId>wildfly-qwanda-service</artifactId>
 	<packaging>war</packaging>
-	<version>0.9</version>
+	<version>0.9.1</version>
 	<name>wildfly-qwanda-service</name>
 	<url>http://genny.life</url>
 
@@ -19,9 +19,9 @@
 	</licenses>
 
 	<properties>
-		<qwanda.version>0.9</qwanda.version>
-		<qwanda-utils.version>0.9</qwanda-utils.version>
-		<qwanda-services.version>0.9</qwanda-services.version>
+		<qwanda.version>0.9.1</qwanda.version>
+		<qwanda-utils.version>0.9.1</qwanda-utils.version>
+		<qwanda-services.version>0.9.1</qwanda-services.version>
 
 		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
 
