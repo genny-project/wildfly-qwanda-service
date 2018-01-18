@@ -44,7 +44,7 @@
 		<validation-mode>CALLBACK</validation-mode>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
-			<property name="hibernate.hbm2ddl.auto" value="create-drop" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 			<property name="hibernate.discriminator.ignore_explicit_for_joined" value="true" />
 		</properties>
 	</persistence-unit>

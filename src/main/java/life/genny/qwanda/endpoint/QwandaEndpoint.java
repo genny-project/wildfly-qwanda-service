@@ -877,6 +877,42 @@ public class QwandaEndpoint {
 	}
 
 	@GET
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/count")
+	@ApiOperation(value = "baseentitys/{targetCode}/links/count", notes = "Links count")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchLinksCount(@PathParam("targetCode") final String targetCode,
+			@PathParam("linkCode") final String linkCode) {
+		final Long count = service.findLinksCount(targetCode, linkCode);
+
+		return Response.status(200).entity(count).build();
+	}
+
+	@GET
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/children/count")
+	@ApiOperation(value = "baseentitys/{targetCode}/links/children/count", notes = "Links children count")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchChildLinksCount(@PathParam("targetCode") final String targetCode,
+			@PathParam("linkCode") final String linkCode) {
+		final Long count = service.findChildLinksCount(targetCode, linkCode);
+
+		return Response.status(200).entity(count).build();
+	}
+
+	@GET
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/parent/count")
+	@ApiOperation(value = "baseentitys/{targetCode}/links/parent/count", notes = "Links parent count")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response findParentLinksCount(@PathParam("targetCode") final String targetCode,
+			@PathParam("linkCode") final String linkCode) {
+		final Long count = service.findParentLinksCount(targetCode, linkCode);
+
+		return Response.status(200).entity(count).build();
+	}
+
+	@GET
 	@Path("/entityentitys/{sourceCode}/linkcodes/{linkCode}/children")
 	@ApiOperation(value = "baseentitys/{sourceCode}/linkcodes/{linkCode}/children", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
