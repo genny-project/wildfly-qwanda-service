@@ -234,6 +234,8 @@ public class ApiTest {
 
 				// log.info("EE returned for updated link is " + ee);
 
+				QwandaUtils.apiDelete(qwandaurl + "/qwanda/entityentitys", gson.toJson(updatedLink), token);
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
