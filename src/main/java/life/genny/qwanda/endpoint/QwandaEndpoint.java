@@ -775,20 +775,27 @@ public class QwandaEndpoint {
 	public Response updateLink(final Link link) {
 
 		Log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
-				+ ":" + link.getLinkValue());
+				+ ":" + link.getLinkValue() + ":" + link.getWeight());
 
-		EntityEntity updatedEntityEntity = null;
+		Integer result = service.updateEntityEntity(link);
 
-		try {
-			updatedEntityEntity = service.updateLink(link);
-		} catch (IllegalArgumentException | BadDataException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return Response
-				.created(
-						UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(updatedEntityEntity)).build())
-				.build();
+		return Response.status(200).entity(result).build();
+	}
+
+	@PUT
+	@Consumes("application/json")
+	@Path("/entityentitys")
+	@Produces("application/json")
+
+	public Response updateEntityEntity(final Link link) {
+
+		Log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
+				+ ":" + link.getLinkValue() + ":" + link.getWeight() + ":" + link.getParentColor() + ":"
+				+ link.getChildColor() + ":" + link.getRule());
+
+		Integer result = service.updateEntityEntity(link);
+
+		return Response.status(200).entity(result).build();
 	}
 
 	@POST

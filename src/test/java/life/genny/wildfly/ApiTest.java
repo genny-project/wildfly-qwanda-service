@@ -37,7 +37,6 @@ import com.google.gson.JsonSerializationContext;
 
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
-import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwandautils.QwandaUtils;
 
 public class ApiTest {
@@ -222,17 +221,18 @@ public class ApiTest {
 				String ret = QwandaUtils.apiPostEntity(qwandaurl + "/qwanda/entityentitys", gson.toJson(newLink),
 						token);
 
-				EntityEntity ee = gson.fromJson(ret, EntityEntity.class);
+				// EntityEntity ee = gson.fromJson(ret, EntityEntity.class);
 
-				log.info("EE returned for new link is " + ee);
+				// log.info("EE returned for new link is " + ee);
 
 				// Update Link
 				Link updatedLink = new Link("GRP_USERS", "PER_USER1", "LNK_TEST", "1.3", new Double(6.14));
-				ret = QwandaUtils.apiPutEntity(qwandaurl + "/qwanda/links", gson.toJson(updatedLink), token);
-				log.info("ret fro link update is " + ret);
-				ee = gson.fromJson(ret, EntityEntity.class);
+				updatedLink.setChildColor("BLACK");
+				ret = QwandaUtils.apiPutEntity(qwandaurl + "/qwanda/entityentitys", gson.toJson(updatedLink), token);
+				log.info("ret from link update is " + ret);
+				// ee = gson.fromJson(ret, EntityEntity.class);
 
-				log.info("EE returned for updated link is " + ee);
+				// log.info("EE returned for updated link is " + ee);
 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
