@@ -108,7 +108,6 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/rules")
-	@Transactional
 	public Response create(final Rule entity) {
 		service.insert(entity);
 		return Response
@@ -119,7 +118,6 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/attributes")
-	@Transactional
 	public Response create(final Attribute entity) {
 		service.insert(entity);
 		return Response
@@ -141,7 +139,6 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/asks")
-	@Transactional
 	public Response create(final Ask entity) {
 
 		service.insert(entity);
@@ -223,7 +220,6 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/gpss")
-	@Transactional
 	public Response create(final GPS entity) {
 		service.insert(entity);
 		return Response
@@ -291,12 +287,9 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys")
-	@Transactional
 	public Response create(final BaseEntity entity) {
-		service.insert(entity);
-		return Response
-				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
-				.build();
+		Long ret = service.insert(entity);
+		return Response.status(200).entity(ret).build();
 	}
 
 	// @POST
