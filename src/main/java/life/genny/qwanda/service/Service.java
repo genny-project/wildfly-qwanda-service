@@ -10,6 +10,7 @@ import javax.ejb.LockType;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -120,6 +121,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@Transactional
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
 			String realm = securityService.getRealm();
