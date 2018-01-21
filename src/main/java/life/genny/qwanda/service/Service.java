@@ -59,7 +59,6 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private WildflyJms jms2;
 
-	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	@PostConstruct
@@ -72,14 +71,14 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
 		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		Gson gson = gsonBuilder.create();
 
 		try {
-			// jms2.send(gson.toJson(event));
-			GsonBuilder gsonBuilder = new GsonBuilder();
-			gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-			Gson gson = gsonBuilder.create();
-
-			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
+			String json = gson.toJson(event);
+			System.out.println("Got to here past gson [" + json + "]");
+			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 		} catch (Exception e) {
 			log.error("Error in posting to JMS:" + event);
 		}
