@@ -71,9 +71,13 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
 		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
-		Gson gson = gsonBuilder.create();
+
 		try {
 			// jms2.send(gson.toJson(event));
+			GsonBuilder gsonBuilder = new GsonBuilder();
+			gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+			Gson gson = gsonBuilder.create();
+
 			QwandaUtils.apiPostEntity(bridgeApi, gson.toJson(event), event.getToken());
 		} catch (Exception e) {
 			log.error("Error in posting to JMS:" + event);
