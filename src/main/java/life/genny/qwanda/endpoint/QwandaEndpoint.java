@@ -661,6 +661,61 @@ public class QwandaEndpoint {
 	}
 
 	@GET
+	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/attributes/{stakeholderCode}")
+	@Produces("application/json")
+	public Response getTargetsWithAttributesAndStakeholderCode(@PathParam("sourceCode") final String sourceCode,
+			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
+			@DefaultValue("USER") @PathParam("stakeholderCode") String stakeholderCode,
+			@Context final UriInfo uriInfo) {
+		Integer pageStart = 0;
+		Integer pageSize = 10; // default
+		Integer level = 1;
+
+		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		qparams.putAll(params);
+
+		final String pageStartStr = params.getFirst("pageStart");
+		final String pageSizeStr = params.getFirst("pageSize");
+		final String levelStr = params.getFirst("level");
+		if (pageStartStr != null) {
+			pageStart = Integer.decode(pageStartStr);
+			qparams.remove("pageStart");
+		}
+		if (pageSizeStr != null) {
+			pageSize = Integer.decode(pageSizeStr);
+			qparams.remove("pageSize");
+		}
+		if (levelStr != null) {
+			level = Integer.decode(levelStr);
+			// params.remove("level");
+		}
+
+		// Force any user that is not admin to have to use their own code
+
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {
+			stakeholderCode = "PER_" + ((String) securityService.getUserMap().get("username")).toUpperCase();
+		}
+
+		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
+				pageSize, level, qparams, stakeholderCode);
+
+		for (final BaseEntity be : targets) {
+			log.info("\n" + be.getCode() + " + attributes");
+			be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+		}
+
+		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
+
+		BaseEntity[] beArr = new BaseEntity[targets.size()];
+		beArr = targets.toArray(beArr);
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
+		msg.setTotal(total);
+		return Response.status(200).entity(msg).build();
+	}
+
+	@GET
 	@Path("/baseentitys/test2")
 	@Produces("application/json")
 	public Response findBaseEntitysByAttributeValues(@Context final UriInfo uriInfo) {

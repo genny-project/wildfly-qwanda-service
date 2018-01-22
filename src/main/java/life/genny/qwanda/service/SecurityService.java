@@ -67,8 +67,15 @@ public class SecurityService implements Serializable {
 					.getEmail());
 			user.put("name",
 					((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getName());
+			;
+
 		}
 
+	}
+
+	public Boolean inRole(final String role) {
+		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getRealmAccess()
+				.isUserInRole(role);
 	}
 
 	public String getRealm() {
