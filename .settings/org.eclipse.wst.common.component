@@ -5,7 +5,13 @@
         <wb-resource deploy-path="/" source-path="/"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <dependent-module archiveName="qwanda-services-0.9.5.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda-services/qwanda-services">
+        <dependent-module archiveName="qwanda-services-0.9.8.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda-services/qwanda-services">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="qwanda-utils-0.9.8.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda-utils/qwanda-utils">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="qwanda-0.9.8.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/qwanda/qwanda">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="wildfly-qwanda-service"/>
