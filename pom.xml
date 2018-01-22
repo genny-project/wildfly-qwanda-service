@@ -19,7 +19,7 @@
 	</licenses>
 
 	<properties>
-		<qwanda-services.version>0.9.9</qwanda-services.version>
+		<qwanda-services.version>0.9.10</qwanda-services.version>
 
 		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
 
