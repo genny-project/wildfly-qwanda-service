@@ -853,8 +853,9 @@ public class QwandaEndpoint {
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
 		Log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
-
-		Long result = service.update(baseEntity);
+		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
+		be.setName(baseEntity.getName());
+		Long result = service.update(be);
 
 		return Response.status(200).entity(result).build();
 	}
