@@ -60,7 +60,6 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
-import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
@@ -846,6 +845,20 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(result).build();
 	}
 
+	@PUT
+	@Consumes("application/json")
+	@Path("/baseentitys")
+	@Produces("application/json")
+
+	public Response updateBaseEntity(final BaseEntity baseEntity) {
+
+		Log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
+
+		Long result = service.update(baseEntity);
+
+		return Response.status(200).entity(result).build();
+	}
+
 	@POST
 	@Consumes("application/json")
 	@Path("/entityentitys")
@@ -853,15 +866,6 @@ public class QwandaEndpoint {
 
 	public Response addLink(final Link ee) {
 
-		// BaseEntity parent = service.findBaseEntityByCode(ee.getParentCode());
-		// BaseEntity target = service.findBaseEntityByCode(ee.getTargetCode());
-		// AttributeLink link =
-		// service.findAttributeLinkByCode(ee.getLinkCode());
-
-		// ee.setLinkAttribute(link);
-		// ee.setSource(parent);
-		// ee.setTarget(target);
-		// ee.setValue("TEST");
 		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
 				+ ":" + ee.getLinkValue() + ":" + ee.getWeight());
 
@@ -870,7 +874,7 @@ public class QwandaEndpoint {
 		try {
 			newEntityEntity = service.addLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 					ee.getLinkValue(), ee.getWeight());
-		} catch (IllegalArgumentException | BadDataException e) {
+		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

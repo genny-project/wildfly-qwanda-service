@@ -21,8 +21,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import life.genny.qwanda.DateTimeDeserializer;
+import life.genny.qwanda.Link;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.EntityEntity;
+import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
+import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.util.WildFlyJmsQueueSender;
 import life.genny.qwanda.util.WildflyJms;
@@ -77,10 +81,27 @@ public class Service extends BaseEntityService2 {
 
 		try {
 			String json = gson.toJson(event);
-			System.out.println("Got to here past gson [" + json + "]");
 			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 		} catch (Exception e) {
-			log.error("Error in posting to JMS:" + event);
+			log.error("Error in posting attribute changeto JMS:" + event);
+		}
+
+	}
+
+	@Override
+	@javax.ejb.Asynchronous
+	public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event) {
+		// Send a vertx message broadcasting an link Change
+		System.out.println("!!LINK CHANGE EVENT ->" + event);
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		Gson gson = gsonBuilder.create();
+
+		try {
+			String json = gson.toJson(event);
+			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+		} catch (Exception e) {
+			log.error("Error in posting link Change to JMS:" + event);
 		}
 
 	}
@@ -132,7 +153,32 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@Transactional
+	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode,
+			final Object value, final Double weight) {
+		try {
+			return super.addLink(sourceCode, targetCode, linkCode, value, weight);
+		} catch (IllegalArgumentException | BadDataException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	@Transactional
+	public void removeLink(final Link link) {
+		super.removeLink(link);
+	}
+
+	@Override
 	protected String getRealm() {
 		return securityService.getRealm();
+	}
+
+	@Override
+	@Transactional
+	public Long update(final BaseEntity baseEntity) {
+		return super.update(baseEntity);
 	}
 }
