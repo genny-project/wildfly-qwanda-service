@@ -1,5 +1,6 @@
 package life.genny.qwanda.controller;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.NoResultException;
@@ -10,6 +11,7 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.service.Service;
 import life.genny.qwanda.validation.Validation;
 import life.genny.services.BatchLoading;
@@ -211,7 +213,6 @@ public class Controller {
    * 
    * }); }
    */
-
   public void updateQuestionQuestions(final Service service,
       final Map<String, Map<String, Object>> merge) {
     merge.get("questionQuestions").entrySet().stream().map(entry -> entry.getValue())
@@ -240,6 +241,39 @@ public class Controller {
           }
         });
   }
+
+  public void updateMessages(final Service service, final Map<String, Map<String, Object>> merge) {
+    merge.get("messages").entrySet().stream().map(entry -> entry.getValue()).forEach(record -> {
+      Map<String, Object> template = (HashMap<String, Object>) record;
+      String code = (String) template.get("code");
+      String description = (String) template.get("description");
+      String subject = (String) template.get("subject");
+      String emailTemplateDocId = (String) template.get("email");
+      String smsTemplate = (String) template.get("sms");
+      QBaseMSGMessageTemplate templateObj;
+      try {
+        templateObj = service.findTemplateByCode(code);
+        templateObj.setCode(code);
+        templateObj.setCreated(LocalDateTime.now());
+        templateObj.setDescription(description);
+        templateObj.setEmail_templateId(emailTemplateDocId);
+        templateObj.setSms_template(smsTemplate);
+        templateObj.setSubject(subject);
+        service.update(templateObj);
+      } catch (NoResultException e) {
+        templateObj = new QBaseMSGMessageTemplate();
+        templateObj.setCode(code);
+        templateObj.setCreated(LocalDateTime.now());
+        templateObj.setDescription(description);
+        templateObj.setEmail_templateId(emailTemplateDocId);
+        templateObj.setSms_template(smsTemplate);
+        templateObj.setSubject(subject);
+        service.insert(templateObj);
+      }
+
+    });
+  }
+
   // public static void getProject(final Service bes, final String sheetId, final String tables) {
   // BatchLoading bl = new BatchLoading(bes);
   // bl.sheets.setSheetId(sheetId);
@@ -662,6 +696,31 @@ public class Controller {
       superMerge.put("questionQuestions", merge);
       if (!merge.isEmpty())
         ctl.updateQuestionQuestions(bes, superMerge);
+      System.out.println(merge);
+      merge = new HashMap<String, Object>();
+    }
+
+    if (tablesLC.contains("messages")) {
+      table2Update.put("messages", bl.sheets.getMessageTemplates());
+      ((HashMap<String, HashMap>) table2Update.get("messages")).entrySet().stream().forEach(map -> {
+        try {
+          HashMap<String, HashMap> newMap =
+              ((HashMap<String, HashMap>) saveProjectData.get("messages")).get(map.getKey());
+          if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
+            merge.put(map.getKey(), map.getValue());
+            ((HashMap<String, HashMap>) saveProjectData.get("messages")).put(map.getKey(),
+                map.getValue());
+          }
+        } catch (NullPointerException e) {
+          merge.put(map.getKey(), map.getValue());
+          ((HashMap<String, HashMap>) saveProjectData.get("messages")).put(map.getKey(),
+              map.getValue());
+        }
+      });
+      Controller ctl = new Controller();
+      superMerge.put("messages", merge);
+      if (!merge.isEmpty())
+        ctl.updateMessages(bes, superMerge);
       System.out.println(merge);
       merge = new HashMap<String, Object>();
     }
