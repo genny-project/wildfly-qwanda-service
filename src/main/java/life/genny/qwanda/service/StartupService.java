@@ -60,7 +60,7 @@ public class StartupService {
 		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
 		securityService.setImportMode(false);
 
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED");
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", "NO_TOKEN");
 		// em.close();
 		// emf.close();
 	}

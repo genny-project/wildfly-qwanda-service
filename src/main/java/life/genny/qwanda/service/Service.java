@@ -110,7 +110,6 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	@javax.ejb.Asynchronous
 	public void sendQEventSystemMessage(final String systemCode) {
 		Properties properties = new Properties();
 		try {
@@ -123,7 +122,6 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	@javax.ejb.Asynchronous
 	public void sendQEventSystemMessage(final String systemCode, final String token) {
 		Properties properties = new Properties();
 		try {
