@@ -908,10 +908,12 @@ public class QwandaEndpoint {
 				+ " to new Parent " + targetCode);
 		Link newEntityEntity = service.moveLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 				targetCode);
-		// TODO: This is a terrible hack.but logically will work
-		newEntityEntity.setAttributeCode(ee.getAttributeCode());
-		newEntityEntity.setSourceCode(targetCode);
-		newEntityEntity.setTargetCode(ee.getTargetCode());
+		if (newEntityEntity != null) {
+			// TODO: This is a terrible hack.but logically will work
+			newEntityEntity.setAttributeCode(ee.getAttributeCode());
+			newEntityEntity.setSourceCode(targetCode);
+			newEntityEntity.setTargetCode(ee.getTargetCode());
+		}
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newEntityEntity)).build())
 				.build();
