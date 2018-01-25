@@ -143,12 +143,11 @@ public class Service extends BaseEntityService2 {
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 		Gson gson = gsonBuilder.create();
 
+		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
-		QEventSystemMessage event = new QEventSystemMessage(systemCode, )
-		
 		try {
 			String json = gson.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+			QwandaUtils.apiPostEntity(bridgeApi, json, token);
 		} catch (Exception e) {
 			log.error("Error in posting link Change to JMS:" + event);
 		}
