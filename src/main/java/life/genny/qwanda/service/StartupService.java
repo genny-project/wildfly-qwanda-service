@@ -13,7 +13,6 @@ import javax.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.entity.BaseEntity;
-import life.genny.qwanda.service.SecurityService;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 
@@ -60,6 +59,8 @@ public class StartupService {
 		bl.persistProject();
 		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
 		securityService.setImportMode(false);
+
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED");
 		// em.close();
 		// emf.close();
 	}

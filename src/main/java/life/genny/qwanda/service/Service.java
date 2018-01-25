@@ -1,8 +1,10 @@
 package life.genny.qwanda.service;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
@@ -27,6 +29,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
+import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.util.WildFlyJmsQueueSender;
 import life.genny.qwanda.util.WildflyJms;
@@ -97,6 +100,52 @@ public class Service extends BaseEntityService2 {
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 		Gson gson = gsonBuilder.create();
 
+		try {
+			String json = gson.toJson(event);
+			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+		} catch (Exception e) {
+			log.error("Error in posting link Change to JMS:" + event);
+		}
+
+	}
+
+	@Override
+	@javax.ejb.Asynchronous
+	public void sendQEventSystemMessage(final String systemCode) {
+		Properties properties = new Properties();
+		try {
+			properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
+		} catch (IOException e) {
+
+		}
+
+		sendQEventSystemMessage(systemCode, properties, securityService.getToken());
+	}
+
+	@Override
+	@javax.ejb.Asynchronous
+	public void sendQEventSystemMessage(final String systemCode, final String token) {
+		Properties properties = new Properties();
+		try {
+			properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
+		} catch (IOException e) {
+
+		}
+		sendQEventSystemMessage(systemCode, properties, token);
+	}
+
+	@Override
+	@javax.ejb.Asynchronous
+	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
+		// Send a vertx message broadcasting an link Change
+		System.out.println("!!System EVENT ->" + systemCode);
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		Gson gson = gsonBuilder.create();
+
+
+		QEventSystemMessage event = new QEventSystemMessage(systemCode, )
+		
 		try {
 			String json = gson.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
