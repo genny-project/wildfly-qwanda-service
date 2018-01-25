@@ -925,8 +925,8 @@ public class QwandaEndpoint {
 	public Response fetchLinks(@PathParam("targetCode") final String targetCode,
 			@PathParam("linkCode") final String linkCode) {
 		final List<Link> items = service.findLinks(targetCode, linkCode);
-
-		return Response.status(200).entity(items).build();
+		Link[] array = items.toArray(new Link[0]);
+		return Response.status(200).entity(array).build();
 	}
 
 	@GET
