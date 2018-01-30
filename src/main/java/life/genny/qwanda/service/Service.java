@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.logging.log4j.Logger;
+import org.javamoney.moneta.Money;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 
 import com.google.gson.Gson;
@@ -24,6 +25,7 @@ import com.google.gson.GsonBuilder;
 
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -78,7 +80,7 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
 		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
-		GsonBuilder gsonBuilder = new GsonBuilder();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 		Gson gson = gsonBuilder.create();
 
@@ -96,7 +98,7 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event) {
 		// Send a vertx message broadcasting an link Change
 		System.out.println("!!LINK CHANGE EVENT ->" + event);
-		GsonBuilder gsonBuilder = new GsonBuilder();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 		Gson gson = gsonBuilder.create();
 
@@ -137,7 +139,7 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
 		// Send a vertx message broadcasting an link Change
 		System.out.println("!!System EVENT ->" + systemCode);
-		GsonBuilder gsonBuilder = new GsonBuilder();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 		Gson gson = gsonBuilder.create();
 

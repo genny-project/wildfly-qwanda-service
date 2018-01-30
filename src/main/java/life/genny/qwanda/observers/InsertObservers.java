@@ -8,11 +8,13 @@ import javax.ejb.Asynchronous;
 import javax.enterprise.event.Observes;
 
 import org.apache.logging.log4j.Logger;
+import org.javamoney.moneta.Money;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import life.genny.qwanda.DateTimeDeserializer;
+import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwandautils.QwandaUtils;
 
@@ -23,7 +25,8 @@ public class InsertObservers {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer())
+			.registerTypeAdapter(Money.class, new MoneyDeserializer());
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	@Asynchronous

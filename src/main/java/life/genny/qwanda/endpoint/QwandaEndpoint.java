@@ -32,6 +32,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
+import org.javamoney.moneta.Money;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
@@ -53,6 +54,7 @@ import life.genny.qwanda.Ask;
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
@@ -204,7 +206,7 @@ public class QwandaEndpoint {
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		GsonBuilder gsonBuilder = new GsonBuilder();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		Gson gson = null;
 
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());

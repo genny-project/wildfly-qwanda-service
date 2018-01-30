@@ -20,6 +20,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.Logger;
+import org.javamoney.moneta.Money;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.keycloak.OAuth2Constants;
@@ -37,6 +38,7 @@ import com.google.gson.JsonSerializationContext;
 
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwandautils.QwandaUtils;
 
 public class ApiTest {
@@ -46,7 +48,7 @@ public class ApiTest {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	GsonBuilder gsonBuilder = new GsonBuilder();
+	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 	Gson gson = null;
 
 	@Test
@@ -176,7 +178,7 @@ public class ApiTest {
 			if (hostip == null)
 				hostip = "localhost";
 
-			final Gson gson = new GsonBuilder()
+			final Gson gson = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer())
 					.registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
 						@Override
 						public LocalDateTime deserialize(final JsonElement json, final Type type,
