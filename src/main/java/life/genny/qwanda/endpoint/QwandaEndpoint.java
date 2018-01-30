@@ -56,6 +56,7 @@ import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.Question;
+import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
@@ -66,6 +67,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
+import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
@@ -203,6 +205,32 @@ public class QwandaEndpoint {
 		List<Ask> asks = null;
 
 		asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
+		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
+		Gson gson = null;
+
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		String json = gson.toJson(askMsgs);
+		System.out.println("askMsgs=" + json);
+
+		return Response.status(200).entity(json).build();
+		// return Response.status(200).entity(askMsgs).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/asks/qst")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response createAsksUsingQST(final QDataQSTMessage msg) {
+		List<Ask> asks = null;
+		final QuestionSourceTarget defaultQST = msg.getRootQST();
+		Question rootQuestion = service.findQuestionByCode(msg.getRootQST().getQuestionCode());
+		asks = service.findAsksUsingQuestionSourceTarget(rootQuestion, msg.getItems(), defaultQST);
+		// asks = service.createAsksByQuestionCode2(questionSourceTargetArray);
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
