@@ -3,7 +3,10 @@ package life.genny.qwanda.endpoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +48,12 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -357,7 +366,20 @@ public class QwandaEndpoint {
 		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		Gson gson = null;
 
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer())
+				.registerTypeAdapter(LocalDate.class, new JsonDeserializer<LocalDate>() {
+					@Override
+					public LocalDate deserialize(final JsonElement json, final Type type,
+							final JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+						return LocalDate.parse(json.getAsJsonPrimitive().getAsString(),
+								DateTimeFormatter.ISO_LOCAL_DATE);
+					}
+
+					public JsonElement serialize(final LocalDate date, final Type typeOfSrc,
+							final JsonSerializationContext context) {
+						return new JsonPrimitive(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+					}
+				});
 		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
 		String json = gson.toJson(entity);
 
@@ -784,11 +806,28 @@ public class QwandaEndpoint {
 		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		Gson gson = null;
 
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		String json = gson.toJson(msg);
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer())
+				.registerTypeAdapter(LocalDate.class, new JsonDeserializer<LocalDate>() {
+					@Override
+					public LocalDate deserialize(final JsonElement json, final Type type,
+							final JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+						return LocalDate.parse(json.getAsJsonPrimitive().getAsString(),
+								DateTimeFormatter.ISO_LOCAL_DATE);
+					}
 
+					public JsonElement serialize(final LocalDate date, final Type typeOfSrc,
+							final JsonSerializationContext context) {
+						return new JsonPrimitive(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+					}
+				});
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		gson = gsonBuilder.create();
+		String json = gson.toJson(msg);
+		System.out.println("BE:" + json);
 		return Response.status(200).entity(json).build();
+
+		// return Response.status(200).entity(msg).build();
+
 	}
 
 	@GET
