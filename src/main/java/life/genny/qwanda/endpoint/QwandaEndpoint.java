@@ -350,10 +350,18 @@ public class QwandaEndpoint {
 
 		try {
 			entity = service.findBaseEntityByCode(code);
+
 		} catch (NoResultException e) {
 			return Response.status(204).build();
 		}
-		return Response.status(200).entity(entity).build();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
+		Gson gson = null;
+
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		String json = gson.toJson(entity);
+
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
