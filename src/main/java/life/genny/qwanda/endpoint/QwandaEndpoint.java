@@ -158,10 +158,8 @@ public class QwandaEndpoint {
 		List<Ask> asks = service.createAsksByQuestionCode(questionCode, sourceCode, targetCode);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 
-		// return
-		// Response.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(askMsgs)).build())
-		// .build();
-		return Response.status(200).entity(askMsgs).build();
+		String json = JsonUtils.toJson(askMsgs);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -176,17 +174,8 @@ public class QwandaEndpoint {
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		// GsonBuilder gsonBuilder = new GsonBuilder();
-		// Gson gson = null;
-		//
-		// gsonBuilder.registerTypeAdapter(LocalDateTime.class, new
-		// DateTimeDeserializer());
-		// gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		// String json = JsonUtils.toJson(askMsgs);
-		// System.out.println("askMsgs=" + json);
-		//
-		// return Response.status(200).entity(json).build();
-		return Response.status(200).entity(askMsgs).build();
+		String json = JsonUtils.toJson(askMsgs);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -204,10 +193,7 @@ public class QwandaEndpoint {
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		String json = JsonUtils.toJson(askMsgs);
-		System.out.println("askMsgs=" + json);
-
 		return Response.status(200).entity(json).build();
-		// return Response.status(200).entity(askMsgs).build();
 	}
 
 	@POST
@@ -225,10 +211,7 @@ public class QwandaEndpoint {
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		String json = JsonUtils.toJson(askMsgs);
-		System.out.println("askMsgs=" + json);
-
 		return Response.status(200).entity(json).build();
-		// return Response.status(200).entity(askMsgs).build();
 	}
 
 	@POST
@@ -305,19 +288,6 @@ public class QwandaEndpoint {
 		Long ret = service.insert(entity);
 		return Response.status(200).entity(ret).build();
 	}
-
-	// @POST
-	// @Path("/baseentitys")
-	// @Consumes("application/json")
-	// @Transactional
-	// public Response create(@FormParam("name") final String name,
-	// @FormParam("uniqueCode") final String uniqueCode) {
-	// final BaseEntity entity = new BaseEntity(uniqueCode, name);
-	// service.insert(entity);
-	// return Response
-	// .created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
-	// .build();
-	// }
 
 	@GET
 	@Path("/rules/{id}")
@@ -401,7 +371,8 @@ public class QwandaEndpoint {
 		BaseEntity user = service.getUser();
 		List<Ask> asks = service.createAsksByQuestionCode(questionCode, user.getCode(), user.getCode());
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		return Response.status(200).entity(askMsgs).build();
+		String json = JsonUtils.toJson(askMsgs);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -437,9 +408,10 @@ public class QwandaEndpoint {
 	@ApiOperation(value = "attributes", notes = "BaseEntity Attributes")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public List<EntityAttribute> fetchAttributesByBaseEntityCode(@PathParam("sourceCode") final String code) {
+	public Response fetchAttributesByBaseEntityCode(@PathParam("sourceCode") final String code) {
 		final List<EntityAttribute> entityAttributes = service.findAttributesByBaseEntityCode(code);
-		return entityAttributes;
+		String json = JsonUtils.toJson(entityAttributes);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -447,36 +419,43 @@ public class QwandaEndpoint {
 	@ApiOperation(value = "gps", notes = "Target BaseEntity GPS")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public List<GPS> fetchGPSByTargetBaseEntityId(@PathParam("id") final Long id) {
+	public Response fetchGPSByTargetBaseEntityId(@PathParam("id") final Long id) {
 		final List<GPS> items = service.findGPSByTargetBaseEntityId(id);
-		return items;
+		String json = JsonUtils.toJson(items);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
 	@Path("/baseentitys/{code}/asks/source")
 	@ApiOperation(value = "asks", notes = "Source BaseEntity Asks")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Ask> fetchAsksBySourceBaseEntityCode(@PathParam("code") final String code) {
+	public Response fetchAsksBySourceBaseEntityCode(@PathParam("code") final String code) {
 		final List<Ask> items = service.findAsksBySourceBaseEntityCode(code);
-		return items;
+		String json = JsonUtils.toJson(items);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
 	@Path("/baseentitys/{code}/asks/target")
 	@ApiOperation(value = "asks", notes = "Target BaseEntity Asks")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Ask> fetchAsksByTargetBaseEntityCode(@PathParam("code") final String code) {
+	public Response fetchAsksByTargetBaseEntityCode(@PathParam("code") final String code) {
 		final List<Ask> items = service.findAsksByTargetBaseEntityCode(code);
-		return items;
+		String json = JsonUtils.toJson(items);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
 	@Path("/baseentitys/{id}/asks/target")
 	@ApiOperation(value = "asks", notes = "BaseEntity Asks about Targets")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Ask> fetchAsksByTargetBaseEntityId(@PathParam("id") final Long id) {
+	public Response fetchAsksByTargetBaseEntityId(@PathParam("id") final Long id) {
 		final List<Ask> items = service.findAsksBySourceBaseEntityId(id);
-		return items;
+		String json = JsonUtils.toJson(items);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
@@ -484,9 +463,11 @@ public class QwandaEndpoint {
 	@ApiOperation(value = "answers", notes = "BaseEntity AnswerLinks")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public List<AnswerLink> fetchAnswersByTargetBaseEntityCode(@PathParam("targetCode") final String targetCode) {
+	public Response fetchAnswersByTargetBaseEntityCode(@PathParam("targetCode") final String targetCode) {
 		final List<AnswerLink> items = service.findAnswersByTargetBaseEntityCode(targetCode);
-		return items;
+		String json = JsonUtils.toJson(items);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
@@ -496,25 +477,10 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response fetchAnswerLinks() {
 		final List<AnswerLink> items = service.findAnswerLinks();
-		return Response.status(200).entity(items).build();
-	}
+		String json = JsonUtils.toJson(items);
+		return Response.status(200).entity(json).build();
 
-	// @GET
-	// @Path("/logout")
-	// @ApiOperation(value = "Logout", notes = "Logout", response =
-	// String.class)
-	// @Produces(MediaType.APPLICATION_JSON)
-	// public Response logout(@Context final
-	// javax.servlet.http.HttpServletRequest
-	// request) {
-	// try {
-	// request.logout();
-	// } catch (final ServletException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// return Response.status(200).entity("Logged Out").build();
-	// }
+	}
 
 	@GET
 	@Path("/baseentitys")
@@ -547,36 +513,10 @@ public class QwandaEndpoint {
 		if (!includeAttributes) {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
-		return Response.status(200).entity(targets).build();
-	}
+		String json = JsonUtils.toJson(targets);
+		return Response.status(200).entity(json).build();
 
-	// @GET
-	// @Path("/setup")
-	// @Produces("application/json")
-	// public Response getSetup() {
-	// Setup setup = new Setup();
-	// setup.setLayout("error-layout1");
-	//
-	// // this will set the user id as userName
-	// if (sc != null) {
-	// if (sc.getUserPrincipal() != null) {
-	// sc.getUserPrincipal().getName();
-	//
-	// if (sc.getUserPrincipal() instanceof KeycloakPrincipal) {
-	// final KeycloakPrincipal<KeycloakSecurityContext> kp =
-	// (KeycloakPrincipal<KeycloakSecurityContext>) sc.getUserPrincipal();
-	//
-	// // this is how to get the real userName (or rather the login
-	// // name)
-	//
-	// System.out.println("kc context:" + kp.getKeycloakSecurityContext());
-	// setup = service.setup(kp.getKeycloakSecurityContext());
-	// }
-	// }
-	// }
-	// return Response.status(200).entity(setup).build();
-	//
-	// }
+	}
 
 	@GET
 	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}")
@@ -630,7 +570,9 @@ public class QwandaEndpoint {
 		beArr = targets.toArray(beArr);
 		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
 		msg.setTotal(total);
-		return Response.status(200).entity(msg).build();
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
@@ -675,7 +617,9 @@ public class QwandaEndpoint {
 		beArr = targets.toArray(beArr);
 		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
 		msg.setTotal(total);
-		return Response.status(200).entity(msg).build();
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
@@ -730,7 +674,9 @@ public class QwandaEndpoint {
 		beArr = targets.toArray(beArr);
 		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
 		msg.setTotal(total);
-		return Response.status(200).entity(msg).build();
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
@@ -952,7 +898,9 @@ public class QwandaEndpoint {
 			@PathParam("linkCode") final String linkCode) {
 		final List<Link> items = service.findLinks(targetCode, linkCode);
 		Link[] array = items.toArray(new Link[0]);
-		return Response.status(200).entity(array).build();
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
+
 	}
 
 	@GET
@@ -999,8 +947,9 @@ public class QwandaEndpoint {
 	public Response fetchChildLinks(@PathParam("sourceCode") final String sourceCode,
 			@PathParam("linkCode") final String linkCode) {
 		final List<Link> items = service.findChildLinks(sourceCode, linkCode);
-
-		return Response.status(200).entity(items).build();
+		Link[] array = items.toArray(new Link[0]);
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -1012,7 +961,9 @@ public class QwandaEndpoint {
 			@PathParam("linkCode") final String linkCode, @PathParam("linkValue") final String linkValue) {
 		final List<Link> items = service.findChildLinks(sourceCode, linkCode, linkValue);
 
-		return Response.status(200).entity(items).build();
+		Link[] array = items.toArray(new Link[0]);
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -1023,8 +974,9 @@ public class QwandaEndpoint {
 	public Response fetchParentLinks(@PathParam("targetCode") final String targetCode,
 			@PathParam("linkCode") final String linkCode) {
 		final List<Link> items = service.findParentLinks(targetCode, linkCode);
-
-		return Response.status(200).entity(items).build();
+		Link[] array = items.toArray(new Link[0]);
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -1035,8 +987,9 @@ public class QwandaEndpoint {
 	public Response fetchParentLinks(@PathParam("targetCode") final String targetCode,
 			@PathParam("linkCode") final String linkCode, @PathParam("linkValue") final String linkValue) {
 		final List<Link> items = service.findParentLinks(targetCode, linkCode, linkValue);
-
-		return Response.status(200).entity(items).build();
+		Link[] array = items.toArray(new Link[0]);
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
@@ -1109,7 +1062,8 @@ public class QwandaEndpoint {
 	public Response getMessageTemplates(@PathParam("templateCode") final String code) {
 		QBaseMSGMessageTemplate template = service.findTemplateByCode(code);
 
-		return Response.status(200).entity(template).build();
+		String json = JsonUtils.toJson(template);
+		return Response.status(200).entity(json).build();
 	}
 
 }
