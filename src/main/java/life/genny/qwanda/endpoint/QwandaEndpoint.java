@@ -781,7 +781,14 @@ public class QwandaEndpoint {
 
 		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
 
-		return Response.status(200).entity(msg).build();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
+		Gson gson = null;
+
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		String json = gson.toJson(msg);
+
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
