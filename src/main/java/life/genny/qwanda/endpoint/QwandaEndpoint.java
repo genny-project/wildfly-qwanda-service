@@ -3,10 +3,6 @@ package life.genny.qwanda.endpoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Type;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +31,6 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
-import org.javamoney.moneta.Money;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
@@ -46,24 +41,14 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
-import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
-import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
@@ -80,6 +65,7 @@ import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.security.SecureResources;
 
 /**
@@ -196,7 +182,7 @@ public class QwandaEndpoint {
 		// gsonBuilder.registerTypeAdapter(LocalDateTime.class, new
 		// DateTimeDeserializer());
 		// gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		// String json = gson.toJson(askMsgs);
+		// String json = JsonUtils.toJson(askMsgs);
 		// System.out.println("askMsgs=" + json);
 		//
 		// return Response.status(200).entity(json).build();
@@ -217,12 +203,7 @@ public class QwandaEndpoint {
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		Gson gson = null;
-
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		String json = gson.toJson(askMsgs);
+		String json = JsonUtils.toJson(askMsgs);
 		System.out.println("askMsgs=" + json);
 
 		return Response.status(200).entity(json).build();
@@ -243,12 +224,7 @@ public class QwandaEndpoint {
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		Gson gson = null;
-
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		String json = gson.toJson(askMsgs);
+		String json = JsonUtils.toJson(askMsgs);
 		System.out.println("askMsgs=" + json);
 
 		return Response.status(200).entity(json).build();
@@ -363,25 +339,8 @@ public class QwandaEndpoint {
 		} catch (NoResultException e) {
 			return Response.status(204).build();
 		}
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		Gson gson = null;
 
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer())
-				.registerTypeAdapter(LocalDate.class, new JsonDeserializer<LocalDate>() {
-					@Override
-					public LocalDate deserialize(final JsonElement json, final Type type,
-							final JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-						return LocalDate.parse(json.getAsJsonPrimitive().getAsString(),
-								DateTimeFormatter.ISO_LOCAL_DATE);
-					}
-
-					public JsonElement serialize(final LocalDate date, final Type typeOfSrc,
-							final JsonSerializationContext context) {
-						return new JsonPrimitive(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
-					}
-				});
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		String json = gson.toJson(entity);
+		String json = JsonUtils.toJson(entity);
 
 		return Response.status(200).entity(json).build();
 	}
@@ -803,26 +762,7 @@ public class QwandaEndpoint {
 
 		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
 
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		Gson gson = null;
-
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer())
-				.registerTypeAdapter(LocalDate.class, new JsonDeserializer<LocalDate>() {
-					@Override
-					public LocalDate deserialize(final JsonElement json, final Type type,
-							final JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-						return LocalDate.parse(json.getAsJsonPrimitive().getAsString(),
-								DateTimeFormatter.ISO_LOCAL_DATE);
-					}
-
-					public JsonElement serialize(final LocalDate date, final Type typeOfSrc,
-							final JsonSerializationContext context) {
-						return new JsonPrimitive(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
-					}
-				});
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		gson = gsonBuilder.create();
-		String json = gson.toJson(msg);
+		String json = JsonUtils.toJson(msg);
 		System.out.println("BE:" + json);
 		return Response.status(200).entity(json).build();
 
