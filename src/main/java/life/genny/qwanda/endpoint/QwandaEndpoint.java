@@ -709,7 +709,7 @@ public class QwandaEndpoint {
 		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
 
 		String json = JsonUtils.toJson(msg);
-		System.out.println("BE:" + json);
+		// System.out.println("BE:" + json);
 		return Response.status(200).entity(json).build();
 
 		// return Response.status(200).entity(msg).build();
