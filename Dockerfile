@@ -14,15 +14,11 @@ RUN chmod a+x /usr/bin/sed
 RUN env
 
 ENV PROJECT wildfly-qwanda-service
-ADD target/$PROJECT $JBOSS_HOME/standalone/deployments/$PROJECT.war
 ADD gennyCredentials /root/.credentials/sheets.googleapis.com-java-quickstart/StoredCredential
 ADD gennyCredentials /root/.credentials/genny/StoredCredential
 ADD gennyC /root/.credentials/sheets.googleapis.com-java-quickstart/StoredCredential
 ADD channel /root/.credentials/channel/StoredCredential
-RUN touch $JBOSS_HOME/standalone/deployments/$PROJECT.war.dodeploy
 USER root
-RUN chown -R root:root $JBOSS_HOME/standalone/deployments/$PROJECT.war
-RUN chmod -Rf 777 $JBOSS_HOME/standalone/deployments/$PROJECT.war
 
 RUN mkdir /opt/realm
 RUN mkdir /opt/jboss/wildfly/realm
@@ -42,3 +38,7 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=15 CMD curl -f / http://localh
 
 ENTRYPOINT [ "/opt/jboss/docker-entrypoint2.sh" ]
 CMD ["-b", "0.0.0.0"]
+RUN touch $JBOSS_HOME/standalone/deployments/$PROJECT.war.dodeploy
+ADD target/$PROJECT $JBOSS_HOME/standalone/deployments/$PROJECT.war
+#RUN chown -R root:root $JBOSS_HOME/standalone/deployments/$PROJECT.war
+#RUN chmod -Rf 777 $JBOSS_HOME/standalone/deployments/$PROJECT.war
