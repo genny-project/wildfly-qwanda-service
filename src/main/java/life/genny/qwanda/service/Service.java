@@ -229,4 +229,9 @@ public class Service extends BaseEntityService2 {
 	public Long update(final BaseEntity baseEntity) {
 		return super.update(baseEntity);
 	}
+
+	@Override
+	public Boolean inRole(final String role) {
+		return securityService.inRole(role);
+	}
 }
