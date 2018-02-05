@@ -60,6 +60,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
+import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.rule.Rule;
@@ -327,6 +328,18 @@ public class QwandaEndpoint {
 	public Response fetchQuestions() {
 		final List<Question> entitys = service.findQuestions();
 		return Response.status(200).entity(entitys).build();
+	}
+
+	@GET
+	@Path("/attributes")
+	public Response fetchAttributes() {
+		final List<Attribute> entitys = service.findAttributes();
+		Attribute[] atArr = new Attribute[entitys.size()];
+		atArr = entitys.toArray(atArr);
+		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+		msg.setToken(securityService.getToken());
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
 	}
 
 	@GET
