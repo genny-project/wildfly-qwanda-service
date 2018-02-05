@@ -72,7 +72,7 @@ public class StartupService {
 
 	// @javax.ejb.Asynchronous
 	public void pushToDTT() {
-		List<BaseEntity> results = em.createQuery("SELECT be FROM BaseEntity be JOIN be.entityAttributes ea")
+		List<BaseEntity> results = em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
 				.getResultList();
 		for (BaseEntity be : results) {
 			String json = JsonUtils.toJson(be);
