@@ -22,6 +22,7 @@ import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
@@ -35,6 +36,7 @@ import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.util.WildFlyJmsQueueSender;
 import life.genny.qwanda.util.WildflyJms;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.services.BaseEntityService2;
 
@@ -51,6 +53,8 @@ public class Service extends BaseEntityService2 {
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+	static final String bridgeUrl = System.getenv("REACT_BRIDGE_HOST");
 
 	public Service() {
 
@@ -233,5 +237,33 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public Boolean inRole(final String role) {
 		return securityService.inRole(role);
+	}
+
+	@Override
+	public void writeToDDT(final String key, final String jsonValue) {
+		try {
+			QwandaUtils.apiPostEntity(bridgeUrl + "/write", jsonValue, securityService.getToken());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public String readFromDDT(final String key) {
+		String json = null;
+		try {
+			json = QwandaUtils.apiGet(bridgeUrl + "/read/" + key, securityService.getToken());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		JsonObject result = JsonUtils.fromJson(json, JsonObject.class);
+		if ("ok".equalsIgnoreCase(result.get("status").getAsString())) {
+			String value = result.get("value").getAsString();
+			return value;
+		}
+		return json; // TODO make resteasy @Provider exception
 	}
 }

@@ -1001,8 +1001,8 @@ public class QwandaEndpoint {
 	}
 
 	@GET
-	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/children/{linkValue}")
-	@ApiOperation(value = "baseentitys/{targetCode}/linkcodes/{linkCode}/children/{linkValue}", notes = "Links")
+	@Path("/entityentitys/{targetCode}/linkcodes/{linkCode}/parents/{linkValue}")
+	@ApiOperation(value = "baseentitys/{targetCode}/linkcodes/{linkCode}/parents/{linkValue}", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response fetchParentLinks(@PathParam("targetCode") final String targetCode,
