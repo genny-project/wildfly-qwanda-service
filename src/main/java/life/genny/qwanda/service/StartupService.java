@@ -1,6 +1,7 @@
 package life.genny.qwanda.service;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
@@ -13,6 +14,7 @@ import javax.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 
@@ -60,9 +62,22 @@ public class StartupService {
 		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
 		securityService.setImportMode(false);
 
+		// Push BEs to cache
+		pushToDTT();
+
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", "NO_TOKEN");
 		// em.close();
 		// emf.close();
+	}
+
+	// @javax.ejb.Asynchronous
+	public void pushToDTT() {
+		List<BaseEntity> results = em.createQuery("SELECT be FROM BaseEntity be JOIN be.entityAttributes ea")
+				.getResultList();
+		for (BaseEntity be : results) {
+			String json = JsonUtils.toJson(be);
+			service.writeToDDT(be.getCode(), json);
+		}
 	}
 
 }

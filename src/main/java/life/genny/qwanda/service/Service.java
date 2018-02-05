@@ -3,6 +3,7 @@ package life.genny.qwanda.service;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -16,6 +17,7 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.Logger;
 import org.javamoney.moneta.Money;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
@@ -54,7 +56,7 @@ public class Service extends BaseEntityService2 {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	static final String bridgeUrl = System.getenv("REACT_BRIDGE_HOST");
+	static final String bridgeUrl = "http://" + System.getenv("HOSTIP") + ":8088";
 
 	public Service() {
 
@@ -240,12 +242,49 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
 		try {
-			QwandaUtils.apiPostEntity(bridgeUrl + "/write", jsonValue, securityService.getToken());
+			new ArrayList<BasicNameValuePair>();
+
+			final ArrayList<BasicNameValuePair> formParams = new ArrayList<BasicNameValuePair>();
+			formParams.add(new BasicNameValuePair("key", key));
+			formParams.add(new BasicNameValuePair("json", jsonValue));
+			QwandaUtils.apiPost(bridgeUrl + "/write", formParams, "DUMMY");
+
+			// securityService.getToken());
+
+			// URL url = new URL(bridgeUrl + "/write");
+			// Map<String, Object> params = new LinkedHashMap<>();
+			// params.put("key", key.toLowerCase());
+			// params.put("json", jsonValue);
+			//
+			// StringBuilder postData = new StringBuilder();
+			// for (Map.Entry<String, Object> param : params.entrySet()) {
+			// if (postData.length() != 0)
+			// postData.append('&');
+			// postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+			// postData.append('=');
+			// postData.append(URLEncoder.encode(String.valueOf(param.getValue()),
+			// "UTF-8"));
+			// }
+			// byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+			//
+			// HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			// conn.setRequestMethod("POST");
+			// conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			// conn.setRequestProperty("Content-Length",
+			// String.valueOf(postDataBytes.length));
+			// conn.setDoOutput(true);
+			// conn.getOutputStream().write(postDataBytes);
+			//
+			// Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(),
+			// "UTF-8"));
+			//
+			// for (int c; (c = in.read()) >= 0;)
+			// System.out.print((char) c);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Could not write to cache");
 		}
 
 	}
