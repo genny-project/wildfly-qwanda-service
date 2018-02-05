@@ -53,7 +53,6 @@ import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
-import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -422,8 +421,17 @@ public class QwandaEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response fetchAttributesByBaseEntityCode(@PathParam("sourceCode") final String code) {
-		final List<EntityAttribute> entityAttributes = service.findAttributesByBaseEntityCode(code);
-		String json = JsonUtils.toJson(entityAttributes);
+		BaseEntity entity = null;
+
+		try {
+			entity = service.findBaseEntityByCode(code, true);
+
+		} catch (NoResultException e) {
+			return Response.status(204).build();
+		}
+
+		String json = JsonUtils.toJson(entity);
+
 		return Response.status(200).entity(json).build();
 	}
 
