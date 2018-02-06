@@ -597,12 +597,12 @@ public class QwandaEndpoint {
 	}
 
 	@GET
-	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}")
+	@Path("/baseentitys2/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}")
 	@Produces("application/json")
 	public Response getTargetsUsingLinkValue(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
-		log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;

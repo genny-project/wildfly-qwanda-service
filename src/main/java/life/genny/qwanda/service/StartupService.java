@@ -15,7 +15,6 @@ import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwandautils.JsonUtils;
-import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 
 /**
@@ -35,7 +34,7 @@ public class StartupService {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	@Inject
-	private BaseEntityService2 service;
+	private Service service;
 
 	@Inject
 	private SecurityService securityService;
