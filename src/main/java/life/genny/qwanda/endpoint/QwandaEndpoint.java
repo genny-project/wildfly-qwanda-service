@@ -628,7 +628,7 @@ public class QwandaEndpoint {
 		}
 
 		final List<BaseEntity> targets = service.findChildrenByLinkValue(sourceCode, linkCode, linkValue,
-				includeAttributes, pageStart, pageSize, 1, qparams);
+				includeAttributes, pageStart, pageSize, new Integer(1), qparams, null);
 
 		// remove the attributes
 		if (!includeAttributes) {
@@ -639,7 +639,7 @@ public class QwandaEndpoint {
 		Long total = -1L;
 
 		try {
-			total = service.findChildrenByLinkValuekCount(sourceCode, linkCode, linkValue, qparams);
+			total = service.findChildrenByLinkValueCount(sourceCode, linkCode, linkValue, qparams);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			total = -1L;
