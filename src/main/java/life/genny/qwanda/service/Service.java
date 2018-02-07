@@ -253,37 +253,6 @@ public class Service extends BaseEntityService2 {
 			json.addProperty("json", jsonValue);
 			QwandaUtils.apiPostEntity(bridgeUrl + "/write", json.toString(), "DUMMY");
 
-			// securityService.getToken());
-
-			// URL url = new URL(bridgeUrl + "/write");
-			// Map<String, Object> params = new LinkedHashMap<>();
-			// params.put("key", key.toLowerCase());
-			// params.put("json", jsonValue);
-			//
-			// StringBuilder postData = new StringBuilder();
-			// for (Map.Entry<String, Object> param : params.entrySet()) {
-			// if (postData.length() != 0)
-			// postData.append('&');
-			// postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-			// postData.append('=');
-			// postData.append(URLEncoder.encode(String.valueOf(param.getValue()),
-			// "UTF-8"));
-			// }
-			// byte[] postDataBytes = postData.toString().getBytes("UTF-8");
-			//
-			// HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			// conn.setRequestMethod("POST");
-			// conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			// conn.setRequestProperty("Content-Length",
-			// String.valueOf(postDataBytes.length));
-			// conn.setDoOutput(true);
-			// conn.getOutputStream().write(postDataBytes);
-			//
-			// Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(),
-			// "UTF-8"));
-			//
-			// for (int c; (c = in.read()) >= 0;)
-			// System.out.print((char) c);
 		} catch (IOException e) {
 			log.error("Could not write to cache");
 		}
