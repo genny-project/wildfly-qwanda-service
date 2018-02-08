@@ -66,6 +66,7 @@ import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
 
 /**
@@ -736,7 +737,10 @@ public class QwandaEndpoint {
 
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev"))) {
-			stakeholderCode = "PER_" + ((String) securityService.getUserMap().get("username")).toUpperCase();
+			// stakeholderCode = "PER_" + ((String)
+			// securityService.getUserMap().get("username")).toUpperCase();
+			stakeholderCode = "PER_" + QwandaUtils
+					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 		}
 
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
