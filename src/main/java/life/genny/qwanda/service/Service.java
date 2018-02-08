@@ -2,7 +2,6 @@ package life.genny.qwanda.service;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -19,16 +18,11 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.Logger;
-import org.javamoney.moneta.Money;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
-import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -86,12 +80,9 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
 		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		Gson gson = gsonBuilder.create();
 
 		try {
-			String json = gson.toJson(event);
+			String json = JsonUtils.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 		} catch (Exception e) {
 			log.error("Error in posting attribute changeto JMS:" + event);
@@ -104,12 +95,9 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event) {
 		// Send a vertx message broadcasting an link Change
 		System.out.println("!!LINK CHANGE EVENT ->" + event);
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		Gson gson = gsonBuilder.create();
 
 		try {
-			String json = gson.toJson(event);
+			String json = JsonUtils.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 		} catch (Exception e) {
 			log.error("Error in posting link Change to JMS:" + event);
