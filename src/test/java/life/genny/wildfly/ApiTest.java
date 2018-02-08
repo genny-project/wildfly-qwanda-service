@@ -36,7 +36,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 
-import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwandautils.QwandaUtils;
@@ -48,9 +47,6 @@ public class ApiTest {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-	Gson gson = null;
-
 	@Test
 	public void asks2Test() {
 		// http://localhost:8280/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/OFR_OFFER1
@@ -60,9 +56,6 @@ public class ApiTest {
 			String hostip = System.getenv("HOSTIP");
 			if (hostip == null)
 				hostip = "localhost";
-
-			gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-			gson = gsonBuilder.create();
 
 			String qwandaurl = System.getenv("QWANDA_URL");
 			if (qwandaurl == null) {

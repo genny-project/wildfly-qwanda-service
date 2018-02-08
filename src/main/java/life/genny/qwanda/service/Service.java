@@ -145,14 +145,11 @@ public class Service extends BaseEntityService2 {
 	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
 		// Send a vertx message broadcasting an link Change
 		System.out.println("!!System EVENT ->" + systemCode);
-		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		Gson gson = gsonBuilder.create();
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
 		try {
-			String json = gson.toJson(event);
+			String json = JsonUtils.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, token);
 		} catch (Exception e) {
 			log.error("Error in posting link Change to JMS:" + event);
