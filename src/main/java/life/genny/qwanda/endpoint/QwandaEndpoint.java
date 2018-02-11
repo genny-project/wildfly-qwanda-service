@@ -1190,7 +1190,7 @@ public class QwandaEndpoint {
 	}
 
 	@GET
-	@Path("/gps/{origin}/{destination}/duration/currentSeconds}")
+	@Path("/gps/{origin}/{destination}/duration/{currentSeconds}")
 	@Produces("application/json")
 	public Response fetchCurrentRouteStatusByPercentageDuration(@PathParam("origin") final String originAddress,
 			@PathParam("destination") final String destinationAddress,
