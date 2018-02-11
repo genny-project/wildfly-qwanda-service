@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -48,11 +49,15 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.GPS;
+import life.genny.qwanda.GPSLocation;
+import life.genny.qwanda.GPSRoute;
+import life.genny.qwanda.GPSRouteStatus;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -65,6 +70,7 @@ import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
@@ -1147,6 +1153,72 @@ public class QwandaEndpoint {
 		QBaseMSGMessageTemplate template = service.findTemplateByCode(code);
 
 		String json = JsonUtils.toJson(template);
+		return Response.status(200).entity(json).build();
+	}
+
+	@GET
+	@Path("/gps/{origin}/{destination}/distance/{percentage}")
+	@Produces("application/json")
+	public Response fetchCurrentRouteStatusByPercentageDistance(@PathParam("origin") final String originAddress,
+			@PathParam("destination") final String destinationAddress,
+			@PathParam("percentage") final Double percentage) {
+
+		String googleApiKey = System.getenv("GOOGLE_API_KEY");
+		if (googleApiKey == null) {
+			String realm = securityService.getRealm();
+			String projectCode = "PRJ_" + realm.toUpperCase();
+			BaseEntity project = service.findBaseEntityByCode(projectCode);
+			Optional<EntityAttribute> ea = project.findEntityAttribute("PRI_GOOGLE_API_KEY");
+			if (ea.isPresent()) {
+				googleApiKey = ea.get().getValueString();
+			}
+		}
+
+		String json = null;
+		if (googleApiKey != null) {
+			GPSLocation origin = GPSUtils.getGPSLocation(originAddress, googleApiKey);
+			GPSLocation end = GPSUtils.getGPSLocation(destinationAddress, googleApiKey);
+			GPSRoute route = GPSUtils.getRoute(origin, end, googleApiKey);
+
+			GPSRouteStatus status = GPSUtils.fetchCurrentRouteStatusByPercentageDistance(route, 50.0);
+
+			json = JsonUtils.toJson(status);
+		} else {
+			json = "{\"status\":\"error\",\"description\":\"No Google API\"}";
+		}
+		return Response.status(200).entity(json).build();
+	}
+
+	@GET
+	@Path("/gps/{origin}/{destination}/duration/currentSeconds}")
+	@Produces("application/json")
+	public Response fetchCurrentRouteStatusByPercentageDuration(@PathParam("origin") final String originAddress,
+			@PathParam("destination") final String destinationAddress,
+			@PathParam("currentSeconds") final Double currentSeconds) {
+
+		String googleApiKey = System.getenv("GOOGLE_API_KEY");
+		if (googleApiKey == null) {
+			String realm = securityService.getRealm();
+			String projectCode = "PRJ_" + realm.toUpperCase();
+			BaseEntity project = service.findBaseEntityByCode(projectCode);
+			Optional<EntityAttribute> ea = project.findEntityAttribute("PRI_GOOGLE_API_KEY");
+			if (ea.isPresent()) {
+				googleApiKey = ea.get().getValueString();
+			}
+		}
+
+		String json = null;
+		if (googleApiKey != null) {
+			GPSLocation origin = GPSUtils.getGPSLocation(originAddress, googleApiKey);
+			GPSLocation end = GPSUtils.getGPSLocation(destinationAddress, googleApiKey);
+			GPSRoute route = GPSUtils.getRoute(origin, end, googleApiKey);
+
+			GPSRouteStatus status = GPSUtils.fetchCurrentRouteStatusByDuration(route, currentSeconds);
+
+			json = JsonUtils.toJson(status);
+		} else {
+			json = "{\"status\":\"error\",\"description\":\"No Google API\"}";
+		}
 		return Response.status(200).entity(json).build();
 	}
 
