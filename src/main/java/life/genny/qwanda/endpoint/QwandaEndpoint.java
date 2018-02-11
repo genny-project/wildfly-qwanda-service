@@ -1180,7 +1180,7 @@ public class QwandaEndpoint {
 			GPSLocation end = GPSUtils.getGPSLocation(destinationAddress, googleApiKey);
 			GPSRoute route = GPSUtils.getRoute(origin, end, googleApiKey);
 
-			GPSRouteStatus status = GPSUtils.fetchCurrentRouteStatusByPercentageDistance(route, 50.0);
+			GPSRouteStatus status = GPSUtils.fetchCurrentRouteStatusByPercentageDistance(route, percentage);
 
 			json = JsonUtils.toJson(status);
 		} else {
