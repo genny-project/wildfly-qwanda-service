@@ -6,7 +6,7 @@
 	<groupId>life.genny</groupId>
 	<artifactId>wildfly-qwanda-service</artifactId>
 	<packaging>war</packaging>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>wildfly-qwanda-service</name>
 	<url>http://genny.life</url>
 
@@ -19,7 +19,7 @@
 	</licenses>
 
 	<properties>
-		<qwanda-services.version>1.0.0</qwanda-services.version>
+		<qwanda-services.version>1.0.1</qwanda-services.version>
 
 		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
 
@@ -43,7 +43,7 @@
 		<project.http.version>1.19.0</project.http.version>
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<version.jboss.bom>11.0.0.Final</version.jboss.bom>
+		<version.jboss.bom>11.0.1.Final</version.jboss.bom>
 		<drools.version>6.4.0.Final</drools.version>
 		<jbpm.version>6.4.0.Final</jbpm.version>
 		<keycloak-core.version>3.4.3.Final</keycloak-core.version>
@@ -598,7 +598,7 @@
 			<plugin>
 				<groupId>org.eclipse.m2e</groupId>
 				<artifactId>lifecycle-mapping</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.1</version>
 				<configuration>
 					<lifecycleMappingMetadata>
 						<pluginExecutions>
