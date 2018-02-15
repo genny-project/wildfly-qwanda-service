@@ -50,7 +50,7 @@ public class Service extends BaseEntityService2 {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	static final String bridgeUrl = "http://" + System.getenv("HOSTIP") + ":8088";
+	static final String bridgeUrl = "http://" + System.getenv("HOSTIP") + ":8089";
 
 	public Service() {
 
