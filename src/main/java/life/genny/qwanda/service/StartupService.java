@@ -58,7 +58,7 @@ public class StartupService {
 		System.out.println("Starting Transaction for loading");
 		BatchLoading bl = new BatchLoading(service);
 		bl.persistProject();
-		System.out.println("***********************&&&&&&*8778878877877006oy***********************************");
+		System.out.println("*********************** Finished Google Doc Import ***********************************");
 		securityService.setImportMode(false);
 
 		// Push BEs to cache
@@ -71,8 +71,8 @@ public class StartupService {
 
 	// @javax.ejb.Asynchronous
 	public void pushToDTT() {
-		List<BaseEntity> results = em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
-				.getResultList();
+		List<BaseEntity> results = em
+				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
 		for (BaseEntity be : results) {
 			String json = JsonUtils.toJson(be);
 			service.writeToDDT(be.getCode(), json);
