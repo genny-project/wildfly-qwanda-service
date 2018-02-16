@@ -180,6 +180,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@Transactional
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
 			String realm = securityService.getRealm();
