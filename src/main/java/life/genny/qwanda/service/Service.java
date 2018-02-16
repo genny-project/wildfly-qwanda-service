@@ -245,6 +245,12 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@javax.ejb.Asynchronous
+	public void updateDDT(final String key, final String value) {
+		writeToDDT(key, value);
+	}
+
+	@Override
 	public String readFromDDT(final String key) {
 		String json = null;
 		try {
