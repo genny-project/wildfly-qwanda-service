@@ -56,11 +56,13 @@ import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeInteger;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
+import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
@@ -301,6 +303,104 @@ public class QwandaEndpoint {
 	public Response fetchRuleById(@PathParam("id") final Long id) {
 		final Rule entity = service.findRuleById(id);
 		return Response.status(200).entity(entity).build();
+	}
+
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/search")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE(@Context final UriInfo uriInfo) {
+
+		BaseEntity searchBE = new BaseEntity("SER_");
+		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		qparams.putAll(params);
+
+		final String pageStartStr = params.getFirst("pageStart");
+		final String pageSizeStr = params.getFirst("pageSize");
+		if (pageStartStr != null) {
+			Attribute attributeInteger = new AttributeInteger("QRY_PAGE_START", "PageStart");
+			try {
+				searchBE.setValue(attributeInteger, Integer.decode(pageStartStr));
+			} catch (NumberFormatException | BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			qparams.remove("pageStart");
+		}
+		if (pageSizeStr != null) {
+			Attribute attributeInteger = new AttributeInteger("QRY_PAGE_SIZE", "PageSize");
+			try {
+				searchBE.setValue(attributeInteger, Integer.decode(pageSizeStr));
+			} catch (NumberFormatException | BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			qparams.remove("pageSize");
+		}
+		List<BaseEntity> results = service.findBySearchBE(searchBE);
+
+		Long total = -1L;
+
+		try {
+			total = service.findBySearchBECount(searchBE);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			total = -1L;
+		}
+
+		BaseEntity[] beArr = new BaseEntity[results.size()];
+		beArr = results.toArray(beArr);
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
+		msg.setTotal(total);
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE(final BaseEntity searchBE) {
+
+		Log.info("Search " + searchBE);
+
+		// Force any user that is not admin to have to use their own code
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {
+			// stakeholderCode = "PER_" + ((String)
+			// securityService.getUserMap().get("username")).toUpperCase();
+			String stakeholderCode = "PER_" + QwandaUtils
+					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+			Attribute stakeholderAttribute = new AttributeText("QRY_STAKEHOLDER_CODE", "StakeholderCode");
+			try {
+				searchBE.addAttribute(stakeholderAttribute, new Double(1.0), stakeholderCode);
+				List<BaseEntity> results = service.findBySearchBE(searchBE);
+
+				Long total = -1L;
+
+				try {
+					total = service.findBySearchBECount(searchBE);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					total = -1L;
+				}
+
+				BaseEntity[] beArr = new BaseEntity[results.size()];
+				beArr = results.toArray(beArr);
+				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
+				msg.setTotal(total);
+				String json = JsonUtils.toJson(msg);
+				return Response.status(200).entity(json).build();
+			} catch (BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		return Response.status(503).build();
 	}
 
 	@GET
