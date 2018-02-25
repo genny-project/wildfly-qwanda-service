@@ -235,9 +235,9 @@ public class QwandaEndpoint {
 
 	@POST
 	@Consumes("application/json")
-	@Path("/answers/bulk")
+	@Path("/answers/bulk2")
 
-	public Response create(final QDataAnswerMessage entitys) {
+	public Response createBulk2(final QDataAnswerMessage entitys) {
 
 		for (Answer entity : entitys.getItems()) {
 			if (entity == null) {
@@ -261,6 +261,37 @@ public class QwandaEndpoint {
 
 		}
 		service.insert(entitys.getItems());
+		return Response.status(200).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/answers/bulk")
+
+	public Response createBulk(final QDataAnswerMessage entitys) {
+
+		for (Answer entity : entitys.getItems()) {
+			if (entity == null) {
+				log.error("Null Entity posted");
+				continue;
+			}
+			if (entity.getAttribute() == null) {
+				Attribute attribute = null;
+
+				try {
+					attribute = service.findAttributeByCode(entity.getAttributeCode());
+				} catch (NoResultException e) {
+					// Create it (ideally if user is admin)
+					attribute = new AttributeText(entity.getAttributeCode(),
+							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					service.insert(attribute);
+					attribute = service.findAttributeByCode(entity.getAttributeCode());
+				}
+				entity.setAttribute(attribute);
+			}
+			service.insert(entity);
+		}
+
 		return Response.status(200).build();
 	}
 
@@ -356,6 +387,29 @@ public class QwandaEndpoint {
 		msg.setTotal(total);
 		String json = JsonUtils.toJson(msg);
 		return Response.status(200).entity(json).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search2")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE3(final String hql) {
+
+		Log.info("Search " + hql);
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {
+
+			List<BaseEntity> results = service.findBySearchBE2(hql);
+			BaseEntity[] beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "GRP_ROOT", null);
+			msg.setTotal(0L);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(401).build();
+		}
 	}
 
 	@GET
