@@ -235,9 +235,9 @@ public class QwandaEndpoint {
 
 	@POST
 	@Consumes("application/json")
-	@Path("/answers/bulk")
+	@Path("/answers/bulk2")
 
-	public Response create(final QDataAnswerMessage entitys) {
+	public Response createBulk2(final QDataAnswerMessage entitys) {
 
 		for (Answer entity : entitys.getItems()) {
 			if (entity == null) {
@@ -261,6 +261,37 @@ public class QwandaEndpoint {
 
 		}
 		service.insert(entitys.getItems());
+		return Response.status(200).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/answers/bulk")
+
+	public Response createBulk(final QDataAnswerMessage entitys) {
+
+		for (Answer entity : entitys.getItems()) {
+			if (entity == null) {
+				log.error("Null Entity posted");
+				continue;
+			}
+			if (entity.getAttribute() == null) {
+				Attribute attribute = null;
+
+				try {
+					attribute = service.findAttributeByCode(entity.getAttributeCode());
+				} catch (NoResultException e) {
+					// Create it (ideally if user is admin)
+					attribute = new AttributeText(entity.getAttributeCode(),
+							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					service.insert(attribute);
+					attribute = service.findAttributeByCode(entity.getAttributeCode());
+				}
+				entity.setAttribute(attribute);
+			}
+			service.insert(entity);
+		}
+
 		return Response.status(200).build();
 	}
 
