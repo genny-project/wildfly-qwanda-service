@@ -358,6 +358,29 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/search2")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE2(final String hql) {
+
+		Log.info("Search " + hql);
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {
+
+			List<BaseEntity> results = service.findBySearchBE2(hql);
+			BaseEntity[] beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "GRP_ROOT", null);
+			msg.setTotal(0L);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
 	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys/search")
@@ -370,34 +393,27 @@ public class QwandaEndpoint {
 		// Force any user that is not admin to have to use their own code
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev"))) {
-			// stakeholderCode = "PER_" + ((String)
-			// securityService.getUserMap().get("username")).toUpperCase();
-			String stakeholderCode = "PER_" + QwandaUtils
-					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
-			Attribute stakeholderAttribute = new AttributeText("QRY_STAKEHOLDER_CODE", "StakeholderCode");
+			QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+			new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
+			// searchBE.addAttribute(stakeholderAttribute, new Double(1.0),
+			// stakeholderCode);
+			List<BaseEntity> results = service.findBySearchBE(searchBE);
+
+			Long total = -1L;
+
 			try {
-				searchBE.addAttribute(stakeholderAttribute, new Double(1.0), stakeholderCode);
-				List<BaseEntity> results = service.findBySearchBE(searchBE);
-
-				Long total = -1L;
-
-				try {
-					total = service.findBySearchBECount(searchBE);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					total = -1L;
-				}
-
-				BaseEntity[] beArr = new BaseEntity[results.size()];
-				beArr = results.toArray(beArr);
-				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
-				msg.setTotal(total);
-				String json = JsonUtils.toJson(msg);
-				return Response.status(200).entity(json).build();
-			} catch (BadDataException e) {
+				total = service.findBySearchBECount(searchBE);
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				total = -1L;
 			}
+
+			BaseEntity[] beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
+			msg.setTotal(total);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
 		}
 
 		return Response.status(503).build();
