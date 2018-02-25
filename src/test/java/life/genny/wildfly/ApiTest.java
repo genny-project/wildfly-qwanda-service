@@ -38,6 +38,11 @@ import com.google.gson.JsonSerializationContext;
 
 import life.genny.qwanda.Link;
 import life.genny.qwanda.MoneyDeserializer;
+import life.genny.qwanda.attribute.AttributeInteger;
+import life.genny.qwanda.attribute.AttributeText;
+import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
 
 public class ApiTest {
@@ -46,6 +51,83 @@ public class ApiTest {
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+	@Test
+	public void searchTest() {
+		if (System.getenv("DEV_MODE") != null) { // only run when in eclipse dev mode
+			String hostip = System.getenv("HOSTIP");
+			if (hostip == null)
+				hostip = "localhost";
+
+			String qwandaurl = System.getenv("QWANDA_URL");
+			if (qwandaurl == null) {
+				qwandaurl = "http://" + hostip + ":8280";
+			}
+
+			String keycloakurl = System.getenv("KEYCLOAK_URL");
+			if (keycloakurl == null) {
+				keycloakurl = "http://" + hostip + ":8180";
+			}
+
+			String secret = System.getenv("SECRET");
+			if (secret == null) {
+				secret = "056b73c1-7078-411d-80ec-87d41c55c3b4";
+			}
+			String accessTokenResponse = null;
+			try {
+				accessTokenResponse = getAccessToken(keycloakurl, "genny", "genny", secret, "user1", "password1");
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			JSONObject json = new JSONObject(accessTokenResponse);
+			String token = json.getString("access_token");
+
+			System.out.println("Token =" + token);
+			BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");
+			try {
+				// searchBE.setValue(new AttributeText("SCH_STAKEHOLDER_CODE",
+				// "Stakeholder"),"PER_USER1");
+				searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+				searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 10);
+
+				// Set some Filter attributes
+				// searchBE.setValue(new AttributeText("QRY_PRI_FIRST_NAME", "First
+				// Name"),"Bob");
+
+				// searchBE.setValue(new AttributeDate("QRY_PRI_DOB", "DOB"), LocalDate.of(2018,
+				// 2, 20));
+
+				// searchBE.setValue(new AttributeDate("PRI_DOB", "DOB"), LocalDate.of(2018, 2,
+				// 20));
+				// searchBE.setValue(new AttributeDate("PRI_DOB", "DOB"), null, 2.0);
+				// searchBE.setValue(new AttributeText("SRT_PRI_DOB", "DOB"), "ASC", 0.8);
+				searchBE.setValue(new AttributeText("SRT_PRI_FIRSTNAME", "FIRSTNAME"), "DESC", 1.0); // higher priority
+																										// sorting
+				searchBE.setValue(new AttributeText("SRT_PRI_LASTNAME", "LASTNAME"), "DESC", 2.0); // higher priority
+				// sorting
+
+				searchBE.setValue(new AttributeText("PRI_FIRSTNAME", "First name"), null, 1.0); // return this
+																								// column with
+																								// this header
+				// searchBE.setValue(new AttributeText("PRI_DOB", "DOB"), "Birthday", 2.0); //
+				// return this column with this
+				// // header
+				searchBE.setValue(new AttributeText("PRI_LASTNAME", "LastName"), null, 1.5); // return this column
+
+				String results = QwandaUtils.apiPostEntity(qwandaurl + "/qwanda/baseentitys/search",
+						JsonUtils.toJson(searchBE), token);
+				System.out.println("Results=" + results);
+
+			} catch (BadDataException e) {
+				log.error("Bad Data Exception");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 
 	@Test
 	public void asks2Test() {
