@@ -360,10 +360,10 @@ public class QwandaEndpoint {
 
 	@GET
 	@Consumes("application/json")
-	@Path("/baseentitys/search2")
+	@Path("/baseentitys/search2/{hql}")
 	@Produces("application/json")
 	@Transactional
-	public Response findBySearchBE2(final String hql) {
+	public Response findBySearchBE2(@PathParam("hql") final String hql) {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
