@@ -358,6 +358,29 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search2")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE3(final String hql) {
+
+		Log.info("Search " + hql);
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {
+
+			List<BaseEntity> results = service.findBySearchBE2(hql);
+			BaseEntity[] beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "GRP_ROOT", null);
+			msg.setTotal(0L);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
 	@GET
 	@Consumes("application/json")
 	@Path("/baseentitys/search2/{hql}")
