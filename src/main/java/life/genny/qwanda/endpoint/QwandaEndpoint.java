@@ -258,9 +258,9 @@ public class QwandaEndpoint {
 				}
 				entity.setAttribute(attribute);
 			}
-			service.insert(entity);
 
 		}
+		service.insert(entitys.getItems());
 		return Response.status(200).build();
 	}
 
