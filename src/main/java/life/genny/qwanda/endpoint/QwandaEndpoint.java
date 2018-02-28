@@ -412,6 +412,25 @@ public class QwandaEndpoint {
 		}
 	}
 
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search3")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE4(final String hql) {
+
+		Log.info("Search " + hql);
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {
+
+			List<Object> results = service.findBySearchBE3(hql);
+			String json = JsonUtils.toJson(results);
+			return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
 	@GET
 	@Consumes("application/json")
 	@Path("/baseentitys/search2/{hql}")
