@@ -6,7 +6,7 @@
 	<groupId>life.genny</groupId>
 	<artifactId>wildfly-qwanda-service</artifactId>
 	<packaging>war</packaging>
-	<version>1.0.10</version>
+	<version>1.0.11</version>
 	<name>wildfly-qwanda-service</name>
 	<url>http://genny.life</url>
 
@@ -19,9 +19,9 @@
 	</licenses>
 
 	<properties>
-		<qwanda-services.version>1.0.10</qwanda-services.version>
+		<qwanda-services.version>1.0.11</qwanda-services.version>
 
-		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
+		<version.org.wildfly>12.0.0.Final</version.org.wildfly>
 
 		<version.wildfly-swarm>2017.7.0-SNAPSHOT</version.wildfly-swarm>
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
@@ -55,7 +55,7 @@
 		<version.swagger>1.5.16</version.swagger>
 
 		<version.org.jboss.arquillian>1.1.5.Final</version.org.jboss.arquillian>
-		<version.org.wildfly>10.1.0.Final</version.org.wildfly>
+		<version.org.wildfly>12.0.0.Final</version.org.wildfly>
 		<version.junit>4.12</version.junit>
 
 		<vertx.version>3.4.2</vertx.version>
@@ -85,7 +85,7 @@
 <dependency>
     <groupId>org.wildfly</groupId>
     <artifactId>wildfly-ejb-client-bom</artifactId>
-    <version>10.1.0.Final</version>
+    <version>12.0.0.Final</version>
     <type>pom</type>
 </dependency>
 
@@ -93,7 +93,7 @@
 <dependency>
     <groupId>org.wildfly</groupId>
     <artifactId>wildfly-jms-client-bom</artifactId>
-    <version>10.1.0.Final</version>
+    <version>12.0.0.Final</version>
     <type>pom</type>
 </dependency>
 
@@ -104,6 +104,17 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>3.9.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-client</artifactId>
+			<version>3.9.3</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -378,7 +389,7 @@
 			<dependency>
 				<groupId>org.wildfly.bom</groupId>
 				<artifactId>wildfly-javaee7</artifactId>
-				<version>10.1.0.Final</version>
+				<version>12.0.0.Final</version>
 				<type>pom</type>
 			</dependency>
 
@@ -588,8 +599,8 @@
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 						<!-- the maven dependency plugin will have already downloaded the server 
 							on /target -->
-						<jboss.home>${project.basedir}/target/wildfly-10.1.0.Final</jboss.home>
-						<module.path>${project.basedir}/target/wildfly-10.1.0.Final/modules</module.path>
+						<jboss.home>${project.basedir}/target/wildfly-12.0.0.Final</jboss.home>
+						<module.path>${project.basedir}/target/wildfly-12.0.0.Final/modules</module.path>
 					</systemPropertyVariables>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 				</configuration>
@@ -674,7 +685,7 @@
 										<artifactItem>
 											<groupId>org.wildfly</groupId>
 											<artifactId>wildfly-dist</artifactId>
-											<version>10.1.0.Final</version>
+											<version>12.0.0.Final</version>
 											<type>zip</type>
 											<overWrite>true</overWrite>
 											<outputDirectory>${project.build.directory}</outputDirectory>

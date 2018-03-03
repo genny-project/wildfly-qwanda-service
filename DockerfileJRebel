@@ -1,6 +1,16 @@
 FROM gennyproject/wildfly:jrebel 
 
 USER root
+RUN apk update && apk add sed 
+
+#RUN set -x \
+#    && apt-get update --quiet \
+#    && apt-get install --quiet --yes --no-install-recommends jq sed  iputils-ping vim sed \
+#    && apt-get clean
+
+RUN ln -s /bin/sed /usr/bin/sed
+RUN chmod a+x /usr/bin/sed
+
 RUN env
 
 ENV PROJECT wildfly-qwanda-service
