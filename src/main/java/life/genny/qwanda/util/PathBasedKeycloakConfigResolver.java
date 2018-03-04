@@ -99,6 +99,9 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 						SecureResources.getKeycloakJsonMap().get(key).getBytes(StandardCharsets.UTF_8.name()));
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
+			} catch (final java.lang.RuntimeException ce) {
+				System.out.println("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
+				+ ":" + request.getRemoteAddr()+" ->"+ce.getMessage());
 			} catch (final UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
