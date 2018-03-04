@@ -20,6 +20,6 @@ src/main/resources/rebel.xml
 .classpath
 *.DEPLOYED
 /target/
-
+.settings
 npm-debug.log
 /bin/

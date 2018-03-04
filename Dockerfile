@@ -1,15 +1,6 @@
 FROM gennyproject/wildfly:latest 
 
 USER root
-#RUN apk update && apk add sed 
-
-RUN set -x \
-    && apt-get update --quiet \
-    && apt-get install --quiet --yes --no-install-recommends jq sed  iputils-ping vim sed \
-    && apt-get clean
-
-#RUN ln -s /bin/sed /usr/bin/sed
-RUN chmod a+x /usr/bin/sed
 
 RUN env
 
@@ -28,11 +19,10 @@ ADD realm /opt/realm
 ADD google $JBOSS_HOME/google
 ADD docker-entrypoint2.sh /opt/jboss/
 
-#USER jboss
 USER root
 EXPOSE 8998
 EXPOSE 8787
-
+EXPOSE 5701
 
 HEALTHCHECK --interval=10s --timeout=3s --retries=15 CMD curl -f / http://localhost:8080/version || exit 1 
 
@@ -40,5 +30,3 @@ ENTRYPOINT [ "/opt/jboss/docker-entrypoint2.sh" ]
 CMD ["-b", "0.0.0.0"]
 RUN touch $JBOSS_HOME/standalone/deployments/$PROJECT.war.dodeploy
 ADD target/$PROJECT $JBOSS_HOME/standalone/deployments/$PROJECT.war
-#RUN chown -R root:root $JBOSS_HOME/standalone/deployments/$PROJECT.war
-#RUN chmod -Rf 777 $JBOSS_HOME/standalone/deployments/$PROJECT.war
