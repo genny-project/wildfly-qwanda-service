@@ -180,8 +180,8 @@ public class QwandaEndpoint {
 			@PathParam("questionCode") final String questionCode, @PathParam("targetCode") final String targetCode,
 			@Context final UriInfo uriInfo) {
 		List<Ask> asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
+		log.debug("Number of asks=" + asks.size());
+		log.debug("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		String json = JsonUtils.toJson(askMsgs);
 		return Response.status(200).entity(json).build();
@@ -198,8 +198,8 @@ public class QwandaEndpoint {
 		List<Ask> asks = null;
 
 		asks = service.createAsksByQuestionCode2(questionCode, sourceCode, targetCode);
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
+		log.debug("Number of asks=" + asks.size());
+		log.debug("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		String json = JsonUtils.toJson(askMsgs);
 		return Response.status(200).entity(json).build();
@@ -216,8 +216,8 @@ public class QwandaEndpoint {
 		Question rootQuestion = service.findQuestionByCode(msg.getRootQST().getQuestionCode());
 		asks = service.findAsksUsingQuestionSourceTarget(rootQuestion, msg.getItems(), defaultQST);
 		// asks = service.createAsksByQuestionCode2(questionSourceTargetArray);
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
+		log.debug("Number of asks=" + asks.size());
+		log.debug("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		String json = JsonUtils.toJson(askMsgs);
 		return Response.status(200).entity(json).build();
@@ -251,8 +251,10 @@ public class QwandaEndpoint {
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				} catch (NoResultException e) {
 					// Create it (ideally if user is admin)
+					String name = entity.getAttributeCode().substring(4).toLowerCase();
+					name = name.replaceAll("_", " ");
 					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							StringUtils.capitalize(name));
 					service.insert(attribute);
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				}
@@ -282,8 +284,10 @@ public class QwandaEndpoint {
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				} catch (NoResultException e) {
 					// Create it (ideally if user is admin)
+					String name = entity.getAttributeCode().substring(4).toLowerCase();
+					name = name.replaceAll("_", " ");
 					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							StringUtils.capitalize(name));
 					service.insert(attribute);
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				}
@@ -308,8 +312,10 @@ public class QwandaEndpoint {
 				attribute = service.findAttributeByCode(entity.getAttributeCode());
 			} catch (NoResultException e) {
 				// Create it (ideally if user is admin)
+				String name = entity.getAttributeCode().substring(4).toLowerCase();
+				name = name.replaceAll("_", " ");
 				attribute = new AttributeText(entity.getAttributeCode(),
-						StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						StringUtils.capitalize(name));
 				service.insert(attribute);
 				attribute = service.findAttributeByCode(entity.getAttributeCode());
 			}
@@ -549,7 +555,7 @@ public class QwandaEndpoint {
 	public Response fetchRules() {
 		final List<Rule> entitys = service.findRules();
 
-		System.out.println(entitys);
+		log.debug(entitys);
 		return Response.status(200).entity(entitys).build();
 	}
 
@@ -566,7 +572,7 @@ public class QwandaEndpoint {
 	public Response fetchAsksMsg() {
 		final List<Ask> entitys = service.findAsks();
 		final QDataAskMessage qasks = new QDataAskMessage(entitys.toArray(new Ask[0]));
-		System.out.println(qasks);
+		log.debug(qasks);
 		return Response.status(200).entity(qasks).build();
 	}
 
@@ -881,10 +887,11 @@ public class QwandaEndpoint {
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
 				pageSize, level, qparams);
 
-		for (final BaseEntity be : targets) {
-			log.info("\n" + be.getCode() + " + attributes");
-			be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
-		}
+		// for (final BaseEntity be : targets) {
+		// log.info("\n" + be.getCode() + " + attributes");
+		// be.getBaseEntityAttributes().stream().forEach(p ->
+		// log.debug(p.getAttributeCode()));
+		// }
 
 		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
 
@@ -943,7 +950,7 @@ public class QwandaEndpoint {
 
 		for (final BaseEntity be : targets) {
 			log.info("\n" + be.getCode() + " + attributes");
-			be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+			be.getBaseEntityAttributes().stream().forEach(p -> log.debug(p.getAttributeCode()));
 		}
 
 		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams); // TODO add stakeholder
@@ -988,7 +995,7 @@ public class QwandaEndpoint {
 		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
 
 		String json = JsonUtils.toJson(msg);
-		// System.out.println("BE:" + json);
+		// log.debug("BE:" + json);
 		return Response.status(200).entity(json).build();
 
 		// return Response.status(200).entity(msg).build();
@@ -1162,6 +1169,18 @@ public class QwandaEndpoint {
 			newEntityEntity.setAttributeCode(ee.getAttributeCode());
 			newEntityEntity.setSourceCode(targetCode);
 			newEntityEntity.setTargetCode(ee.getTargetCode());
+			if (ee.getLinkValue() != null) {
+				newEntityEntity.setLinkValue(ee.getLinkValue());
+				try {
+					service.updateLink(newEntityEntity);
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (BadDataException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(newEntityEntity)).build())
@@ -1277,7 +1296,7 @@ public class QwandaEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response syncrealms() {
-		System.out.println("Sync Keycloak Realms");
+		log.debug("Sync Keycloak Realms");
 		String keycloakRealms = SecureResources.reload();
 		return Response.status(200).entity(keycloakRealms).build();
 	}
@@ -1288,7 +1307,7 @@ public class QwandaEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response fetchrealms() {
-		System.out.println("Fetch Keycloak Realms");
+		log.debug("Fetch Keycloak Realms");
 		String keycloakRealms = SecureResources.fetchRealms();
 		return Response.status(200).entity(keycloakRealms).build();
 	}
@@ -1298,7 +1317,7 @@ public class QwandaEndpoint {
 	@Path("/realms")
 	@Transactional
 	public Response createRealm(final String entity) {
-		System.out.println("Add Keycloak Realm");
+		log.debug("Add Keycloak Realm");
 
 		JSONObject json = new JSONObject(entity);
 		String key = json.getString("clientId");

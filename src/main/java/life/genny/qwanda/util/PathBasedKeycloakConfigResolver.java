@@ -86,7 +86,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		// don't bother showing Docker health checks
 		if (!request.getURI().equals("http://localhost:8080/version")) {
-			System.out.println(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
+			log.debug(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
 					+ ":" + request.getRemoteAddr());
 		}
 
@@ -100,7 +100,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 			} catch (final java.lang.RuntimeException ce) {
-				System.out.println("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
+				log.debug("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
 				+ ":" + request.getRemoteAddr()+" ->"+ce.getMessage());
 			} catch (final UnsupportedEncodingException e) {
 				e.printStackTrace();
