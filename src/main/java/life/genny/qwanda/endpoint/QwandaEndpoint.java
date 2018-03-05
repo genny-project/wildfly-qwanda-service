@@ -251,8 +251,10 @@ public class QwandaEndpoint {
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				} catch (NoResultException e) {
 					// Create it (ideally if user is admin)
+					String name = entity.getAttributeCode().substring(4).toLowerCase();
+					name = name.replaceAll("_", " ");
 					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							StringUtils.capitalize(name));
 					service.insert(attribute);
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				}
@@ -282,8 +284,10 @@ public class QwandaEndpoint {
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				} catch (NoResultException e) {
 					// Create it (ideally if user is admin)
+					String name = entity.getAttributeCode().substring(4).toLowerCase();
+					name = name.replaceAll("_", " ");
 					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							StringUtils.capitalize(name));
 					service.insert(attribute);
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				}
@@ -308,8 +312,10 @@ public class QwandaEndpoint {
 				attribute = service.findAttributeByCode(entity.getAttributeCode());
 			} catch (NoResultException e) {
 				// Create it (ideally if user is admin)
+				String name = entity.getAttributeCode().substring(4).toLowerCase();
+				name = name.replaceAll("_", " ");
 				attribute = new AttributeText(entity.getAttributeCode(),
-						StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						StringUtils.capitalize(name));
 				service.insert(attribute);
 				attribute = service.findAttributeByCode(entity.getAttributeCode());
 			}
