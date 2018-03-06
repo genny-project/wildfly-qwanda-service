@@ -37,8 +37,8 @@ public class StartupService {
   @Inject
   private SecurityService securityService;
 
-  @Inject
-  private Hazel inDB;
+//  @Inject
+//  private Hazel inDB;
   // @PersistenceContext(unitName = "genny-persistence-unit", type =
   // PersistenceContextType.EXTENDED)
   @PersistenceContext
@@ -83,7 +83,7 @@ public class StartupService {
      
       service.writeToDDT(be);
     }
-    System.out.println("database in-memory " + inDB.getMapBaseEntitys().size());
+  //  System.out.println("database in-memory " + inDB.getMapBaseEntitys().size());
   }
 
 }

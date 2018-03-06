@@ -64,8 +64,8 @@ public class Service extends BaseEntityService2 {
   @Inject
   private WildflyJms jms2;
   
-  @Inject
-  private Hazel inDB;
+//  @Inject
+//  private Hazel inDB;
 
   String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
