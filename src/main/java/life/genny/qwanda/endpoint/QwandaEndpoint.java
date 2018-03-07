@@ -855,6 +855,64 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 
 	}
+	
+	@GET
+	@Path("/baseentitys2/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}/attributes")
+	@Produces("application/json")
+	public Response getTargetsUsingLinkValueWithAttributes(@PathParam("sourceCode") final String sourceCode,
+			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
+			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
+		log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
+		Integer pageStart = 0;
+		Integer pageSize = 10; // default
+		boolean includeAttributes = true;
+
+		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		qparams.putAll(params);
+
+		final String pageStartStr = params.getFirst("pageStart");
+		final String pageSizeStr = params.getFirst("pageSize");
+		final String includeAttributesStr = params.getFirst("attributes");
+		if (pageStartStr != null) {
+			pageStart = Integer.decode(pageStartStr);
+			qparams.remove("pageStart");
+		}
+		if (pageSizeStr != null) {
+			pageSize = Integer.decode(pageSizeStr);
+			qparams.remove("pageSize");
+		}
+		if (includeAttributesStr != null) {
+			includeAttributes = true;
+			qparams.remove("attributes");
+		}
+
+		final List<BaseEntity> targets = service.findChildrenByLinkValue(sourceCode, linkCode, linkValue,
+				includeAttributes, pageStart, pageSize, new Integer(1), qparams, null);
+
+		// remove the attributes
+		if (!includeAttributes) {
+			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
+		}
+
+		log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		Long total = -1L;
+
+		try {
+			total = service.findChildrenByLinkValueCount(sourceCode, linkCode, linkValue, qparams);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			total = -1L;
+		}
+
+		BaseEntity[] beArr = new BaseEntity[targets.size()];
+		beArr = targets.toArray(beArr);
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
+		msg.setTotal(total);
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+
+	}
 
 	@GET
 	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/attributes")
