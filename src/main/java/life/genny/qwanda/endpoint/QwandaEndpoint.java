@@ -97,6 +97,8 @@ public class QwandaEndpoint {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
+
 	@Inject
 	private Service service;
 
@@ -349,6 +351,9 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(@Context final UriInfo uriInfo) {
 
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev")) || devMode) {
+
 		BaseEntity searchBE = new BaseEntity("SER_");
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
 		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
@@ -393,6 +398,9 @@ public class QwandaEndpoint {
 		msg.setTotal(total);
 		String json = JsonUtils.toJson(msg);
 		return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(503).build();
+		}
 	}
 
 	@POST
@@ -404,7 +412,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -427,7 +435,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {
 
 			List<Object> results = service.findBySearchBE3(hql);
 			String json = JsonUtils.toJson(results);
@@ -446,7 +454,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -471,7 +479,7 @@ public class QwandaEndpoint {
 
 		// Force any user that is not admin to have to use their own code
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {  // TODO Remove the true!
 			QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 			new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
 			// searchBE.addAttribute(stakeholderAttribute, new Double(1.0),
