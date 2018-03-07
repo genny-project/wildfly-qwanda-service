@@ -97,6 +97,8 @@ public class QwandaEndpoint {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
+
 	@Inject
 	private Service service;
 
@@ -349,6 +351,9 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(@Context final UriInfo uriInfo) {
 
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev")) || devMode) {
+
 		BaseEntity searchBE = new BaseEntity("SER_");
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
 		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
@@ -393,6 +398,9 @@ public class QwandaEndpoint {
 		msg.setTotal(total);
 		String json = JsonUtils.toJson(msg);
 		return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(503).build();
+		}
 	}
 
 	@POST
@@ -404,7 +412,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -427,7 +435,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {
 
 			List<Object> results = service.findBySearchBE3(hql);
 			String json = JsonUtils.toJson(results);
@@ -446,7 +454,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -471,7 +479,7 @@ public class QwandaEndpoint {
 
 		// Force any user that is not admin to have to use their own code
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {
+				|| securityService.inRole("dev")) || devMode) {  // TODO Remove the true!
 			QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 			new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
 			// searchBE.addAttribute(stakeholderAttribute, new Double(1.0),
@@ -808,6 +816,64 @@ public class QwandaEndpoint {
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
+
+		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		qparams.putAll(params);
+
+		final String pageStartStr = params.getFirst("pageStart");
+		final String pageSizeStr = params.getFirst("pageSize");
+		final String includeAttributesStr = params.getFirst("attributes");
+		if (pageStartStr != null) {
+			pageStart = Integer.decode(pageStartStr);
+			qparams.remove("pageStart");
+		}
+		if (pageSizeStr != null) {
+			pageSize = Integer.decode(pageSizeStr);
+			qparams.remove("pageSize");
+		}
+		if (includeAttributesStr != null) {
+			includeAttributes = true;
+			qparams.remove("attributes");
+		}
+
+		final List<BaseEntity> targets = service.findChildrenByLinkValue(sourceCode, linkCode, linkValue,
+				includeAttributes, pageStart, pageSize, new Integer(1), qparams, null);
+
+		// remove the attributes
+		if (!includeAttributes) {
+			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
+		}
+
+		log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		Long total = -1L;
+
+		try {
+			total = service.findChildrenByLinkValueCount(sourceCode, linkCode, linkValue, qparams);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			total = -1L;
+		}
+
+		BaseEntity[] beArr = new BaseEntity[targets.size()];
+		beArr = targets.toArray(beArr);
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, sourceCode, linkCode);
+		msg.setTotal(total);
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+
+	}
+	
+	@GET
+	@Path("/baseentitys2/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}/attributes")
+	@Produces("application/json")
+	public Response getTargetsUsingLinkValueWithAttributes(@PathParam("sourceCode") final String sourceCode,
+			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
+			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
+		log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
+		Integer pageStart = 0;
+		Integer pageSize = 10; // default
+		boolean includeAttributes = true;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
 		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
