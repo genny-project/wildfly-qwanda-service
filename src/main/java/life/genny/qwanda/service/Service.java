@@ -64,8 +64,8 @@ public class Service extends BaseEntityService2 {
   @Inject
   private WildflyJms jms2;
   
-//  @Inject
-//  private Hazel inDB;
+  @Inject
+  private Hazel inDB;
 
   String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
@@ -236,8 +236,8 @@ public class Service extends BaseEntityService2 {
   @Override
   @javax.ejb.Asynchronous
   public void writeToDDT(final String key, final String jsonValue) {
-	// final String realmKey = this.getRealm()+"_"+key;
-//     inDB.getMapBaseEntitys().put(key, jsonValue);
+	final String realmKey = this.getRealm()+"_"+key;
+     inDB.getMapBaseEntitys().put(key, jsonValue);
 //    try {
 //      new ArrayList<BasicNameValuePair>();
 //
@@ -261,18 +261,21 @@ public class Service extends BaseEntityService2 {
 
   @Override
   public String readFromDDT(final String key) {
-    String json = null;
-    try {
-      json = QwandaUtils.apiGet(bridgeUrl + "/read/" + key, securityService.getToken());
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    JsonObject result = JsonUtils.fromJson(json, JsonObject.class);
-    if ("ok".equalsIgnoreCase(result.get("status").getAsString())) {
-      String value = result.get("value").getAsString();
-      return value;
-    }
+		final String realmKey = this.getRealm()+"_"+key;
+	     String json = (String) inDB.getMapBaseEntitys().get(realmKey);
+  
+//    String json = null;
+//    try {
+//      json = QwandaUtils.apiGet(bridgeUrl + "/read/" + key, securityService.getToken());
+//    } catch (IOException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    }
+//    JsonObject result = JsonUtils.fromJson(json, JsonObject.class);
+//    if ("ok".equalsIgnoreCase(result.get("status").getAsString())) {
+//      String value = result.get("value").getAsString();
+//      return value;
+//    }
     return json; // TODO make resteasy @Provider exception
   }
 }

@@ -28,6 +28,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	private final Map<String, KeycloakDeployment> cache = new ConcurrentHashMap<String, KeycloakDeployment>();
+	private static String lastlog = "";
 
 	@Override
 	public KeycloakDeployment resolve(final OIDCHttpFacade.Request request) {
@@ -86,8 +87,12 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		// don't bother showing Docker health checks
 		if (!request.getURI().equals("http://localhost:8080/version")) {
-			log.debug(">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
-					+ ":" + request.getRemoteAddr());
+			String logtext = ">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
+			+ ":" + request.getRemoteAddr();
+			if (!logtext.equals(lastlog)) {
+				log.debug(logtext);
+				lastlog = logtext;
+			}
 		}
 
 		KeycloakDeployment deployment = cache.get(realm);
