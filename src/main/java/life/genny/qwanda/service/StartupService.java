@@ -85,22 +85,11 @@ public class StartupService {
     for (BaseEntity be : results) {     
       service.writeToDDT(be);
     }
-    pushAttributes();
+    service.pushAttributes();
 
 
   }
 
-  @javax.ejb.Asynchronous
-  public void pushAttributes()
-  {
-	    // Attributes
-		final List<Attribute> entitys = service.findAttributes();
-		Attribute[] atArr = new Attribute[entitys.size()];
-		atArr = entitys.toArray(atArr);
-		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
-		msg.setToken(securityService.getToken());
-		String json = JsonUtils.toJson(msg);
-		service.writeToDDT("attributes",json);
-  }
+ 
   
 }
