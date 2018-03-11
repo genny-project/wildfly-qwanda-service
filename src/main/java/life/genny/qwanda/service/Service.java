@@ -259,10 +259,17 @@ public class Service extends BaseEntityService2 {
   }
   
   @Override
-  @javax.ejb.Asynchronous
   public void pushAttributes()
   {
 	  if (!securityService.importMode) {
+		  pushAttributesAsync();
+	  }
+  }
+  
+  
+  @javax.ejb.Asynchronous
+  public void pushAttributesAsync()
+  {
 	    // Attributes
 		final List<Attribute> entitys = findAttributes();
 		Attribute[] atArr = new Attribute[entitys.size()];
@@ -271,6 +278,6 @@ public class Service extends BaseEntityService2 {
 		msg.setToken(securityService.getToken());
 		String json = JsonUtils.toJson(msg);
 		writeToDDT("attributes",json);
-	  }
+	
   }
 }

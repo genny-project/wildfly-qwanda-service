@@ -85,7 +85,6 @@ public class StartupService {
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
-		msg.setToken(securityService.getToken());
 		String json = JsonUtils.toJson(msg);
 		service.writeToDDT("attributes", json);
 
