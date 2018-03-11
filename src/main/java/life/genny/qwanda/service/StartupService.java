@@ -10,7 +10,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
+
+import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.services.BatchLoading;
 
@@ -75,15 +78,29 @@ public class StartupService {
 
   // @javax.ejb.Asynchronous
   public void pushToDTT() {
-
+// BaseEntitys
     List<BaseEntity> results =
         em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
             .getResultList();
-    for (BaseEntity be : results) {
-     
+    for (BaseEntity be : results) {     
       service.writeToDDT(be);
     }
-  //  System.out.println("database in-memory " + inDB.getMapBaseEntitys().size());
+    pushAttributes();
+
+
   }
 
+  @javax.ejb.Asynchronous
+  public void pushAttributes()
+  {
+	    // Attributes
+		final List<Attribute> entitys = service.findAttributes();
+		Attribute[] atArr = new Attribute[entitys.size()];
+		atArr = entitys.toArray(atArr);
+		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+		msg.setToken(securityService.getToken());
+		String json = JsonUtils.toJson(msg);
+		service.writeToDDT("attributes",json);
+  }
+  
 }
