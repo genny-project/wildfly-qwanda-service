@@ -19,9 +19,11 @@ import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import com.google.gson.JsonObject;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.message.QEventSystemMessage;
@@ -64,8 +66,8 @@ public class Service extends BaseEntityService2 {
   @Inject
   private WildflyJms jms2;
   
-//  @Inject
-//  private Hazel inDB;
+  @Inject
+  private Hazel inDB;
 
   String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
@@ -236,20 +238,8 @@ public class Service extends BaseEntityService2 {
   @Override
   @javax.ejb.Asynchronous
   public void writeToDDT(final String key, final String jsonValue) {
-	// final String realmKey = this.getRealm()+"_"+key;
-//     inDB.getMapBaseEntitys().put(key, jsonValue);
-//    try {
-//      new ArrayList<BasicNameValuePair>();
-//
-//      new ArrayList<BasicNameValuePair>();
-//      JsonObject json = new JsonObject();
-//      json.addProperty("key", key);
-//      json.addProperty("json", jsonValue);
-//      QwandaUtils.apiPostEntity(bridgeUrl + "/write", json.toString(), "DUMMY");
-//
-//    } catch (IOException e) {
-//      log.error("Could not write to cache");
-//    }
+	final String realmKey = this.getRealm()+"_"+key;
+     inDB.getMapBaseEntitys().put(key, jsonValue);
 
   }
 
@@ -261,18 +251,33 @@ public class Service extends BaseEntityService2 {
 
   @Override
   public String readFromDDT(final String key) {
-    String json = null;
-    try {
-      json = QwandaUtils.apiGet(bridgeUrl + "/read/" + key, securityService.getToken());
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    JsonObject result = JsonUtils.fromJson(json, JsonObject.class);
-    if ("ok".equalsIgnoreCase(result.get("status").getAsString())) {
-      String value = result.get("value").getAsString();
-      return value;
-    }
+		final String realmKey = this.getRealm()+"_"+key;
+	     String json = (String) inDB.getMapBaseEntitys().get(realmKey);
+  
+
     return json; // TODO make resteasy @Provider exception
+  }
+  
+  @Override
+  public void pushAttributes()
+  {
+	  if (!securityService.importMode) {
+		  pushAttributesAsync();
+	  }
+  }
+  
+  
+  @javax.ejb.Asynchronous
+  public void pushAttributesAsync()
+  {
+	    // Attributes
+		final List<Attribute> entitys = findAttributes();
+		Attribute[] atArr = new Attribute[entitys.size()];
+		atArr = entitys.toArray(atArr);
+		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+		msg.setToken(securityService.getToken());
+		String json = JsonUtils.toJson(msg);
+		writeToDDT("attributes",json);
+	
   }
 }
