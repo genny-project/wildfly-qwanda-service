@@ -240,7 +240,7 @@ public class Service extends BaseEntityService2 {
   public void writeToDDT(final String key, final String jsonValue) {
 	final String realmKey = this.getRealm()+"_"+key;
      inDB.getMapBaseEntitys().put(key, jsonValue);
-
+     log.debug("Written to cache :"+key+":"+ jsonValue);
   }
 
   @Override
