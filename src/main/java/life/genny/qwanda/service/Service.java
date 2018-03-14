@@ -239,8 +239,20 @@ public class Service extends BaseEntityService2 {
   @javax.ejb.Asynchronous
   public void writeToDDT(final String key, final String jsonValue) {
 	final String realmKey = this.getRealm()+"_"+key;
-     inDB.getMapBaseEntitys().put(key, jsonValue);
+	if (System.getenv("GENNYDEV")!=null) {
+	    try {
+      JsonObject json = new JsonObject();
+      json.addProperty("key", key);
+      json.addProperty("json", jsonValue);
+       QwandaUtils.apiPostEntity(bridgeUrl + "/write", json.toString(), "DUMMY");
 
+    } catch (IOException e) {
+      log.error("Could not write to cache");
+    }
+	} else {  // production or docker
+     inDB.getMapBaseEntitys().put(key, jsonValue);
+	}
+     log.debug("Written to cache :"+key+":"+ jsonValue);
   }
 
   @Override
