@@ -33,8 +33,9 @@ public class Hazel {
   @PostConstruct
   public void init() {
     Config cfg = new Config();
-//    cfg.setInstanceName("qwanda");
-//    cfg.getGroupConfig().setName("helios");
+    cfg.getGroupConfig().setName((System.getenv("USER")==null?"GENNY":System.getenv("USER")));
+    cfg.getGroupConfig().setPassword((System.getenv("USER")==null?"GENNY":System.getenv("USER")));
+
     HazelcastInstance instance = Hazelcast.newHazelcastInstance(cfg);
     mapBaseEntitys = instance.getMap("BaseEntitys");
   }
