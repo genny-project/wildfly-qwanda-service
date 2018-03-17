@@ -147,11 +147,19 @@ public class Service extends BaseEntityService2 {
 
   }
 
-  @Override
+
   @Lock(LockType.READ)
   public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode,
       final String linkCode, final MultivaluedMap<String, String> params) {
-    return super.findChildrenByAttributeLinkCount(sourceCode, linkCode, params);
+
+    return super.findChildrenByAttributeLinkCount(sourceCode, linkCode, params,null);
+  }
+  @Override
+  @Lock(LockType.READ)
+  public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode,
+      final String linkCode, final MultivaluedMap<String, String> params, final String stakeholderCode) {
+
+    return super.findChildrenByAttributeLinkCount(sourceCode, linkCode, params,stakeholderCode);
   }
 
   @Override
