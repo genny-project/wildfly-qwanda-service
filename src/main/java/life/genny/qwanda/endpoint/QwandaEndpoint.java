@@ -927,6 +927,15 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	public Response getTargetsWithAttributes(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
+		String stakeholderCode = null;
+//		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+//				|| securityService.inRole("dev"))) {
+//			// stakeholderCode = "PER_" + ((String)
+//			// securityService.getUserMap().get("username")).toUpperCase();
+//			stakeholderCode = "PER_" + QwandaUtils
+//					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+//		}
+
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		Integer level = 1;
@@ -951,7 +960,7 @@ public class QwandaEndpoint {
 			// params.remove("level");
 		}
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
-				pageSize, level, qparams);
+				pageSize, level, qparams,stakeholderCode);
 
 		// for (final BaseEntity be : targets) {
 		// log.info("\n" + be.getCode() + " + attributes");
@@ -959,7 +968,7 @@ public class QwandaEndpoint {
 		// log.debug(p.getAttributeCode()));
 		// }
 
-		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
+		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams,stakeholderCode);
 
 		BaseEntity[] beArr = new BaseEntity[targets.size()];
 		beArr = targets.toArray(beArr);
