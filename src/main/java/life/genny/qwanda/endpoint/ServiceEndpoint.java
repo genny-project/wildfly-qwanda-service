@@ -54,7 +54,7 @@ import life.genny.qwandautils.JsonUtils;
  */
 
 @Path("/service")
-@Api(value = "/service", description = "Qwanda Service API", tags = "qwanda, service")
+@Api(value = "/service", description = "Qwanda Service API", tags = "qwandaservice")
 @Produces(MediaType.APPLICATION_JSON)
 
 @RequestScoped
