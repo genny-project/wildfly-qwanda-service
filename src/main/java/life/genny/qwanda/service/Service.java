@@ -34,12 +34,9 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.services.BaseEntityService2;
 
-// @ApplicationScoped
-// @Singleton
+
 @RequestScoped
-// @SessionScoped
-// @Transactional
-// @Lock(LockType.READ)
+
 public class Service extends BaseEntityService2 {
 
   /**
