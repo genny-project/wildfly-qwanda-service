@@ -56,8 +56,15 @@ import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeBoolean;
+import life.genny.qwanda.attribute.AttributeDate;
+import life.genny.qwanda.attribute.AttributeDateTime;
+import life.genny.qwanda.attribute.AttributeDouble;
 import life.genny.qwanda.attribute.AttributeInteger;
+import life.genny.qwanda.attribute.AttributeLong;
+import life.genny.qwanda.attribute.AttributeMoney;
 import life.genny.qwanda.attribute.AttributeText;
+import life.genny.qwanda.attribute.AttributeTime;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
@@ -286,10 +293,66 @@ public class QwandaEndpoint {
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				} catch (NoResultException e) {
 					// Create it (ideally if user is admin)
-					String name = entity.getAttributeCode().substring(4).toLowerCase();
-					name = name.replaceAll("_", " ");
+					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
+						attribute = new AttributeBoolean(entity.getAttributeCode(),
+								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					} else {
+						if (entity.getDataType()!=null) {
+							switch (entity.getDataType()) {
+							case "java.lang.Integer":
+							case "Integer":
+								attribute = new AttributeInteger(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+							case "java.time.LocalDateTime":
+							case "LocalDateTime":
+								attribute = new AttributeDateTime(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+							case "java.lang.Long":
+							case "Long":
+								attribute = new AttributeLong(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+							case "java.time.LocalTime":
+							case "LocalTime":
+								attribute = new AttributeTime(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+							case "org.javamoney.moneta.Money":
+							case "Money":
+								attribute = new AttributeMoney(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+
+							case "java.lang.Double":
+							case "Double":
+								attribute = new AttributeDouble(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+
+							case "java.lang.Boolean":
+								attribute = new AttributeBoolean(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+
+							case "java.time.LocalDate":
+								attribute = new AttributeDate(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+
+
+							case "java.lang.String":
+							default:
+								attribute = new AttributeText(entity.getAttributeCode(),
+										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+								break;
+
+							}						
+							} else {
 					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(name));
+							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					}}
 					service.insert(attribute);
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				}
@@ -306,18 +369,75 @@ public class QwandaEndpoint {
 	@Path("/answers")
 
 	public Response create(final Answer entity) {
-
+		Attribute attribute = null;
 		if (entity.getAttribute() == null) {
-			Attribute attribute = null;
+			
 
 			try {
 				attribute = service.findAttributeByCode(entity.getAttributeCode());
 			} catch (NoResultException e) {
 				// Create it (ideally if user is admin)
-				String name = entity.getAttributeCode().substring(4).toLowerCase();
-				name = name.replaceAll("_", " ");
+				if (entity.getAttributeCode().startsWith("PRI_IS_")) {
+					attribute = new AttributeBoolean(entity.getAttributeCode(),
+							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+				} else {
+					if (entity.getDataType()!=null) {
+						switch (entity.getDataType()) {
+						case "java.lang.Integer":
+						case "Integer":
+							attribute = new AttributeInteger(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+						case "java.time.LocalDateTime":
+						case "LocalDateTime":
+							attribute = new AttributeDateTime(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+						case "java.lang.Long":
+						case "Long":
+							attribute = new AttributeLong(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+						case "java.time.LocalTime":
+						case "LocalTime":
+							attribute = new AttributeTime(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+						case "org.javamoney.moneta.Money":
+						case "Money":
+							attribute = new AttributeMoney(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+
+						case "java.lang.Double":
+						case "Double":
+							attribute = new AttributeDouble(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+
+						case "java.lang.Boolean":
+							attribute = new AttributeBoolean(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+
+						case "java.time.LocalDate":
+							attribute = new AttributeDate(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+
+
+						case "java.lang.String":
+						default:
+							attribute = new AttributeText(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+							break;
+
+						}						
+						} else {
 				attribute = new AttributeText(entity.getAttributeCode(),
-						StringUtils.capitalize(name));
+						StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+				}
+					}
 				service.insert(attribute);
 				attribute = service.findAttributeByCode(entity.getAttributeCode());
 			}
@@ -1439,70 +1559,6 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
-	@GET
-	@Path("/gps/{origin}/{destination}/distance/{percentage}")
-	@Produces("application/json")
-	public Response fetchCurrentRouteStatusByPercentageDistance(@PathParam("origin") final String originAddress,
-			@PathParam("destination") final String destinationAddress,
-			@PathParam("percentage") final Double percentage) {
 
-		String googleApiKey = System.getenv("GOOGLE_API_KEY");
-		if (googleApiKey == null) {
-			String realm = securityService.getRealm();
-			String projectCode = "PRJ_" + realm.toUpperCase();
-			BaseEntity project = service.findBaseEntityByCode(projectCode);
-			Optional<EntityAttribute> ea = project.findEntityAttribute("PRI_GOOGLE_API_KEY");
-			if (ea.isPresent()) {
-				googleApiKey = ea.get().getValueString();
-			}
-		}
-
-		String json = null;
-		if (googleApiKey != null) {
-			GPSLocation origin = GPSUtils.getGPSLocation(originAddress, googleApiKey);
-			GPSLocation end = GPSUtils.getGPSLocation(destinationAddress, googleApiKey);
-			GPSRoute route = GPSUtils.getRoute(origin, end, googleApiKey);
-
-			GPSRouteStatus status = GPSUtils.fetchCurrentRouteStatusByPercentageDistance(route, percentage);
-
-			json = JsonUtils.toJson(status);
-		} else {
-			json = "{\"status\":\"error\",\"description\":\"No Google API\"}";
-		}
-		return Response.status(200).entity(json).build();
-	}
-
-	@GET
-	@Path("/gps/{origin}/{destination}/duration/{currentSeconds}")
-	@Produces("application/json")
-	public Response fetchCurrentRouteStatusByPercentageDuration(@PathParam("origin") final String originAddress,
-			@PathParam("destination") final String destinationAddress,
-			@PathParam("currentSeconds") final Double currentSeconds) {
-
-		String googleApiKey = System.getenv("GOOGLE_API_KEY");
-		if (googleApiKey == null) {
-			String realm = securityService.getRealm();
-			String projectCode = "PRJ_" + realm.toUpperCase();
-			BaseEntity project = service.findBaseEntityByCode(projectCode);
-			Optional<EntityAttribute> ea = project.findEntityAttribute("PRI_GOOGLE_API_KEY");
-			if (ea.isPresent()) {
-				googleApiKey = ea.get().getValueString();
-			}
-		}
-
-		String json = null;
-		if (googleApiKey != null) {
-			GPSLocation origin = GPSUtils.getGPSLocation(originAddress, googleApiKey);
-			GPSLocation end = GPSUtils.getGPSLocation(destinationAddress, googleApiKey);
-			GPSRoute route = GPSUtils.getRoute(origin, end, googleApiKey);
-
-			GPSRouteStatus status = GPSUtils.fetchCurrentRouteStatusByDuration(route, currentSeconds);
-
-			json = JsonUtils.toJson(status);
-		} else {
-			json = "{\"status\":\"error\",\"description\":\"No Google API\"}";
-		}
-		return Response.status(200).entity(json).build();
-	}
 
 }
