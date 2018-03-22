@@ -12,6 +12,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -290,4 +291,23 @@ public class ServiceEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
+	@GET
+	@Path("/baseentitys/remove/{code}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response removeBaseEntity(@PathParam("code") final String code) {
+		String returnMessage = "";
+		
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+			service.removeBaseEntity(code);
+				
+			} else {
+				returnMessage = "Cannot find BE "+code;
+			}
+
+	
+		return Response.status(200).entity(returnMessage).build();
+	}
+
+	
 }
