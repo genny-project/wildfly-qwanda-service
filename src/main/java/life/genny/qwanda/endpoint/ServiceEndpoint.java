@@ -299,34 +299,13 @@ public class ServiceEndpoint {
 		String returnMessage = "";
 		
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
-			BaseEntity be = service.findBaseEntityByCode(code);
-			if (be != null) {
-				
-				// remove all answers
-				Query query = em.createQuery("delete from answer where targetCode=:targetCode");
-				query.setParameter("targetCode", code);
-				query.executeUpdate();
-				
-				query = em.createQuery("delete from answer where sourceCode=:sourceCode");
-				query.setParameter("sourceCode", code);
-				query.executeUpdate();
-				
-				// remove all answerlinks
-				
-				// remove all attributes
-				
-				// remove all entityentity
-				
-				// remove the be
-				em.remove(be);
-				// clear cache
-				service.writeToDDT(code, null);
+			service.removeBaseEntity(code);
 				
 			} else {
 				returnMessage = "Cannot find BE "+code;
 			}
 
-		}
+	
 		return Response.status(200).entity(returnMessage).build();
 	}
 
