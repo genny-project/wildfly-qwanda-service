@@ -255,7 +255,11 @@ public class Service extends BaseEntityService2 {
       log.error("Could not write to cache");
     }
 	} else {  // production or docker
-     inDB.getMapBaseEntitys().put(key, jsonValue);
+		if (jsonValue==null) {
+			inDB.getMapBaseEntitys().remove(key);
+		} else {
+			inDB.getMapBaseEntitys().put(key, jsonValue);
+		}
 	}
      log.debug("Written to cache :"+key+":"+ jsonValue);
   }
