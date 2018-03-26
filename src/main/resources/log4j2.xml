@@ -10,10 +10,15 @@ status="WARN">
         <Root level="error">
             <AppenderRef ref="Console"/>
         </Root>
-    </Loggers>
-    <Loggers>
+    <logger category="com.hazelcast.nio.serialization.HazelcastSerializationException">
+    		<level name="ERROR"/>
+    </logger>
+        <logger category="ccom.hazelcast.internal.diagnostics.HealthMonitor">
+    		<level name="ERROR"/>
+    </logger>
         <Root level="info">
             <AppenderRef ref="SimpleConsole"/>
         </Root>
     </Loggers>
+    
 </Configuration>
