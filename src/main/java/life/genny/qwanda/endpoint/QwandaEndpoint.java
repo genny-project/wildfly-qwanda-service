@@ -596,14 +596,20 @@ public class QwandaEndpoint {
 	public Response findBySearchBE(final BaseEntity searchBE) {
 
 		Log.info("Search " + searchBE);
-
+		
 		// Force any user that is not admin to have to use their own code
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev")) || devMode) {  // TODO Remove the true!
-			QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
-			new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
-			// searchBE.addAttribute(stakeholderAttribute, new Double(1.0),
-			// stakeholderCode);
+			String stakeHolderCode = QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
+			try {
+				searchBE.addAttribute(stakeHolderAttribute, new Double(1.0),
+				stakeHolderCode);
+			} catch (BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
 
 			Long total = -1L;
@@ -621,9 +627,8 @@ public class QwandaEndpoint {
 			msg.setTotal(total);
 			String json = JsonUtils.toJson(msg);
 			return Response.status(200).entity(json).build();
-		}
+		
 
-		return Response.status(503).build();
 	}
 
 	@GET
