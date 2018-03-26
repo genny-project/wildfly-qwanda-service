@@ -219,7 +219,8 @@ public class Service extends BaseEntityService2 {
 
   @Override
   protected String getRealm() {
-    return securityService.getRealm();
+  //  return securityService.getRealm();
+    return "genny"; // TODO HACK
   }
 
   @Override
