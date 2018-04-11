@@ -37,6 +37,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import life.genny.qwanda.Answer;
 import life.genny.qwanda.GPSLocation;
 import life.genny.qwanda.GPSRoute;
 import life.genny.qwanda.GPSRouteStatus;
@@ -192,6 +194,7 @@ public class ServiceEndpoint {
 
 	@GET
 	@Path("/synchronize/cache/baseentitys")
+	@ApiOperation(value = "baseentitys", notes = "Sync all BaseEntitys")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response synchronizeCacheBEs() {
@@ -205,11 +208,13 @@ public class ServiceEndpoint {
 				service.writeToDDT(be);
 			}
 		}
-		return Response.status(200).entity(results.size() + " BaseEntitys written to cache").build();
+		log.info(results.size() + " BaseEntitys written to cache.");
+		return Response.status(200).entity(results.size() + " BaseEntitys written to cache.").build();
 	}
 
 	@GET
 	@Path("/cache/read/{key}")
+	@ApiOperation(value = "cache", notes = "read cache data located at Key")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response cacheRead(@PathParam("key") final String key) {
@@ -219,6 +224,59 @@ public class ServiceEndpoint {
 			results = service.readFromDDT(key);
 		}
 		return Response.status(200).entity(results).build();
+	}
+	
+	@GET
+	@Path("/answers/{sourceCode}/{targetCode}/{attributeCode}/{value}")
+	@ApiOperation(value = "answer", notes = "quick answer")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response setAnswer(@PathParam("sourceCode") final String sourceCode,@PathParam("targetCode") final String targetCode, @PathParam("attributeCode") final String attributeCode, @PathParam("value") final String value) {
+		BaseEntity result = null;
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+
+			Answer answer = new Answer(sourceCode, targetCode, attributeCode, value);
+			Answer[] answerArray = new Answer[1];
+			answerArray[0] = answer;
+			service.insert(answerArray);
+			result = (BaseEntity) em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+					.setParameter("code", targetCode).getSingleResult();
+			
+		}
+		return Response.status(200).entity(result).build();
+	}
+	
+	@GET
+	@Path("/synchronize/cache/baseentitys/{baseEntityCode}")
+	@ApiOperation(value = "baseentitys", notes = "Sync BaseEntity to cache")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response cacheSync(@PathParam("baseEntityCode") final String code) {
+		BaseEntity result = null;
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+
+			result = (BaseEntity) em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+					.setParameter("code", code).getSingleResult();
+				service.writeToDDT(result);
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@GET
+	@Path("/baseentitys/{baseEntityCode}/hide")
+	@ApiOperation(value = "baseentitys", notes = "Hide a baseentity by changing realm to hidden")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response hideBaseEntity(@PathParam("baseEntityCode") final String baseEntityCode) {
+		BaseEntity result = null;
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+
+			result = service.findBaseEntityByCode(baseEntityCode);
+			result.setRealm("hidden");
+			service.update(result);
+			
+		}
+		return Response.status(200).entity(result).build();
 	}
 
 	@GET

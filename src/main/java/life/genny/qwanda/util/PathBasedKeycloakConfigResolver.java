@@ -74,10 +74,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
 					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
+					if (keycloakJsonText==null) {
+						log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
+					} else {
 					// extract realm
 					final JSONObject json = new JSONObject(keycloakJsonText);
 					realm = json.getString("realm");
 					key = realm + ".json";
+					}
 				}
 
 			} catch (final Exception e) {
