@@ -105,7 +105,8 @@ public class QwandaEndpoint {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
-
+	Boolean searchDevMode = "TRUE".equals(System.getenv("SEARCHDEV"));
+	
 	@Inject
 	private Service service;
 
@@ -597,10 +598,13 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + searchBE);
 		
+
 		// Force any user that is not admin to have to use their own code
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || devMode) {  // TODO Remove the true!
-			String stakeHolderCode = QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+				|| securityService.inRole("dev")) || searchDevMode) {  // TODO Remove the true!
+			String stakeHolderCode = null;
+			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+
 			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
 			try {
 				searchBE.addAttribute(stakeHolderAttribute, new Double(1.0),
@@ -609,6 +613,9 @@ public class QwandaEndpoint {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		} else {
+			// pass the stakeHolderCode through
+			
 		}
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
 
