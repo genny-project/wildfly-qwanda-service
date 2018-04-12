@@ -42,6 +42,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.GPSLocation;
 import life.genny.qwanda.GPSRoute;
 import life.genny.qwanda.GPSRouteStatus;
+import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
@@ -236,11 +237,19 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 
 			Answer answer = new Answer(sourceCode, targetCode, attributeCode, value);
+			Attribute attribute = service.findAttributeByCode(attributeCode);
+			if (attribute == null) {
+				log.error("Bad attribute supplied "+attributeCode);
+			} else {
+			answer.setAttribute(attribute);
 			Answer[] answerArray = new Answer[1];
 			answerArray[0] = answer;
+		
+			
 			service.insert(answerArray);
 			result = (BaseEntity) em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
 					.setParameter("code", targetCode).getSingleResult();
+			}
 			
 		}
 		return Response.status(200).entity(result).build();
