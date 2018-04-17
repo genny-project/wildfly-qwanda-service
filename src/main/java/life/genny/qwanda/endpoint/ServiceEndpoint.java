@@ -231,7 +231,7 @@ public class ServiceEndpoint {
 	@Path("/answers/{sourceCode}/{targetCode}/{attributeCode}/{value}")
 	@ApiOperation(value = "answer", notes = "quick answer")
 	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
+
 	public Response setAnswer(@PathParam("sourceCode") final String sourceCode,@PathParam("targetCode") final String targetCode, @PathParam("attributeCode") final String attributeCode, @PathParam("value") final String value) {
 		BaseEntity result = null;
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
