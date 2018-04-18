@@ -606,9 +606,17 @@ public class QwandaEndpoint {
 			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 
 			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
+			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE", "SourceStakeholderCode");
 			try {
-				searchBE.addAttribute(stakeHolderAttribute, new Double(1.0),
-				stakeHolderCode);
+				
+				if(searchBE.containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
+					searchBE.addAttribute(sourceStakeHolderAttribute, new Double(1.0),
+							stakeHolderCode);
+				}else {
+					searchBE.addAttribute(stakeHolderAttribute, new Double(1.0),
+							stakeHolderCode);
+				}
+			
 			} catch (BadDataException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
