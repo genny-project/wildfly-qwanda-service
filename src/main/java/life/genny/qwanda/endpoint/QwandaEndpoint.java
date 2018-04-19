@@ -628,7 +628,7 @@ public class QwandaEndpoint {
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
 
 			Long total = -1L;
-
+ 
 			try {
 				total = service.findBySearchBECount(searchBE);
 			} catch (Exception e) {
