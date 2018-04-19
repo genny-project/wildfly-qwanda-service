@@ -97,7 +97,9 @@
 	<security-role>
 		<role-name>user</role-name>
 	</security-role>
-	
+		<security-role>
+		<role-name>dev</role-name>
+	</security-role>
   
 	
 </web-app>
