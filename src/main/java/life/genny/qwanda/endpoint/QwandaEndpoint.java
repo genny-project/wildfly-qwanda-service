@@ -1163,10 +1163,10 @@ public class QwandaEndpoint {
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
 				pageSize, level, qparams, stakeholderCode);
 
-		for (final BaseEntity be : targets) {
-			log.info("\n" + be.getCode() + " + attributes");
-			be.getBaseEntityAttributes().stream().forEach(p -> log.debug(p.getAttributeCode()));
-		}
+//		for (final BaseEntity be : targets) {
+//			log.info("\n" + be.getCode() + " + attributes");
+//			be.getBaseEntityAttributes().stream().forEach(p -> log.debug(p.getAttributeCode()));
+//		}
 
 		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams); // TODO add stakeholder
 																								// filtering
