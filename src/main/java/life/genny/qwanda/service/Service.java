@@ -45,7 +45,7 @@ public class Service extends BaseEntityService2 {
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-  static final String bridgeUrl = "http://" + System.getenv("HOSTIP") + ":8089";
+  static final String ddtUrl = System.getenv("DDT_URL")==null?("http://" + System.getenv("HOSTIP") + ":8089"):System.getenv("DDT_URL");
 
   public Service() {
 
@@ -245,12 +245,12 @@ public class Service extends BaseEntityService2 {
   @javax.ejb.Asynchronous
   public void writeToDDT(final String key, final String jsonValue) {
 	final String realmKey = this.getRealm()+"_"+key;
-	if (System.getenv("GENNYDEV")!=null) {
+	if ((System.getenv("GENNYDEV")!=null)&&(System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {
 	    try {
       JsonObject json = new JsonObject();
       json.addProperty("key", key);
       json.addProperty("json", jsonValue);
-       QwandaUtils.apiPostEntity(bridgeUrl + "/write", json.toString(), "DUMMY");
+       QwandaUtils.apiPostEntity(ddtUrl + "/write", json.toString(), "DUMMY");
 
     } catch (IOException e) {
       log.error("Could not write to cache");
