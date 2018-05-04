@@ -69,6 +69,7 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
+import life.genny.qwanda.entity.SearchEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
@@ -1127,7 +1128,7 @@ public class QwandaEndpoint {
 			@DefaultValue("USER") @PathParam("stakeholderCode") String stakeholderCode,
 			@Context final UriInfo uriInfo) {
 		Integer pageStart = 0;
-		Integer pageSize = 10; // default
+		Integer pageSize = 500; // default
 		Integer level = 1;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
@@ -1159,6 +1160,29 @@ public class QwandaEndpoint {
 			stakeholderCode = "PER_" + QwandaUtils
 					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 		}
+
+	     SearchEntity searchBE = new SearchEntity("Targets","Targets")
+	      	     .addColumn("PRI_IMAGE_URL","Image")
+	      	     .addColumn("PRI_USERNAME","Username")
+	      	     .addColumn("PRI_FIRSTNAME","Firstname")
+	      	     .addColumn("PRI_LASTNAME","Surname")
+	      	     .addColumn("PRI_MOBILE","Mobile")
+	      	     .addColumn("PRI_EMAIL","Email")
+	      	     .addColumn("PRI_REGISTRATION_DATETIME", "Registered Date")
+	      	     .addColumn("PRI_LAST_LOGIN_DATETIME","Last Login Date")
+	      	     
+	      	     .addSort("PRI_FIRSTNAME","Firstname",SearchEntity.Sort.ASC)
+	      	     .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"PER_%")
+	      	     
+	      	     .setPageStart(pageStart)
+	      	     .setPageSize(pageSize);
+	     
+	     if (stakeholderCode!=null) {
+	    	 searchBE.setStakeholder(stakeholderCode);
+	     }
+	     
+	//     List<BaseEntity> targets = service.findBySearchBE(searchBE);
+	     
 
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
 				pageSize, level, qparams, stakeholderCode);
