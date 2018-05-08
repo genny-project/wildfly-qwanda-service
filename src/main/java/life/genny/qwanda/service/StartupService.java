@@ -65,7 +65,9 @@ public class StartupService {
 		securityService.setImportMode(false);
 
 		// Push BEs to cache
-		pushToDTT();
+		if (System.getenv("LOAD_DDT_IN_STARTUP")!=null) {
+			pushToDTT();
+		}
 
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", "NO_TOKEN");
 		// em.close();
