@@ -58,14 +58,20 @@ public class StartupService {
 		securityService.setImportMode(true); // ugly way of getting past security
 
 		// em = emf.createEntityManager();
-		System.out.println("Starting Transaction for loading");
-		BatchLoading bl = new BatchLoading(service);
-		bl.persistProject();
-		System.out.println("*********************** Finished Google Doc Import ***********************************");
+		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
+			System.out.println("Starting Transaction for loading");
+			BatchLoading bl = new BatchLoading(service);
+			bl.persistProject();
+			System.out.println("*********************** Finished Google Doc Import ***********************************");
+		} else {
+			System.out.println("Skipping Google doc loading");
+		}
 		securityService.setImportMode(false);
 
 		// Push BEs to cache
-		pushToDTT();
+		if (System.getenv("LOAD_DDT_IN_STARTUP")!=null) {
+			pushToDTT();
+		}
 
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", "NO_TOKEN");
 		// em.close();
