@@ -639,7 +639,14 @@ public class QwandaEndpoint {
 
 			BaseEntity[] beArr = new BaseEntity[results.size()];
 			beArr = results.toArray(beArr);
-			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
+			
+			// Override returned parent code if it is supplied, otherwise use search BE code
+			String parentCode = searchBE.getCode();
+			Optional<EntityAttribute> parentAttribute = searchBE.findEntityAttribute("SCH_SOURCE_CODE");
+			if (parentAttribute.isPresent()) {
+				parentCode = parentAttribute.get().getValueString();
+			}
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
 			msg.setTotal(total);
 			String json = JsonUtils.toJson(msg);
 			return Response.status(200).entity(json).build();
