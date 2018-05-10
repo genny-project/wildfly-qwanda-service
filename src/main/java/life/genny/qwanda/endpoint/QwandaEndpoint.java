@@ -36,6 +36,7 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.json.JSONObject;
+import org.keycloak.representations.AccessTokenResponse;
 import org.mortbay.log.Log;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -82,6 +83,7 @@ import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
 
@@ -164,6 +166,7 @@ public class QwandaEndpoint {
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
 				.build();
 	}
+
 
 	// TODO: should be POST
 	@GET

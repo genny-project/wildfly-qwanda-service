@@ -21,6 +21,7 @@ public class RestApplication extends Application {
     resources.add(QwandaEndpoint.class);
     resources.add(ServiceEndpoint.class);
     resources.add(VersionEndpoint.class);
+    resources.add(UtilsEndpoint.class);
     resources.add(CORSFilter.class);
 
     resources.add(io.swagger.jaxrs.listing.ApiListingResource.class);
