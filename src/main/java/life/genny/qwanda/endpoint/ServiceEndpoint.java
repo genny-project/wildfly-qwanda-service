@@ -30,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.keycloak.representations.AccessTokenResponse;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,6 +51,7 @@ import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.KeycloakUtils;
 
 /**
  * JAX-RS endpoint
@@ -90,6 +92,31 @@ public class ServiceEndpoint {
 		}
 	}
 
+	
+
+	
+	@GET
+	@Path("/token/{keycloakurl}/{realm}/{secret}/{key}/{initVector}/{username}/{encryptedPassword}")
+	@Produces("application/json")
+	@Transactional
+	public Response getToken(@PathParam("keycloakurl") final String keycloakUrl,
+			@PathParam("realm") final String realm,@PathParam("secret") final String secret, @PathParam("key") final String key,
+			@PathParam("initVector") final String initVector,@PathParam("username") final String username,@PathParam("encryptedPassword") final String encryptedPassword) {
+		
+		AccessTokenResponse accessToken=null;
+		try {
+			accessToken = KeycloakUtils.getAccessToken(keycloakUrl, realm, realm,
+					secret, username, encryptedPassword);
+		} catch (IOException e) {
+			return Response.status(400).entity("Could not obtain token").build();
+		}
+		String token = accessToken.getToken();
+
+		
+		return Response.status(200).entity(token).build();
+	}
+	
+	
 	@GET
 	@Path("/baseentitys/importkeycloak")
 	@Produces("application/json")
