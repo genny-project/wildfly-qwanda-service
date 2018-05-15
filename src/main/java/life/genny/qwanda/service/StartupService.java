@@ -83,17 +83,22 @@ public class StartupService {
 		// BaseEntitys
 		List<BaseEntity> results = em
 				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
-		for (BaseEntity be : results) {
-			service.writeToDDT(be);
-		}
+	
+		
+		// Collect all the baseentitys
+		System.out.println("Pushing "+results.size()+" Basentitys to Cache");
+		service.writeToDDT(results);
+		
+	
 		// Attributes
+		System.out.println("Pushing Attributes to Cache");
 		final List<Attribute> entitys = service.findAttributes();
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
 		String json = JsonUtils.toJson(msg);
 		service.writeToDDT("attributes", json);
-
+		System.out.println("---------------- Completed Startup ----------------");
 	}
 
 }
