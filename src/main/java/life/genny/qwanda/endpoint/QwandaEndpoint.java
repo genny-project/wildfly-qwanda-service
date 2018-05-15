@@ -701,6 +701,20 @@ public class QwandaEndpoint {
 		String json = JsonUtils.toJson(msg);
 		return Response.status(200).entity(json).build();
 	}
+	
+	@GET
+	@Path("/attributes/{code}")
+	public Response fetchAttribute(@PathParam("attributeCode") final String attributeCode) {
+		final Attribute attribute = service.findAttributeByCode(attributeCode);
+		Attribute[] atArr = new Attribute[1];
+		atArr[0] = attribute;
+		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+		msg.setToken(securityService.getToken());
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
+	}
+	
+
 
 	@GET
 	@Path("/questions/{questionCode}")
