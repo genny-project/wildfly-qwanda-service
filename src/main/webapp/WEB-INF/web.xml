@@ -86,6 +86,16 @@
     </auth-constraint>
 	</security-constraint>
 	
+	<security-constraint>
+		<web-resource-collection>
+		<web-resource-name>Qwanda Service</web-resource-name>
+			<url-pattern>/service/*</url-pattern>
+		</web-resource-collection>
+	<auth-constraint>
+        <role-name>dev</role-name>
+    </auth-constraint>
+	</security-constraint>
+	
 
 	<security-constraint>
 		<web-resource-collection>
