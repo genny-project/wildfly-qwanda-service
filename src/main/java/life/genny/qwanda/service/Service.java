@@ -2,9 +2,10 @@ package life.genny.qwanda.service;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
@@ -14,10 +15,12 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
-import org.apache.http.message.BasicNameValuePair;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-import com.google.gson.JsonObject;
+
+import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
@@ -32,7 +35,10 @@ import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.util.WildFlyJmsQueueSender;
 import life.genny.qwanda.util.WildflyJms;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.qwandautils.SecurityUtils;
+import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 
 @RequestScoped
@@ -68,9 +74,24 @@ public class Service extends BaseEntityService2 {
 	private Hazel inDB;
 
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
+	
+	String token="DUMMY";
 
 	@PostConstruct
 	public void init() {
+		
+		String mainrealm = System.getenv("PROJECT_REALM")==null?"genny":System.getenv("PROJECT_REALM");
+		
+		token = getServiceToken(mainrealm);
+	}
+	
+	@Override
+	public String getToken()
+	{
+		if ("DUMMY".equals(token)) {
+			init();
+		}
+		return token;
 	}
 
 	@Override
@@ -257,11 +278,11 @@ public class Service extends BaseEntityService2 {
 				}
 				System.out.println("Sending "+page+" to cache api");
 				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
-						"DUMMY");
+						token);
 				String jsonMsg = JsonUtils.toJson(msg);
 				JsonObject json = new JsonObject();
-				json.addProperty("json", jsonMsg);
-				QwandaUtils.apiPostEntity(ddtUrl + "/writearray", json.toString(), "DUMMY");
+				json.put("json", jsonMsg);
+				QwandaUtils.apiPostEntity(ddtUrl + "/writearray", json.toString(), token);
 				
 			} catch (IOException e) {
 				log.error("Could not write to cache");
@@ -289,10 +310,13 @@ public class Service extends BaseEntityService2 {
 		if ((System.getenv("GENNYDEV") != null) && (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {
 			if (!securityService.importMode) {
 				try {
+					
+				
+					
 					JsonObject json = new JsonObject();
-					json.addProperty("key", key);
-					json.addProperty("json", jsonValue);
-					QwandaUtils.apiPostEntity(ddtUrl + "/write", json.toString(), "DUMMY");
+					json.put("key", key);
+					json.put("json", jsonValue);
+					QwandaUtils.apiPostEntity(ddtUrl + "/write", json.toString(), token);
 
 				} catch (IOException e) {
 					log.error("Could not write to cache");
@@ -341,4 +365,57 @@ public class Service extends BaseEntityService2 {
 		writeToDDT("attributes", json);
 
 	}
+	
+	public String getServiceToken(final String realm)
+	{
+		String key = null;
+		String encryptedPassword = null;
+		try {
+			key = System.getenv("ENV_SECURITY_KEY"); // TODO , Add each realm as a prefix
+		} catch (Exception e) {
+			log.error("PRJ_" + realm.toUpperCase() + " ENV ENV_SECURITY_KEY  is missing!");
+		}
+
+		try {
+			encryptedPassword = System.getenv("ENV_SERVICE_PASSWORD");
+		} catch (Exception e) {
+			log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");
+		}
+
+		return getServiceToken(realm,key,encryptedPassword);
+	}
+	
+	public String getServiceToken(final String realm, final String key, final String encrypted)
+	{
+		String ret = "DUMMY";
+		String initVector = "PRJ_" + realm.toUpperCase();
+		initVector = StringUtils.rightPad(initVector, 32, '*');
+		String encryptedPassword = null;
+		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
+		JsonObject realmJson = new JsonObject(keycloakJson);
+		JsonObject secretJson = realmJson.getJsonObject("credentials");
+		String secret = secretJson.getString("secret");
+
+
+
+		String password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
+
+		// Now ask the bridge for the keycloak to use
+		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
+				realmJson.getString("auth-server-url").length() - ("/auth".length()));
+
+		try {
+			ret = KeycloakUtils.getToken(keycloakurl, realm, realm, secret, "service", password);
+			log.info("token = " + ret);
+
+
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
 }

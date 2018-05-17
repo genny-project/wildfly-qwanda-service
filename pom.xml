@@ -68,6 +68,10 @@
 			<url>https://mvnrepository.com/artifact/org.wildfly.arquillian/wildfly-arquillian-container-managed/</url>
 		</repository>
 		<repository>
+			<id> Maven repository</id>
+			<url>https://mvnrepository.com/artifact/org.apache.commons/commons-lang3</url>
+		</repository>
+		<repository>
 			<id> Maven repository2</id>
 			<url>https://mvnrepository.com/artifact/org.wildfly/wildfly-dist/</url>
 		</repository>
