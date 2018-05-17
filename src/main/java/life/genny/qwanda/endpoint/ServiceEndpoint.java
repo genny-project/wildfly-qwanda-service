@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -47,11 +48,14 @@ import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.message.QEventSystemMessage;
+import life.genny.qwanda.message.QMessage.MessageData;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
+import life.genny.qwandautils.QwandaUtils;
 
 /**
  * JAX-RS endpoint
@@ -73,6 +77,9 @@ public class ServiceEndpoint {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
+	
+	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
+
 
 	@PersistenceContext
 	private EntityManager em;
@@ -216,6 +223,8 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 
 			service.pushAttributes();
+		}else {
+			return Response.status(401).entity("You need to be a dev.").build();
 		}
 		return Response.status(200).entity("ok").build();
 	}
@@ -229,12 +238,14 @@ public class ServiceEndpoint {
 
 		List<BaseEntity> results = new ArrayList<BaseEntity>();
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
-
+			log.info( " Writing BaseEntitys to cache.");
 			results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
 					.getResultList();
 			for (BaseEntity be : results) {
 				service.writeToDDT(be);
 			}
+		} else {
+			return Response.status(401).entity("You need to be a dev.").build();
 		}
 		log.info(results.size() + " BaseEntitys written to cache.");
 		return Response.status(200).entity(results.size() + " BaseEntitys written to cache.").build();
@@ -403,5 +414,41 @@ public class ServiceEndpoint {
 		return Response.status(200).entity(returnMessage).build();
 	}
 
+	@GET
+	@Path("/rulegroup/{rulegroup}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response executeRuleGroup(@PathParam("rulegroup") final String rulegroup) {
+		String returnMessage = "rule group  fired";
+		
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+			String token = securityService.getToken();
+			
+			// Why did I make this mandatory? ACC
+			Properties properties = new Properties();
+			try {
+				properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
+			} catch (IOException e) {
+
+			}
+			System.out.println("Sending rulegroup - "+rulegroup+" from "+securityService.getUserMap().get("prefered_username"));
+			QEventSystemMessage event = new QEventSystemMessage("FOCUS_RULE_GROUP", properties, token);
+			event.getData().setValue(rulegroup);
+			
+			try {
+				String json = JsonUtils.toJson(event);
+				QwandaUtils.apiPostEntity(bridgeApi, json, token);
+			} catch (Exception e) {
+				log.error("Error in posting link Change to JMS:" + event);
+			}
+				
+		} else {
+			return Response.status(401).entity("You need to be a dev.").build();
+		}
+	
+		return Response.status(200).entity(returnMessage).build();
+	}
+	
+	
 	
 }

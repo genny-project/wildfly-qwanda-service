@@ -71,6 +71,7 @@
 	    </web-resource-collection>
 	<auth-constraint>
         <role-name>user</role-name>
+
     </auth-constraint>
 	</security-constraint>
 	
