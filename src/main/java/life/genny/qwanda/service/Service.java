@@ -392,6 +392,7 @@ public class Service extends BaseEntityService2 {
 		initVector = StringUtils.rightPad(initVector, 32, '*');
 		String encryptedPassword = null;
 		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
+		if (keycloakJson!=null) {
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");
 		String secret = secretJson.getString("secret");
@@ -414,7 +415,7 @@ public class Service extends BaseEntityService2 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		}
 		return ret;
 	}
 	
