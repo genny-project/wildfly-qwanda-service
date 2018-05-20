@@ -629,12 +629,15 @@ public class QwandaEndpoint {
 			// pass the stakeHolderCode through
 			
 		}
+		Long startTime = System.nanoTime();
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
-
+			System.out.println("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 			Long total = -1L;
  
 			try {
 				total = service.findBySearchBECount(searchBE);
+				System.out.println("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				total = -1L;
