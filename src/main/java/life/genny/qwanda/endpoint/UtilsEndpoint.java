@@ -2,10 +2,14 @@ package life.genny.qwanda.endpoint;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.money.CurrencyUnit;
+import javax.money.Monetary;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -21,6 +25,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
+import org.javamoney.moneta.Money;
 import org.keycloak.representations.AccessTokenResponse;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -166,5 +171,27 @@ public class UtilsEndpoint {
 		return Response.status(200).build();
 	}
 
+	private static final CurrencyUnit DEFAULT_CURRENCY_AUD = Monetary.getCurrency("AUD");
 	
+	@GET
+	@Consumes("application/json")
+	@Path("/stats")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getStats() {
+		
+		// get number of buyers
+		Integer buyers = 1513;
+		// get number of transport companies
+		Integer companies = 5759;
+		// get total loads moved
+		Integer jobs = 1449;
+		// get paid to drivers in past 30 days
+		Money money = Money.of(new BigDecimal("737298"), DEFAULT_CURRENCY_AUD);		
+
+
+		
+		return Response.status(200).build();
+	}
+
 }
