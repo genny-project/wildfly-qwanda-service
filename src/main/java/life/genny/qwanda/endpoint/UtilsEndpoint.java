@@ -47,6 +47,7 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QDataStatsMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
@@ -247,16 +248,13 @@ public class UtilsEndpoint {
 						case "PRI_NAME":
 							allowedAttributes.add(entityAttribute);
 						default:
-							if (attributeCode.startsWith("PRI_IS_")) {
-								allowedAttributes.add(entityAttribute);// allow all roles
 							}
-						}
 	
 				}
 				be.setBaseEntityAttributes(allowedAttributes);
-				
+				String beString = JsonUtils.toJson(be);
 		
-		return Response.status(200).entity(be).build();
+		return Response.status(200).entity(beString).build();
 	}
 	
 }
