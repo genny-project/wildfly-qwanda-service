@@ -23,7 +23,7 @@
 		<class>life.genny.qwanda.attribute.Attribute</class>
 		<class>life.genny.qwanda.attribute.AttributeText</class>
 		<class>life.genny.qwanda.attribute.AttributeLink</class>
-				<class>life.genny.qwanda.attribute.AttributeDateTime</class>
+		<class>life.genny.qwanda.attribute.AttributeDateTime</class>
 		<class>life.genny.qwanda.attribute.EntityAttribute</class>
 		<class>life.genny.qwanda.datatype.DataType</class>
 		<class>life.genny.qwanda.entity.BaseEntity</class>
@@ -40,14 +40,37 @@
 		<class>life.genny.qwanda.validation.ValidationList</class>
 		<class>life.genny.qwanda.QuestionQuestion</class>
 		<class>life.genny.qwanda.message.QBaseMSGMessageTemplate</class>
-		
+
 		<validation-mode>CALLBACK</validation-mode>
 		<properties>
-			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+			<property name="hibernate.dialect"
+				value="org.hibernate.dialect.MySQLDialect" />
 			<property name="hibernate.hbm2ddl.auto" value="update" />
-			<property name="hibernate.discriminator.ignore_explicit_for_joined" value="true" />
-			<property name = "hibernate.show_sql" value = "false" />
-		<!-- 	<property name="hibernate.dialect"  value="org.hibernate.spatial.dialect.MySQLSpatial56Dialect" />-->
+			<property
+				name="hibernate.discriminator.ignore_explicit_for_joined"
+				value="true" />
+		<!-- 	<property name="hibernate.generate_statistics" value="true" /> -->
+			<property name="hibernate.show_sql" value="false" />
+			<!-- <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.MySQLSpatial56Dialect" 
+				/> -->
+			<!-- Infinispan -->
+			<property name="hibernate.cache.infinispan.statistics"
+				value="true" />
+			<property name="hibernate.cache.use_structured_entries"
+				value="true" />
+
+			<!-- 2LC -->
+			<property name="hibernate.cache.use_second_level_cache"
+				value="true" />
+			<property name="hibernate.cache.use_query_cache"
+				value="true" />
+			<property name="hibernate.connection.pool_size" value="50" />
+			<property name="hibernate.c3p0.min_size" value="5" />
+			<property name="hibernate.c3p0.max_size" value="50" />
+			<property name="hibernate.c3p0.timeout" value="300" />
+			<property name="hibernate.c3p0.max_statements" value="50" />
+			<property name="hibernate.c3p0.idle_test_period"
+				value="3000" />
 		</properties>
 	</persistence-unit>
 </persistence>
