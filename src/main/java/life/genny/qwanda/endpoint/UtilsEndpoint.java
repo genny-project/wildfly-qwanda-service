@@ -230,7 +230,7 @@ public class UtilsEndpoint {
 	public Response getProject(@PathParam("realm") final String realm) {
 		String projectCode = "PRJ_"+realm.toUpperCase();
 		// get number of buyers
-		Query q = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee and be.code=:code");
+		Query q = em.createQuery("SELECT distinct (be) FROM BaseEntity be JOIN be.baseEntityAttributes bee where be.code=:code and bee.baseEntityCode=be.code");
 				q.setParameter("code", projectCode);
 				BaseEntity be = (BaseEntity)q.getSingleResult();
 				Set<EntityAttribute> allowedAttributes = new HashSet<EntityAttribute>();
