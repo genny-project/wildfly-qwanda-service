@@ -643,8 +643,14 @@ public class QwandaEndpoint {
 				total = -1L;
 			}
 
-			BaseEntity[] beArr = new BaseEntity[results.size()];
-			beArr = results.toArray(beArr);
+			BaseEntity[] beArr = null;
+			if (!((results==null)||(results.isEmpty()))) {
+				beArr = new BaseEntity[results.size()];
+				beArr = results.toArray(beArr);
+			} else {
+				beArr = new BaseEntity[0];
+				total = 0L;
+			}
 			
 			// Override returned parent code if it is supplied, otherwise use search BE code
 			String parentCode = searchBE.getCode();
@@ -1346,7 +1352,13 @@ public class QwandaEndpoint {
 		Log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
 				+ ":" + link.getLinkValue() + ":" + link.getWeight());
 
-		Integer result = service.updateEntityEntity(link);
+		Integer result = null;
+		
+		try {
+			result = service.updateEntityEntity(link);
+		} catch (NoResultException e) {
+			return Response.status(400).entity("Link data does not exist").build();
+		}
 
 		return Response.status(200).entity(result).build();
 	}
@@ -1362,8 +1374,13 @@ public class QwandaEndpoint {
 				+ ":" + link.getLinkValue() + ":" + link.getWeight() + ":" + link.getParentColor() + ":"
 				+ link.getChildColor() + ":" + link.getRule());
 
-		Integer result = service.updateEntityEntity(link);
-
+		Integer result = null;
+		
+		try {
+			result = service.updateEntityEntity(link);
+		} catch (NoResultException e) {
+			return Response.status(400).entity("Link data does not exist").build();
+		}
 		return Response.status(200).entity(result).build();
 	}
 
