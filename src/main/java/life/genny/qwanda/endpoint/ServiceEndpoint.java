@@ -112,7 +112,7 @@ public class ServiceEndpoint {
 		
 		AccessTokenResponse accessToken=null;
 		try {
-			accessToken = KeycloakUtils.getAccessToken(keycloakUrl, realm, realm,
+			accessToken = KeycloakUtils.getAccessTokenResponse(keycloakUrl, realm, realm,
 					secret, username, encryptedPassword);
 		} catch (IOException e) {
 			return Response.status(400).entity("Could not obtain token").build();
