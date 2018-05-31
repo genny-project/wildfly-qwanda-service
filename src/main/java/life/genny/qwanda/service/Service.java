@@ -81,7 +81,7 @@ public class Service extends BaseEntityService2 {
 	public void init() {
 		
 		String mainrealm = System.getenv("PROJECT_REALM")==null?"genny":System.getenv("PROJECT_REALM");
-		
+		log.info("Initialising realm - "+mainrealm);
 		token = getServiceToken(mainrealm);
 	}
 	
@@ -381,7 +381,7 @@ public class Service extends BaseEntityService2 {
 		} catch (Exception e) {
 			log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");
 		}
-
+		log.info("key:"+key+" and env_service_passwd="+encryptedPassword);
 		return getServiceToken(realm,key,encryptedPassword);
 	}
 	
@@ -389,18 +389,18 @@ public class Service extends BaseEntityService2 {
 	{
 		String ret = "DUMMY";
 		String initVector = "PRJ_" + realm.toUpperCase();
-		initVector = StringUtils.rightPad(initVector, 32, '*');
-		String encryptedPassword = null;
+		initVector = StringUtils.rightPad(initVector, 16, '*');
+		log.info("initVector:"+initVector);
 		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
 		if (keycloakJson!=null) {
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");
 		String secret = secretJson.getString("secret");
+		log.info("secret:"+secret);
 
 
-
-		String password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
-
+		String password = SecurityUtils.decrypt(key, initVector, encrypted);
+		//log.info("password:"+password);
 		// Now ask the bridge for the keycloak to use
 		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
 				realmJson.getString("auth-server-url").length() - ("/auth".length()));
@@ -415,6 +415,8 @@ public class Service extends BaseEntityService2 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		} else {
+			log.info("keycloakJson missing"+realm+".json");
 		}
 		return ret;
 	}
