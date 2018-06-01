@@ -391,6 +391,9 @@ public class Service extends BaseEntityService2 {
 		String initVector = "PRJ_" + realm.toUpperCase();
 		initVector = StringUtils.rightPad(initVector, 16, '*');
 		log.info("initVector:"+initVector);
+		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
+			SecureResources.reload();
+		}
 		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
 		if (keycloakJson!=null) {
 		JsonObject realmJson = new JsonObject(keycloakJson);
@@ -416,7 +419,7 @@ public class Service extends BaseEntityService2 {
 			e.printStackTrace();
 		}
 		} else {
-			log.info("keycloakJson missing"+realm+".json");
+			log.info("keycloakJson missing "+realm+".json");
 		}
 		return ret;
 	}

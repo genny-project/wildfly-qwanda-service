@@ -83,6 +83,7 @@ public class SecureResources {
 					System.out.println("keycloak key:" + key + "," + keycloakJsonText);
 
 					keycloakJsonMap.put(key, keycloakJsonText);
+					keycloakJsonMap.put(key+".json", keycloakJsonText);
 					ret += keycloakJsonText + "\n";
 				} catch (final IOException e) {
 					// TODO Auto-generated catch block
