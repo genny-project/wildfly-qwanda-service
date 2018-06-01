@@ -389,11 +389,13 @@ public class Service extends BaseEntityService2 {
 	{
 		String ret = "DUMMY";
 		String initVector = null;
-		if ((System.getenv("GENNYDEV")!=null)||(System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {  // UGLY!!!
+		if ((System.getenv("GENNYDEV")!=null)) {  // UGLY!!!
+			if (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE")) {
 			realm = "genny";
 			initVector = "PRJ_GENNY*******";
 			key = "WubbaLubbaDubDub";
 			encrypted = "vRO+tCumKcZ9XbPWDcAXpU7tcSltpNpktHcgzRkxj8o=";
+			}
 		} else {
 		
 			initVector = "PRJ_" + realm.toUpperCase();
