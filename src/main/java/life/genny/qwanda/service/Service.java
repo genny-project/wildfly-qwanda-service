@@ -385,14 +385,27 @@ public class Service extends BaseEntityService2 {
 		return getServiceToken(realm,key,encryptedPassword);
 	}
 	
-	public String getServiceToken(final String realm, final String key, final String encrypted)
+	public String getServiceToken(String realm, String key, String encrypted)
 	{
 		String ret = "DUMMY";
-		String initVector = "PRJ_" + realm.toUpperCase();
-		initVector = StringUtils.rightPad(initVector, 16, '*');
+		String initVector = null;
+		if ((System.getenv("GENNYDEV")!=null)||(System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {  // UGLY!!!
+			realm = "genny";
+			initVector = "PRJ_GENNY*******";
+			key = "WubbaLubbaDubDub";
+			encrypted = "vRO+tCumKcZ9XbPWDcAXpU7tcSltpNpktHcgzRkxj8o=";
+		} else {
+		
+			initVector = "PRJ_" + realm.toUpperCase();
+			initVector = StringUtils.rightPad(initVector, 16, '*');
+		}
 		log.info("initVector:"+initVector);
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
 			SecureResources.reload();
+		} else {
+//			for (String realmKey : SecureResources.getKeycloakJsonMap().keySet()) {
+//				//System.out.println("json key field = "+realmKey);
+//			}
 		}
 		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
 		if (keycloakJson!=null) {
@@ -410,7 +423,7 @@ public class Service extends BaseEntityService2 {
 
 		try {
 			ret = KeycloakUtils.getToken(keycloakurl, realm, realm, secret, "service", password);
-			log.info("token = " + ret);
+		//	log.info("token = " + ret);
 
 
 
