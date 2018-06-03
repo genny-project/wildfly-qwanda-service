@@ -78,6 +78,7 @@ import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.message.QDataQSTMessage;
+import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
@@ -1396,9 +1397,65 @@ public class QwandaEndpoint {
 		Log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
 		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
 		be.setName(baseEntity.getName());
+		be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
 		Long result = service.update(be);
 
 		return Response.status(200).entity(result).build();
+	}
+	
+	@PUT
+	@Consumes("application/json")
+	@Path("/baseentitys/force")
+	@Produces("application/json")
+
+	public Response forceBaseEntityAttributes(final BaseEntity baseEntity) {
+		Map<String,Object> map = securityService.getUserMap();
+		String username = (String) securityService.getUserMap().get("username");
+		String userCode = "PER_"+QwandaUtils.getNormalisedUsername(username);
+		
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| (userCode.equalsIgnoreCase(baseEntity.getCode()))) ) {  // TODO Remove the true!
+
+		Log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
+		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
+		be.setName(baseEntity.getName());
+		// now remove the attributes that are not left over
+		for (EntityAttribute ea : be.getBaseEntityAttributes()) {  // go through wanted survivors
+			Optional<EntityAttribute> optEA = baseEntity.findEntityAttribute(ea.getAttributeCode());
+			if (!optEA.isPresent()) {
+				service.removeEntityAttribute(ea);
+				log.info("Removed attribute "+ ea.getAttributeCode()+" for be "+baseEntity.getCode());
+			}
+		}
+		// get updated one
+		be = service.findBaseEntityByCode(baseEntity.getCode());
+		service.writeToDDT(be);
+		QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(be.getCode(),be.getCode(),be,securityService.getToken());
+		service.sendQEventAttributeValueChangeMessage(msg);
+		return Response.status(200).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+	
+	@DELETE
+	@Consumes("application/json")
+	@Path("/baseentitys/{baseEntityCode}/{attributeCode}")
+	@Produces("application/json")
+
+	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,@PathParam("attributeCode") final String attributeCode) {
+		
+		String username = (String) securityService.getUserMap().get("preferred_username");
+		String userCode = QwandaUtils.getNormalisedUsername(username);
+		
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev")) || (userCode.equalsIgnoreCase(baseEntityCode))) {  // TODO Remove the true!
+
+		service.removeEntityAttribute(baseEntityCode, attributeCode);
+		return Response.status(200).build();
+		}
+
+		return Response.status(401).entity("Unauthorised").build();
 	}
 
 	@POST
