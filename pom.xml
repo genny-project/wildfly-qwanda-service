@@ -6,7 +6,7 @@
 	<groupId>life.genny</groupId>
 	<artifactId>wildfly-qwanda-service</artifactId>
 	<packaging>war</packaging>
-	<version>1.0.37</version>
+	<version>1.0.38</version>
 	<name>wildfly-qwanda-service</name>
 	<url>http://genny.life</url>
 
@@ -19,9 +19,9 @@
 	</licenses>
 
 	<properties>
-		<qwanda-services.version>1.0.37</qwanda-services.version>
+		<qwanda-services.version>1.0.38</qwanda-services.version>
 
-		<version.org.wildfly>12.0.0.Final</version.org.wildfly>
+		<version.org.wildfly>13.0.0.Final</version.org.wildfly>
 
 		<version.wildfly-swarm>2017.7.0-SNAPSHOT</version.wildfly-swarm>
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
@@ -43,7 +43,7 @@
 		<project.http.version>1.19.0</project.http.version>
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<version.jboss.bom>12.0.0.Final</version.jboss.bom>
+		<version.jboss.bom>13.0.0.Final</version.jboss.bom>
 		<drools.version>6.4.0.Final</drools.version>
 		<jbpm.version>6.4.0.Final</jbpm.version>
 		<keycloak-core.version>3.4.3.Final</keycloak-core.version>
@@ -55,7 +55,7 @@
 		<version.swagger>1.5.16</version.swagger>
 
 		<version.org.jboss.arquillian>1.1.5.Final</version.org.jboss.arquillian>
-		<version.org.wildfly>12.0.0.Final</version.org.wildfly>
+		<version.org.wildfly>13.0.0.Final</version.org.wildfly>
 		<version.junit>4.12</version.junit>
 
 		<hazelcast.version>3.9.3</hazelcast.version>
