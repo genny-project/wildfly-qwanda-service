@@ -115,7 +115,33 @@ public class Service extends BaseEntityService2 {
 		// Send a vertx message broadcasting an link Change
 		System.out.println("!!LINK CHANGE EVENT ->" + event);
 
+		BaseEntity originalParent  = null;
+		BaseEntity targetParent = null;
 		try {
+			
+			// update cache for source and target
+			if (event.getOldLink()!=null) {
+				if (event.getOldLink().getSourceCode()!=null) {
+					String originalParentCode = event.getOldLink().getSourceCode();
+					originalParent = this.findBaseEntityByCode(originalParentCode);
+					updateDDT(originalParent.getCode(),JsonUtils.toJson(originalParent));
+					QEventAttributeValueChangeMessage parentEvent = new QEventAttributeValueChangeMessage(originalParent.getCode(),originalParent.getCode(),originalParent,event.getToken());
+					this.sendQEventAttributeValueChangeMessage(parentEvent);
+				}
+			}
+			
+			if (event.getLink()!=null) {
+				if (event.getLink().getSourceCode()!=null) {
+					String targetParentCode = event.getLink().getSourceCode();
+					targetParent = this.findBaseEntityByCode(targetParentCode);
+					updateDDT(targetParent.getCode(),JsonUtils.toJson(targetParent));
+					QEventAttributeValueChangeMessage targetEvent = new QEventAttributeValueChangeMessage(targetParent.getCode(),targetParent.getCode(),targetParent,event.getToken());
+					this.sendQEventAttributeValueChangeMessage(targetEvent);
+
+				}
+			}
+			
+			
 			String json = JsonUtils.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 		} catch (Exception e) {

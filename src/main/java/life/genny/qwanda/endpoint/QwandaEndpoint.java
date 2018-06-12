@@ -1457,6 +1457,26 @@ public class QwandaEndpoint {
 
 		return Response.status(401).entity("Unauthorised").build();
 	}
+	
+	@DELETE
+	@Consumes("application/json")
+	@Path("/baseentitys/attributes/{attributeCode}")
+	@Produces("application/json")
+
+	public Response removeEntityAttributes(@PathParam("attributeCode") final String attributeCode) {
+		
+		String username = (String) securityService.getUserMap().get("preferred_username");
+		String userCode = QwandaUtils.getNormalisedUsername(username);
+		
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev"))) {  // TODO Remove the true!
+
+		service.removeEntityAttributes(attributeCode);
+		return Response.status(200).build();
+		}
+
+		return Response.status(401).entity("Unauthorised").build();
+	}
 
 	@POST
 	@Consumes("application/json")
