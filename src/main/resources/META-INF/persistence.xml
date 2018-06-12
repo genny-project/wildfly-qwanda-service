@@ -24,8 +24,17 @@
 		<class>life.genny.qwanda.Question</class>
 		<class>life.genny.qwanda.attribute.Attribute</class>
 		<class>life.genny.qwanda.attribute.AttributeText</class>
+		<class>life.genny.qwanda.attribute.AttributeBoolean</class>
 		<class>life.genny.qwanda.attribute.AttributeLink</class>
 		<class>life.genny.qwanda.attribute.AttributeDateTime</class>
+		<class>life.genny.qwanda.attribute.AttributeDate</class>
+		<class>life.genny.qwanda.attribute.AttributeTime</class>
+		<class>life.genny.qwanda.attribute.AttributeDouble</class>		
+		<class>life.genny.qwanda.attribute.AttributeInteger</class>
+		<class>life.genny.qwanda.attribute.AttributeLong</class>
+		<class>life.genny.qwanda.attribute.AttributeMoney</class>
+		<class>life.genny.qwanda.attribute.AttributeDateRange</class>
+		<class>life.genny.qwanda.attribute.AttributeType</class>
 		<class>life.genny.qwanda.attribute.EntityAttribute</class>
 		<class>life.genny.qwanda.datatype.DataType</class>
 		<class>life.genny.qwanda.entity.BaseEntity</class>

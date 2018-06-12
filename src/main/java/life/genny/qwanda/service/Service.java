@@ -126,7 +126,7 @@ public class Service extends BaseEntityService2 {
 					originalParent = this.findBaseEntityByCode(originalParentCode);
 					updateDDT(originalParent.getCode(),JsonUtils.toJson(originalParent));
 					QEventAttributeValueChangeMessage parentEvent = new QEventAttributeValueChangeMessage(originalParent.getCode(),originalParent.getCode(),originalParent,event.getToken());
-					this.sendQEventAttributeValueChangeMessage(parentEvent);
+			//		this.sendQEventAttributeValueChangeMessage(parentEvent);
 				}
 			}
 			
@@ -136,7 +136,7 @@ public class Service extends BaseEntityService2 {
 					targetParent = this.findBaseEntityByCode(targetParentCode);
 					updateDDT(targetParent.getCode(),JsonUtils.toJson(targetParent));
 					QEventAttributeValueChangeMessage targetEvent = new QEventAttributeValueChangeMessage(targetParent.getCode(),targetParent.getCode(),targetParent,event.getToken());
-					this.sendQEventAttributeValueChangeMessage(targetEvent);
+			//		this.sendQEventAttributeValueChangeMessage(targetEvent);
 
 				}
 			}
