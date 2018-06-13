@@ -80,6 +80,10 @@ public class Service extends BaseEntityService2 {
 	@PostConstruct
 	public void init() {
 		
+	}
+	
+	public void initServiceToken() {
+		
 		String mainrealm = System.getenv("PROJECT_REALM")==null?"genny":System.getenv("PROJECT_REALM");
 		log.info("Initialising realm - "+mainrealm);
 		token = getServiceToken(mainrealm);
@@ -287,6 +291,7 @@ public class Service extends BaseEntityService2 {
 
 
 		if ((System.getenv("GENNYDEV") != null) && (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {
+			this.initServiceToken();
 			int pageSize = 100;
 			int pages = bes.size()/pageSize;
 			for (int page=0;page<=pages;page++) {
