@@ -12,8 +12,8 @@ import java.util.Properties;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -49,7 +49,6 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QEventSystemMessage;
-import life.genny.qwanda.message.QMessage.MessageData;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
@@ -77,9 +76,8 @@ public class ServiceEndpoint {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
-	
-	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
+	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	@PersistenceContext
 	private EntityManager em;
@@ -99,31 +97,27 @@ public class ServiceEndpoint {
 		}
 	}
 
-	
-
-	
 	@GET
 	@Path("/token/{keycloakurl}/{realm}/{secret}/{key}/{initVector}/{username}/{encryptedPassword}")
 	@Produces("application/json")
 	@Transactional
-	public Response getToken(@PathParam("keycloakurl") final String keycloakUrl,
-			@PathParam("realm") final String realm,@PathParam("secret") final String secret, @PathParam("key") final String key,
-			@PathParam("initVector") final String initVector,@PathParam("username") final String username,@PathParam("encryptedPassword") final String encryptedPassword) {
-		
-		AccessTokenResponse accessToken=null;
+	public Response getToken(@PathParam("keycloakurl") final String keycloakUrl, @PathParam("realm") final String realm,
+			@PathParam("secret") final String secret, @PathParam("key") final String key,
+			@PathParam("initVector") final String initVector, @PathParam("username") final String username,
+			@PathParam("encryptedPassword") final String encryptedPassword) {
+
+		AccessTokenResponse accessToken = null;
 		try {
-			accessToken = KeycloakUtils.getAccessTokenResponse(keycloakUrl, realm, realm,
-					secret, username, encryptedPassword);
+			accessToken = KeycloakUtils.getAccessTokenResponse(keycloakUrl, realm, realm, secret, username,
+					encryptedPassword);
 		} catch (IOException e) {
 			return Response.status(400).entity("Could not obtain token").build();
 		}
 		String token = accessToken.getToken();
 
-		
 		return Response.status(200).entity(token).build();
 	}
-	
-	
+
 	@GET
 	@Path("/baseentitys/importkeycloak")
 	@Produces("application/json")
@@ -223,7 +217,7 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 
 			service.pushAttributes();
-		}else {
+		} else {
 			return Response.status(401).entity("You need to be a dev.").build();
 		}
 		return Response.status(200).entity("ok").build();
@@ -238,7 +232,7 @@ public class ServiceEndpoint {
 
 		List<BaseEntity> results = new ArrayList<BaseEntity>();
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
-			log.info( " Writing BaseEntitys to cache.");
+			log.info(" Writing BaseEntitys to cache.");
 			results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
 					.getResultList();
 			for (BaseEntity be : results) {
@@ -264,35 +258,38 @@ public class ServiceEndpoint {
 		}
 		return Response.status(200).entity(results).build();
 	}
-	
+
 	@GET
 	@Path("/answers/{sourceCode}/{targetCode}/{attributeCode}/{value}")
 	@ApiOperation(value = "answer", notes = "quick answer")
 	@Produces(MediaType.APPLICATION_JSON)
 
-	public Response setAnswer(@PathParam("sourceCode") final String sourceCode,@PathParam("targetCode") final String targetCode, @PathParam("attributeCode") final String attributeCode, @PathParam("value") final String value) {
+	public Response setAnswer(@PathParam("sourceCode") final String sourceCode,
+			@PathParam("targetCode") final String targetCode, @PathParam("attributeCode") final String attributeCode,
+			@PathParam("value") final String value) {
 		BaseEntity result = null;
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 
 			Answer answer = new Answer(sourceCode, targetCode, attributeCode, value);
 			Attribute attribute = service.findAttributeByCode(attributeCode);
 			if (attribute == null) {
-				log.error("Bad attribute supplied "+attributeCode);
+				log.error("Bad attribute supplied " + attributeCode);
 			} else {
-			answer.setAttribute(attribute);
-			Answer[] answerArray = new Answer[1];
-			answerArray[0] = answer;
-		
-			
-			service.insert(answerArray);
-			result = (BaseEntity) em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
-					.setParameter("code", targetCode).getSingleResult();
+				answer.setAttribute(attribute);
+				Answer[] answerArray = new Answer[1];
+				answerArray[0] = answer;
+
+				service.insert(answerArray);
+				result = (BaseEntity) em
+						.createQuery(
+								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+						.setParameter("code", targetCode).getSingleResult();
 			}
-			
+
 		}
 		return Response.status(200).entity(result).build();
 	}
-	
+
 	@GET
 	@Path("/synchronize/cache/baseentitys/{baseEntityCode}")
 	@ApiOperation(value = "baseentitys", notes = "Sync BaseEntity to cache")
@@ -302,9 +299,10 @@ public class ServiceEndpoint {
 		BaseEntity result = null;
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 
-			result = (BaseEntity) em.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+			result = (BaseEntity) em
+					.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
 					.setParameter("code", code).getSingleResult();
-				service.writeToDDT(result);
+			service.writeToDDT(result);
 		}
 		return Response.status(200).entity(result).build();
 	}
@@ -321,7 +319,7 @@ public class ServiceEndpoint {
 			result = service.findBaseEntityByCode(baseEntityCode);
 			result.setRealm("hidden");
 			service.update(result);
-			
+
 		}
 		return Response.status(200).entity(result).build();
 	}
@@ -402,15 +400,14 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response removeBaseEntity(@PathParam("code") final String code) {
 		String returnMessage = "";
-		
+
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 			service.removeBaseEntity(code);
-				
-			} else {
-				returnMessage = "Cannot find BE "+code;
-			}
 
-	
+		} else {
+			returnMessage = "Cannot find BE " + code;
+		}
+
 		return Response.status(200).entity(returnMessage).build();
 	}
 
@@ -420,35 +417,125 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response executeRuleGroup(@PathParam("rulegroup") final String rulegroup) {
 		String returnMessage = "rule group  fired";
-		
+
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
 			String token = securityService.getToken();
-			
+
 			// Why did I make this mandatory? ACC
 			Properties properties = new Properties();
 			try {
-				properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
+				properties.load(
+						Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
 			} catch (IOException e) {
 
 			}
-			System.out.println("Sending rulegroup - "+rulegroup+" from "+securityService.getUserMap().get("prefered_username"));
+			System.out.println("Sending rulegroup - " + rulegroup + " from "
+					+ securityService.getUserMap().get("prefered_username"));
 			QEventSystemMessage event = new QEventSystemMessage("FOCUS_RULE_GROUP", properties, token);
 			event.getData().setValue(rulegroup);
-			
+
 			try {
 				String json = JsonUtils.toJson(event);
 				QwandaUtils.apiPostEntity(bridgeApi, json, token);
 			} catch (Exception e) {
 				log.error("Error in posting link Change to JMS:" + event);
 			}
-				
+
 		} else {
 			return Response.status(401).entity("You need to be a dev.").build();
 		}
-	
+
 		return Response.status(200).entity(returnMessage).build();
 	}
-	
+
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys")
+	public Response create(final BaseEntity entity) {
+
+		Long ret = null;
+
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+			BaseEntity be3 = null;
+			String userCode = securityService.getUserCode();
+			try {
+				be3 = service.findBaseEntityByCode(entity.getCode());
+				be3 = em.find(BaseEntity.class, be3.getId());
+			} catch (NoResultException e2) {
+				be3 = null;
+			}
+			BaseEntity entity2 = service.addAttributes(entity);
+			if (be3==null) {
+				ret = service.insert(entity2);
+			}
+			if (ret == null) {
+				ret = service.update(entity2);
+			}
+			// now save all the entityattribute
+			List<Answer> answers = new ArrayList<Answer>();
+			for (EntityAttribute ea : entity.getBaseEntityAttributes()) {
+				Answer answer = new Answer(userCode,entity.getCode(),ea.getAttributeCode(),ea.getAsString());
+				answer.setWeight(ea.getWeight());
+				answer.setChangeEvent(false);
+				answer.setInferred(ea.getInferred());
+				answer.setAttribute(ea.getAttribute());
+				answers.add(answer);
+			}
+			service.insert(answers.toArray(new Answer[answers.size()]));
+
+			/*
+			 * if it is a person AND it has a username then ensure that keycloak is updated
+			 */
+
+			BaseEntity be = null;
+			
+			try {
+				be = service.findBaseEntityByCode(entity2.getCode(),true);
+				if (be.getCode().startsWith("PER_")) {
+					Optional<EntityAttribute> optUsername = be.findEntityAttribute("PRI_USERNAME");
+					if (optUsername.isPresent()) {
+						String newUsername = optUsername.get().getAsString();
+
+						Optional<EntityAttribute> optFirstname = be.findEntityAttribute("PRI_FIRSTNAME");
+						if (optFirstname.isPresent()) {
+							String newFirstname = optFirstname.get().getAsString();
+
+							Optional<EntityAttribute> optLastname = be.findEntityAttribute("PRI_LASTNAME");
+							if (optLastname.isPresent()) {
+								String newLastname = optLastname.get().getAsString();
+
+								Optional<EntityAttribute> optEmail = be.findEntityAttribute("PRI_EMAIL");
+								if (optEmail.isPresent()) {
+									String newEmail = optEmail.get().getAsString();
+
+									String serviceToken = service.getServiceToken(securityService.getRealm());
+
+									// Now check if it exists in keycloak
+									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
+
+									try {
+										KeycloakUtils.createUser(serviceToken,
+												securityService.getRealm(), newUsername, newFirstname, newLastname,
+												newEmail);
+									} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+
+					}
+				}				
+			} catch (NoResultException e1) {
+
+			}
+
+
+		}
+		return Response.status(200).entity(ret).build();
+	}
+
 	
 	
 }

@@ -19,6 +19,7 @@ import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.representations.AccessToken;
 
 import life.genny.qwanda.CoreEntity;
+import life.genny.qwandautils.QwandaUtils;
 
 /**
  * Transactional Security Service
@@ -112,6 +113,12 @@ public class SecurityService implements Serializable {
 		return null;
 	}
 
+	public String getUserCode()
+	{
+		String username = (String)getUserMap().get("username");
+		return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+	}
+	
 	public static void setImportMode(final boolean mode) {
 		importMode = mode;
 	}

@@ -3,7 +3,6 @@ package life.genny.qwanda.service;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -130,7 +129,7 @@ public class Service extends BaseEntityService2 {
 					originalParent = this.findBaseEntityByCode(originalParentCode);
 					updateDDT(originalParent.getCode(),JsonUtils.toJson(originalParent));
 					QEventAttributeValueChangeMessage parentEvent = new QEventAttributeValueChangeMessage(originalParent.getCode(),originalParent.getCode(),originalParent,event.getToken());
-			//		this.sendQEventAttributeValueChangeMessage(parentEvent);
+					this.sendQEventAttributeValueChangeMessage(parentEvent);
 				}
 			}
 			
@@ -140,7 +139,7 @@ public class Service extends BaseEntityService2 {
 					targetParent = this.findBaseEntityByCode(targetParentCode);
 					updateDDT(targetParent.getCode(),JsonUtils.toJson(targetParent));
 					QEventAttributeValueChangeMessage targetEvent = new QEventAttributeValueChangeMessage(targetParent.getCode(),targetParent.getCode(),targetParent,event.getToken());
-			//		this.sendQEventAttributeValueChangeMessage(targetEvent);
+					this.sendQEventAttributeValueChangeMessage(targetEvent);
 
 				}
 			}
@@ -470,4 +469,29 @@ public class Service extends BaseEntityService2 {
 		return ret;
 	}
 	
+	public String getKeycloakUrl(String realm)
+	{
+		String keycloakurl = null;
+		
+		if ((System.getenv("GENNYDEV")!=null)) {  // UGLY!!!
+			if (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE")) {
+			realm = "genny";
+			}
+		} 
+		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
+			SecureResources.reload();
+		} 
+		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
+		if (keycloakJson!=null) {
+		JsonObject realmJson = new JsonObject(keycloakJson);
+		JsonObject secretJson = realmJson.getJsonObject("credentials");
+		String secret = secretJson.getString("secret");
+		log.info("secret:"+secret);
+
+		keycloakurl = realmJson.getString("auth-server-url").substring(0,
+				realmJson.getString("auth-server-url").length() - ("/auth".length()));
+		}
+
+		return keycloakurl;
+	}
 }
