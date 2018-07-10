@@ -46,8 +46,8 @@
 		<version.jboss.bom>13.0.0.Final</version.jboss.bom>
 		<drools.version>6.4.0.Final</drools.version>
 		<jbpm.version>6.4.0.Final</jbpm.version>
-		<keycloak-core.version>3.4.3.Final</keycloak-core.version>
-		<keycloak-adapter-core.version>3.4.3.Final</keycloak-adapter-core.version>
+		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
+		<keycloak-adapter-core.version>3.4.0.Final</keycloak-adapter-core.version>
 
 		<version.ee7>1.0.2.Final</version.ee7>
 		<version.resteasy>3.0.10.Final</version.resteasy>

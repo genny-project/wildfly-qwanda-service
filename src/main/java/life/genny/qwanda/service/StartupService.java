@@ -53,6 +53,7 @@ public class StartupService {
 	// private PersistenceHelper helper;
 
 	@PostConstruct
+	@Transactional
 	public void init() {
 
 		securityService.setImportMode(true); // ugly way of getting past security
