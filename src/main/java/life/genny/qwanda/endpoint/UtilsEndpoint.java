@@ -188,18 +188,23 @@ public class UtilsEndpoint {
 	@Transactional
 	public Response getStats() {
 		
-		// get number of buyers
+		// get number of sellers
 		Long buyers  = (Long)em.createQuery("SELECT distinct count(*) FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'PER_%' and ea.attributeCode='PRI_IS_SELLER' and ea.valueBoolean=1 ")
 				.getSingleResult();
 
-		// get number of transport companies
+		// get number of  companies
 		Long companies  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be  where be.code LIKE 'CPY_%' ")
 				.getSingleResult();
 
-		// get total loads moved
-		Long jobs  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 ")
+		// get total items moved
+		Long items  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 ")
 				.getSingleResult();
 
+		// get total available items moved
+		Long availitems  = (Long)em.createQuery("SELECT distinct count(be)  FROM BaseEntity be, EntityEntity ee where ee.link.targetCode=be.code and ee.link.targetCode LIKE 'BEG_%' and ee.link.sourceCode='GRP_NEW_ITEMS'")
+				.getSingleResult();
+
+		
 		// get paid to drivers in past month
 		Calendar c = Calendar.getInstance();
 		c.add(Calendar.MONTH, -1);// then one month
@@ -218,7 +223,7 @@ public class UtilsEndpoint {
 		}
 	
 
-		QDataStatsMessage msg = new QDataStatsMessage(buyers.intValue(),companies.intValue(),jobs.intValue(),sum);
+		QDataStatsMessage msg = new QDataStatsMessage(buyers.intValue(),companies.intValue(),items.intValue(),availitems.intValue(),sum);
 		
 		return Response.status(200).entity(msg).build();
 	}
