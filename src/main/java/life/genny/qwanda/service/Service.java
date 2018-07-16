@@ -335,7 +335,7 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
 		final String realmKey = this.getRealm() + "_" + key;
-		if (GennySettings.devMode) {
+		if (!GennySettings.isDdtHost) {
 			if (!securityService.importMode) {
 				try {
 					
