@@ -83,6 +83,7 @@ import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
@@ -108,7 +109,6 @@ public class QwandaEndpoint {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
 	Boolean searchDevMode = "TRUE".equals(System.getenv("SEARCHDEV"));
 	
 	@Inject
@@ -478,7 +478,7 @@ public class QwandaEndpoint {
 	public Response findBySearchBE(@Context final UriInfo uriInfo) {
 
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || devMode) {
+				|| securityService.inRole("dev")) || GennySettings.devMode) {
 
 		BaseEntity searchBE = new BaseEntity("SER_");
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
@@ -538,7 +538,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || devMode) {
+				|| securityService.inRole("dev")) || GennySettings.devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -561,7 +561,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || devMode) {
+				|| securityService.inRole("dev")) || GennySettings.devMode) {
 
 			List<Object> results = service.findBySearchBE3(hql);
 			String json = JsonUtils.toJson(results);
@@ -580,7 +580,7 @@ public class QwandaEndpoint {
 
 		Log.info("Search " + hql);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || devMode) {
+				|| securityService.inRole("dev")) || GennySettings.devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];

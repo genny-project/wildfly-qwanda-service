@@ -33,6 +33,7 @@ import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.util.WildFlyJmsQueueSender;
 import life.genny.qwanda.util.WildflyJms;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
@@ -49,9 +50,6 @@ public class Service extends BaseEntityService2 {
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
-
-	static final String ddtUrl = System.getenv("DDT_URL") == null ? ("http://" + System.getenv("HOSTIP") + ":8089")
-			: System.getenv("DDT_URL");
 
 	public Service() {
 
@@ -289,7 +287,7 @@ public class Service extends BaseEntityService2 {
 	public void writeToDDT(final List<BaseEntity> bes) {
 
 
-		if ((System.getenv("GENNYDEV") != null) && (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {
+		if (GennySettings.devMode) {
 			this.initServiceToken();
 			int pageSize = 100;
 			int pages = bes.size()/pageSize;
@@ -312,7 +310,7 @@ public class Service extends BaseEntityService2 {
 				String jsonMsg = JsonUtils.toJson(msg);
 				JsonObject json = new JsonObject();
 				json.put("json", jsonMsg);
-				QwandaUtils.apiPostEntity(ddtUrl + "/writearray", json.toString(), token);
+				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
 				
 			} catch (IOException e) {
 				log.error("Could not write to cache");
@@ -337,16 +335,14 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
 		final String realmKey = this.getRealm() + "_" + key;
-		if ((System.getenv("GENNYDEV") != null) && (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE"))) {
+		if (GennySettings.devMode) {
 			if (!securityService.importMode) {
 				try {
-					
-				
 					
 					JsonObject json = new JsonObject();
 					json.put("key", key);
 					json.put("json", jsonValue);
-					QwandaUtils.apiPostEntity(ddtUrl + "/write", json.toString(), token);
+					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
 
 				} catch (IOException e) {
 					log.error("Could not write to cache");
@@ -419,13 +415,12 @@ public class Service extends BaseEntityService2 {
 	{
 		String ret = "DUMMY";
 		String initVector = null;
-		if ((System.getenv("GENNYDEV")!=null)) {  // UGLY!!!
-			if (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE")) {
+		if (GennySettings.devMode) {  // UGLY!!!
 			realm = "genny";
 			initVector = "PRJ_GENNY*******";
 			key = "WubbaLubbaDubDub";
 			encrypted = "vRO+tCumKcZ9XbPWDcAXpU7tcSltpNpktHcgzRkxj8o=";
-			}
+
 		} else {
 		
 			initVector = "PRJ_" + realm.toUpperCase();
@@ -473,10 +468,8 @@ public class Service extends BaseEntityService2 {
 	{
 		String keycloakurl = null;
 		
-		if ((System.getenv("GENNYDEV")!=null)) {  // UGLY!!!
-			if (System.getenv("GENNYDEV").equalsIgnoreCase("TRUE")) {
+		if (GennySettings.devMode) {  // UGLY!!!
 			realm = "genny";
-			}
 		} 
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
 			SecureResources.reload();

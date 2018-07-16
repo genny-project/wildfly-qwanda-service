@@ -52,6 +52,7 @@ import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
@@ -74,8 +75,6 @@ public class ServiceEndpoint {
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
-
-	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
 
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
@@ -130,7 +129,7 @@ public class ServiceEndpoint {
 			@DefaultValue("GRP_USERS") @QueryParam("parentgroups") final String parentGroupCodes) {
 		Long usersAddedCount = 0L;
 
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			log.error("IMPORT KEYCLOAK DISABLED IN CODE");
 			// service.importKeycloakUsers(keycloakUrl,
@@ -146,7 +145,7 @@ public class ServiceEndpoint {
 	@Consumes("multipart/form-data")
 	@Transactional
 	public Response uploadFile(final MultipartFormDataInput input) throws IOException {
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			final Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
@@ -202,7 +201,7 @@ public class ServiceEndpoint {
 	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
 			@PathParam("tables") final String tables) {
 		String response = "Success";
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			ctl.getProject(service, sheetId, tables);
 		}
@@ -214,7 +213,7 @@ public class ServiceEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response synchronizeCache() {
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			service.pushAttributes();
 		} else {
@@ -231,7 +230,7 @@ public class ServiceEndpoint {
 	public Response synchronizeCacheBEs() {
 
 		List<BaseEntity> results = new ArrayList<BaseEntity>();
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info(" Writing BaseEntitys to cache.");
 			results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
 					.getResultList();
@@ -252,7 +251,7 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response cacheRead(@PathParam("key") final String key) {
 		String results = null;
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			results = service.readFromDDT(key);
 		}
@@ -268,7 +267,7 @@ public class ServiceEndpoint {
 			@PathParam("targetCode") final String targetCode, @PathParam("attributeCode") final String attributeCode,
 			@PathParam("value") final String value) {
 		BaseEntity result = null;
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			Answer answer = new Answer(sourceCode, targetCode, attributeCode, value);
 			Attribute attribute = service.findAttributeByCode(attributeCode);
@@ -297,7 +296,7 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response cacheSync(@PathParam("baseEntityCode") final String code) {
 		BaseEntity result = null;
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			result = (BaseEntity) em
 					.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
@@ -314,7 +313,7 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response hideBaseEntity(@PathParam("baseEntityCode") final String baseEntityCode) {
 		BaseEntity result = null;
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			result = service.findBaseEntityByCode(baseEntityCode);
 			result.setRealm("hidden");
@@ -331,7 +330,7 @@ public class ServiceEndpoint {
 			@PathParam("destination") final String destinationAddress,
 			@PathParam("percentage") final Double percentage) {
 		String json = null;
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			String googleApiKey = System.getenv("GOOGLE_API_KEY");
 			if (googleApiKey == null) {
@@ -366,7 +365,7 @@ public class ServiceEndpoint {
 			@PathParam("destination") final String destinationAddress,
 			@PathParam("currentSeconds") final Double currentSeconds) {
 		String json = null;
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			String googleApiKey = System.getenv("GOOGLE_API_KEY");
 			if (googleApiKey == null) {
@@ -401,7 +400,7 @@ public class ServiceEndpoint {
 	public Response removeBaseEntity(@PathParam("code") final String code) {
 		String returnMessage = "";
 
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			service.removeBaseEntity(code);
 
 		} else {
@@ -418,7 +417,7 @@ public class ServiceEndpoint {
 	public Response executeRuleGroup(@PathParam("rulegroup") final String rulegroup) {
 		String returnMessage = "rule group  fired";
 
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			String token = securityService.getToken();
 
 			// Why did I make this mandatory? ACC
@@ -455,7 +454,7 @@ public class ServiceEndpoint {
 
 		Long ret = null;
 
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			BaseEntity be3 = null;
 			String userCode = securityService.getUserCode();
 			try {
