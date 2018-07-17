@@ -11,9 +11,13 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
+import life.genny.qwandautils.GennySettings;
+
 @Singleton
 public class Hazel {
 
+	 HazelcastInstance instance;
+	 
   private IMap mapBaseEntitys;
 
   /**
@@ -22,6 +26,10 @@ public class Hazel {
   public IMap getMapBaseEntitys() {
     return mapBaseEntitys;
   }
+  
+  public IMap getMapBaseEntitys(final String realm) {
+	    return  instance.getMap(realm);
+	  }
 
   /**
    * @param mapBaseEntitys the mapBaseEntitys to set
@@ -33,11 +41,11 @@ public class Hazel {
   @PostConstruct
   public void init() {
     Config cfg = new Config();
-    cfg.getGroupConfig().setName((System.getenv("USER")==null?"GENNY":System.getenv("USER")));
-    cfg.getGroupConfig().setPassword((System.getenv("USER")==null?"GENNY":System.getenv("USER")));
+    cfg.getGroupConfig().setName(GennySettings.username);
+    cfg.getGroupConfig().setPassword(GennySettings.username);
 
-    HazelcastInstance instance = Hazelcast.newHazelcastInstance(cfg);
-    mapBaseEntitys = instance.getMap("BaseEntitys");
+    instance = Hazelcast.newHazelcastInstance(cfg);
+    mapBaseEntitys = instance.getMap(GennySettings.mainrealm); // To fix
   }
 
 }

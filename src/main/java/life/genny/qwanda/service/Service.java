@@ -81,9 +81,9 @@ public class Service extends BaseEntityService2 {
 	
 	public void initServiceToken() {
 		
-		String mainrealm = System.getenv("PROJECT_REALM")==null?"genny":System.getenv("PROJECT_REALM");
-		log.info("Initialising realm - "+mainrealm);
-		token = getServiceToken(mainrealm);
+
+		log.info("Initialising realm - "+GennySettings.mainrealm);
+		token = getServiceToken(GennySettings.mainrealm);
 	}
 	
 	@Override
@@ -266,8 +266,8 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	protected String getRealm() {
-		// return securityService.getRealm();
-		return "genny"; // TODO HACK
+		return securityService.getRealm();
+	//	return "genny"; // TODO HACK
 	}
 
 	@Override
@@ -349,10 +349,24 @@ public class Service extends BaseEntityService2 {
 				}
 			}
 		} else { // production or docker
-			if (jsonValue == null) {
-				inDB.getMapBaseEntitys().remove(key);
+			if (GennySettings.devMode) {
+			try {
+					
+					JsonObject json = new JsonObject();
+					json.put("key", key);
+					json.put("json", jsonValue);
+					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
+
+				} catch (IOException e) {
+					log.error("Could not write to cache");
+				}
+			
 			} else {
-				inDB.getMapBaseEntitys().put(key, jsonValue);
+			if (jsonValue == null) {
+				inDB.getMapBaseEntitys(GennySettings.mainrealm).remove(key);
+			} else {
+				inDB.getMapBaseEntitys(GennySettings.mainrealm).put(key, jsonValue);
+			}
 			}
 		}
 		log.debug("Written to cache :" + key + ":" + jsonValue);
@@ -367,7 +381,7 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public String readFromDDT(final String key) {
 		final String realmKey = this.getRealm() + "_" + key;
-		String json = (String) inDB.getMapBaseEntitys().get(realmKey);
+		String json = (String) inDB.getMapBaseEntitys(GennySettings.mainrealm).get(realmKey);
 
 		return json; // TODO make resteasy @Provider exception
 	}
