@@ -334,7 +334,6 @@ public class Service extends BaseEntityService2 {
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
-		final String realmKey = this.getRealm() + "_" + key;
 		if (!GennySettings.isDdtHost) {
 			if (!securityService.importMode) {
 				try {
@@ -362,10 +361,15 @@ public class Service extends BaseEntityService2 {
 				}
 			
 			} else {
+				String dDTrealm = "genny";
+				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
+					dDTrealm = GennySettings.mainrealm;
+				}
 			if (jsonValue == null) {
-				inDB.getMapBaseEntitys(GennySettings.mainrealm).remove(key);
+				
+				inDB.getMapBaseEntitys(dDTrealm).remove(key);
 			} else {
-				inDB.getMapBaseEntitys(GennySettings.mainrealm).put(key, jsonValue);
+				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
 			}
 			}
 		}
