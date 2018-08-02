@@ -12,6 +12,8 @@ import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 
+import life.genny.qwandautils.GennySettings;
+
 @ApplicationScoped
 public class SecureResources {
 
@@ -23,11 +25,11 @@ public class SecureResources {
 	}
 
 	private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
-	private static String hostIP = System.getenv("HOSTIP") != null ? System.getenv("HOSTIP") : "127.0.0.1";
-	private static String realmDir = System.getenv("REALM_DIR") != null ? System.getenv("REALM_DIR") : "./realm";
+
+
 
 	public void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
-		readFilenamesFromDirectory(realmDir);
+		readFilenamesFromDirectory(GennySettings.realmDir);
 	}
 
 	public void destroy(@Observes @Destroyed(ApplicationScoped.class) final Object init) {
@@ -35,8 +37,8 @@ public class SecureResources {
 	}
 
 	public static void addRealm(final String key, String keycloakJsonText) {
-		final String localIP = System.getenv("HOSTIP");
-		keycloakJsonText = keycloakJsonText.replaceAll("localhost", localIP);
+
+		keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
 		System.out.println("Adding keycloak key:" + key + "," + keycloakJsonText);
 
 		keycloakJsonMap.put(key, keycloakJsonText);
@@ -50,7 +52,7 @@ public class SecureResources {
 
 	public static String reload() {
 		keycloakJsonMap.clear();
-		return readFilenamesFromDirectory(realmDir);
+		return readFilenamesFromDirectory(GennySettings.realmDir);
 	}
 
 	public static String fetchRealms() {
@@ -65,8 +67,8 @@ public class SecureResources {
 		String ret = "";
 		final File folder = new File(rootFilePath);
 		final File[] listOfFiles = folder.listFiles();
-		final String localIP = System.getenv("HOSTIP");
-		System.out.println("Loading Files! with HOSTIP=" + localIP);
+
+		System.out.println("Loading Files! with HOSTIP=" + GennySettings.hostIP);
 
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile()) {
@@ -76,7 +78,7 @@ public class SecureResources {
 					// Handle case where dev is in place with localhost
 
 					// if (!"localhost.json".equalsIgnoreCase(listOfFiles[i].getName())) {
-					keycloakJsonText = keycloakJsonText.replaceAll("localhost", localIP);
+					keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
 
 					// }
 					final String key = listOfFiles[i].getName(); // .replaceAll(".json", "");
