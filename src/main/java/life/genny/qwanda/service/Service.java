@@ -62,6 +62,9 @@ public class Service extends BaseEntityService2 {
 	private SecurityService securityService;
 
 	@Inject
+	private SecureResources secureResources;
+	
+	@Inject
 	private WildFlyJmsQueueSender jms;
 
 	@Inject
@@ -410,77 +413,69 @@ public class Service extends BaseEntityService2 {
 
 	}
 	
-	public String getServiceToken(final String realm)
-	{
-		String key = null;
-		String encryptedPassword = null;
-		try {
-			key = System.getenv("ENV_SECURITY_KEY"); // TODO , Add each realm as a prefix
-		} catch (Exception e) {
-			log.error("PRJ_" + realm.toUpperCase() + " ENV ENV_SECURITY_KEY  is missing!");
-		}
-
-		try {
-			encryptedPassword = System.getenv("ENV_SERVICE_PASSWORD");
-		} catch (Exception e) {
-			log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");
-		}
-		log.info("key:"+key+" and env_service_passwd="+encryptedPassword);
-		return getServiceToken(realm,key,encryptedPassword);
-	}
-	
-	public String getServiceToken(String realm, String key, String encrypted)
-	{
-		String ret = "DUMMY";
-		String initVector = null;
-		if (GennySettings.devMode) {  // UGLY!!!
-			realm = "genny";
-			initVector = "PRJ_GENNY*******";
-			key = "WubbaLubbaDubDub";
-			encrypted = "vRO+tCumKcZ9XbPWDcAXpU7tcSltpNpktHcgzRkxj8o=";
-
-		} else {
+	public  String getServiceToken(String realm) {
+		log.info("Generating Service Token for "+realm);
 		
-			initVector = "PRJ_" + realm.toUpperCase();
-			initVector = StringUtils.rightPad(initVector, 16, '*');
-		}
-		log.info("initVector:"+initVector);
+		realm = GennySettings.dynamicRealm(realm);
+
+		String jsonFile = realm + ".json";
+
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-			SecureResources.reload();
-		} else {
-//			for (String realmKey : SecureResources.getKeycloakJsonMap().keySet()) {
-//				//System.out.println("json key field = "+realmKey);
-//			}
+			secureResources.init(null);
 		}
-		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
-		if (keycloakJson!=null) {
+		String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
+		if (keycloakJson == null) {
+			log.info("No keycloakMap for " + realm+" ... fixing");
+			String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
+			if (GennySettings.devMode) {
+				SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
+				keycloakJson = gennyKeycloakJson;
+			} else {
+				log.info("Error - No keycloak Json file available for realm - "+realm);
+				return null;
+			}
+		}
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");
 		String secret = secretJson.getString("secret");
-		log.info("secret:"+secret);
+		String jsonRealm = realmJson.getString("realm");
+		
+		String key = GennySettings.dynamicKey(jsonRealm);
+		String initVector = GennySettings.dynamicInitVector(jsonRealm);
+		String encryptedPassword = GennySettings.dynamicEncryptedPassword(jsonRealm);
+		String password= null;
+		
+		
+		log.info("key:"+key+":"+initVector+":"+encryptedPassword);
+		password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
+		if (GennySettings.devMode) {
+			password = GennySettings.defaultServicePassword;
+		}
 
+		log.info("password="+password);
 
-		String password = SecurityUtils.decrypt(key, initVector, encrypted);
-		//log.info("password:"+password);
 		// Now ask the bridge for the keycloak to use
 		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
 				realmJson.getString("auth-server-url").length() - ("/auth".length()));
 
+		log.info(keycloakurl);
+
 		try {
-			ret = KeycloakUtils.getToken(keycloakurl, realm, realm, secret, "service", password);
-		//	log.info("token = " + ret);
+			log.info("realm() : " + realm + "\n" + "realm : " + realm + "\n" + "secret : " + secret + "\n"
+					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
+					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
+			String token = KeycloakUtils.getToken(keycloakurl, realm, realm, secret, "service", password);
+			log.info("token = " + token);
+			return token;
 
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			log.info(e);
 		}
-		} else {
-			log.info("keycloakJson missing "+realm+".json");
-		}
-		return ret;
+
+		return null;
 	}
+
 	
 	public String getKeycloakUrl(String realm)
 	{
