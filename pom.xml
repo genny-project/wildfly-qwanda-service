@@ -58,7 +58,7 @@
 		<version.org.wildfly>13.0.0.Final</version.org.wildfly>
 		<version.junit>4.12</version.junit>
 
-		<hazelcast.version>3.9.3</hazelcast.version>
+		<hazelcast.version>3.8.2</hazelcast.version>
 	</properties>
 
 	<repositories>
