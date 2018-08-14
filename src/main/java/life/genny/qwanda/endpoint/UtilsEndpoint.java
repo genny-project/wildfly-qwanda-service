@@ -47,6 +47,7 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QDataStatsMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
@@ -72,9 +73,6 @@ public class UtilsEndpoint {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	Boolean devMode = "TRUE".equals(System.getenv("GENNYDEV"));
-	
-	  String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	@PersistenceContext
 	private EntityManager em;
@@ -165,7 +163,7 @@ public class UtilsEndpoint {
 				String token = KeycloakUtils.getToken(keycloakUrl, realm, realm,
 						secret, "service", service_password);
 				log.info("token = "+token);
-				QwandaUtils.apiPostEntity(bridgeApi, json.toString(), token);
+				QwandaUtils.apiPostEntity(GennySettings.vertxUrl, json.toString(), token);
 				
 			} catch (Exception e) {
 				log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");
