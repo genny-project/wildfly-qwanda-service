@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
    http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -59,6 +60,7 @@
 		<version.junit>4.12</version.junit>
 
 		<hazelcast.version>3.8.2</hazelcast.version>
+		<javax-cache.version>1.1.0</javax-cache.version>
 	</properties>
 
 	<repositories>
@@ -140,12 +142,12 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.5</version>
 		</dependency>
-<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-lang3</artifactId>
-    <version>3.7</version>
-</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.7</version>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.google.gdata/core -->
 		<dependency>
@@ -384,6 +386,19 @@
 			<groupId>org.jboss.xnio</groupId>
 			<artifactId>xnio-api</artifactId>
 			<version>3.5.4.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.cache</groupId>
+			<artifactId>cache-api</artifactId>
+			<version>${javax-cache.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.hazelcast/hazelcast-hibernate -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-hibernate</artifactId>
+			<version>3.8.2</version>
+			<type>pom</type>
+			<scope>provided</scope>
 		</dependency>
 
 	</dependencies>
