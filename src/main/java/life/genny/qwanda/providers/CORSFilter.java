@@ -56,8 +56,8 @@ public class CORSFilter implements ContainerResponseFilter {
     final String requestOrigin = request.getHeader("origin");
     final String allowedOrigins = System.getenv("CORS_ALLOWED_ORIGINS"); // ACC: This could come
                                                                          // form keycloak jwt?
-    log.debug("RequestOrigin:" + requestOrigin + " AllowedOrigins=[" + allowedOrigins + "]");
-    log.debug("sysReq=" + request.getHeader("Authorization"));
+    log.info("RequestOrigin:" + requestOrigin + " AllowedOrigins=[" + allowedOrigins + "]");
+    log.info("sysReq=" + request.getHeader("Authorization"));
     if ((allowedOrigins != null) && (requestOrigin != null)) {
       // String[] originList = allowedOrigins.split(",");
       // for(String origin: originList){
@@ -70,6 +70,8 @@ public class CORSFilter implements ContainerResponseFilter {
         responseContext.getHeaders().putSingle("Access-Control-Allow-Headers",
             "Content-Type, Authorization, X-Requested-With, Accept");
         responseContext.getHeaders().putSingle("Access-Control-Max-Age", "-1");
+      } else {
+    	  log.info(requestOrigin+" not in allowedOrigins:"+allowedOrigins);
       }
     }
     // }

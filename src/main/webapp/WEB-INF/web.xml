@@ -22,6 +22,18 @@
         <param-value>life.genny.qwanda.util.PathBasedKeycloakConfigResolver</param-value>
     </context-param>  
 	
+<!-- <context-param>
+    <param-name>resteasy.providers</param-name>
+    <param-value>org.jboss.resteasy.plugins.interceptors.CorsFilter</param-value>
+</context-param>  -->
+
+	<context-param>
+    <param-name>resteasy.providers</param-name>
+    <param-value>life.genny.qwanda.providers.CORSFilter</param-value>
+</context-param>
+
+
+
 	<filter>
         <filter-name>Qwanda Service</filter-name>
         <filter-class>
@@ -105,6 +117,14 @@
 		</web-resource-collection>
 	
 	</security-constraint>
+
+	<security-constraint>
+		<web-resource-collection>
+		<web-resource-name>Qwanda Service</web-resource-name>
+			<url-pattern>/keycloak/*</url-pattern>
+		</web-resource-collection>
+	
+	</security-constraint>	
 	<login-config>
 		<auth-method>KEYCLOAK</auth-method>
 	</login-config>
