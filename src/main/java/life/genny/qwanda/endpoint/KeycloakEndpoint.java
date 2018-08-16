@@ -63,7 +63,7 @@ import life.genny.security.SecureResources;
  */
 
 @Path("/keycloak")
-@Api(value = "/keycloak", description = "Qwanda Service Keycloak API", tags = "qwandaservice,keycloak")
+@Api(value = "/keycloak", description = "Qwanda Service Keycloak API", tags = "keycloak")
 @Produces(MediaType.APPLICATION_JSON)
 
 @RequestScoped
