@@ -1,0 +1,8 @@
+package life.genny.rules;
+
+rule "Change first name"
+	when
+		$person: Person()
+	then
+		$person.setFirstName("Bob");
+end

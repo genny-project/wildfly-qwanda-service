@@ -1,0 +1,113 @@
+version: '2'
+
+services:
+    #  persistent-rules:
+    #    image: gennyproject/persistent-process:latest
+    #    hostname: persistent-process
+    #    #    ports:
+    #      #      - 8080:8080
+    #    networks:
+    #      - mainproxy
+    #    environment:
+    #      - ADMIN_USERNAME=${USER}
+    #      - ADMIN_PASSWORD=admin
+    #
+  keycloak:
+    image: gennyproject/keycloak:latest
+    container_name: keycloak
+    env_file:
+      - genny.env 
+    environment:
+      - VIRTUAL_HOST=keycloak.*,bouncer.*
+      - VIRTUAL_PORT=8080
+      - VIRTUAL_PROTO=http
+      - CERT_NAME=genny.life
+#      - IMPORTEXPORT=EXPORT
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=Outcome2016KeycloakAdmin
+      - MYSQL_URL=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DB=keycloakdb
+      - MYSQL_USERNAME=keycloak
+      - MYSQL_PASSWORD=Outcome2016KeycloakAdmin
+    volumes:
+#      - /opt/jboss/backup:/opt/jboss/backup
+      - ../keycloak-themes/themes:/opt/jboss/keycloak/themes
+      - ./realm:/tmp/realm
+      #- ./realm:/tmp/realm
+      #- ./keycloak-themes/themes:/opt/jboss/keycloak/themes
+    networks:
+      - mainproxy
+    ports:
+      - 8180:8080
+    command: -b 0.0.0.0
+
+  qwanda-service:
+    depends_on:
+      - mysql
+      - keycloak
+    image: gennyproject/persistent-process:latest
+    container_name: qwanda-service
+    #    volumes:
+    #      - ./realm:/opt/realm
+    #      - ./google_credentials:/root/.genny/sheets.googleapis.com-java-quickstart/
+    env_file:
+      - genny.env 
+    environment:
+      - ADMIN_USERNAME=GENNY #${USER}
+      - ADMIN_PASSWORD=GENNY
+      - VIRTUAL_HOST=qwanda-service.*,api.*
+      - VIRTUAL_PORT=8080
+      - VIRTUAL_PROTO=http
+      - CERT_NAME=genny.life
+      - LOAD_DDT_IN_STARTUP=TRUE
+      - SKIP_GOOGLE_DOC_IN_STARTUP=FALSE
+  #    - DEV_MODE=TRUE
+      - DDTHOST=TRUE
+      - DDT_URL=http://bridge:8089 
+    ports:
+      - "8280:8080"
+      - "8887:8787"
+    links:
+      - mysql:mysql
+      - keycloak:keycloak
+    restart: unless-stopped
+    networks:
+      - mainproxy
+
+  mysql:
+    image: mysql:5.6 
+    environment:
+      - MYSQL_URL=mysql
+      - MYSQL_DB=gennydb
+      - MYSQL_PORT=3306
+      - MYSQL_ALLOW_EMPTY=
+      - MYSQL_RANDOM_ROOT_PASSWORD=no
+      - MYSQL_DATABASE=gennydb
+      - MYSQL_USER=genny
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=password
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=password
+    container_name: mysql
+    env_file:
+      - genny.env
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - mainproxy
+    ports:
+      - 3310:3306
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  maildata:
+    driver: local
+  mailstate:
+    driver: local
+networks:
+  mainproxy:
+    driver: bridge
+
+#

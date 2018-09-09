@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "genny-sheets-181905",
+  "private_key_id": "272b35ecabf04055cecbd35a4cf0301abc1f2da5",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCrKhHpcheRNMtU\nmoNeSrNsS6GnfEBwVO/Q3XLjXJwSidibwoj0lZWb1vEPfki9dOJd9RDetVTqYT4b\n7RkjsMHJsMnlHTWNCPfbwQj7UColR2rl3lpTmkUrITFfPnmDW4w1KeLP0HhyUVMd\ndImTcyb087vsGhY+jPPKtB23x8stfm/sflv8iLak3h8HtzRuQFQ3Yj5nOR8PMwL3\nswZqHvvcyT9Tq7myutsctmQk49uS6LBSMdD2P7vInLLYbO+Axd7pfhnTt3Eivs2v\nu5fqdOtJlk9XXPUEAmXykgOSBoZaxWPrTlfaKJfaBqrtUQw1oPM1PFqsBjU+nEyi\nXB+o5sxfAgMBAAECggEACbKgAi3Z16XPRr4HEb7CF1wvpAl+WH76JBzakgw2DDeC\n2MxhrcM95JmoiHwGC19F0L9TqIf18DOjQmTMHFa68Wj9VL2zbN1kYa84XuN7XSev\nOafqo+WlOUeFAG74kTCM1e7yGrEmlIo2tIAHqB2Jna5OPZcldH968/IBjwnttpLl\nauMcZEbTqjQIUq37RwQGqIboA6VQa5U7argHWRqon+pOaEfgCy+3s3wN/woZYrlA\ns1e4PMjRZHjQtHiwSFLEdSmdJuYEIwdrRw9R73DFyjc4OARovxB4mobuvyK+Pqxu\nPkXlm/LBFjdqLW6gY6hobLIjKUFDYNjwLuX4zdU6jQKBgQDdZe3R1OqQxXGUU6tY\nqzXnGUaGqTnfDrVUFxF4bZ/XyvBBiu87pfpCoIXhJuE++DhYyGP7fK5o6V45iKKc\n0jm4AgDv5aejdKY7Em5al6rNvPzz7pEuK/UcN6lVaFZKyQIQqU41TYqif57EGT6p\naKiKhhYTqS3eJsjvTmOraOCV+wKBgQDF6k0pjJgM6bqecOuD55VBcxO9ipaZpcMH\ndlLLDMdGXTsiNwboCQXYk9TCnvP6Upk3bUc9DR18YRXgcYLePw/Tq76AOUp18ia1\nQpxgPKrMjW/tI+x74X5j6tta9FOadwAshTMapJWdIUko97TRhyH59AUo49wrPLY1\n8Bg8GOhp7QKBgC9py8N7GHzGe+tq+6/ygomqRQtDpGwbh0Op6QjkWS3qfQdcTJ12\njyDDpcgw/l3w5IhG6fqKmgNHrvEdTM3Oy6OXckHt6be8nHjcGpv2DRMgXP+UYK0F\npulTFkV/IbPEVlfhGimaII1qTULrsRqwmh+IVaQCQBtqLO/q1rd3r1kPAoGBALJ+\nh6zrUc6DlX2D1cSWvfPTN4CAVyanaud1/WGHWsnJF6XZ/u6SBKW5Xe9QsDWY/PoS\nImebRnaAkNxlQ2Pxd/KtOBgok1EgXWyocKQS0u+8t68l8Qgg7H5st/yl0ijDHnMI\nhniG6zBVbsf17yvxNeFaBLVGG7EbBjJLIXBB/opZAoGBAMZpR7hbxRvv0G5dLt4x\nWLjquJlQLiSpBU/NfT+K9/EZ2YAhd/DoK4kPJBSZTDggYpZkCRo8avrYWDF6RmaX\n4h9WoGkgAkqVfagU0anHLAJ2fPskAYOhLF1p1E6wegaACpBG4bNp9ZcdfEvs4Nhb\nPEOAqwylqcIvjSTAq1/Gqemh\n-----END PRIVATE KEY-----\n",
+  "client_email": "dataseed@genny-sheets-181905.iam.gserviceaccount.com",
+  "client_id": "118221596412396931200",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dataseed%40genny-sheets-181905.iam.gserviceaccount.com"
+}

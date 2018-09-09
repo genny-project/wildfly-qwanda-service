@@ -1,0 +1,9 @@
+<jboss-deployment-structure>
+	<deployment>
+		<dependencies>
+			<module name="org.keycloak.keycloak-adapter-spi" />
+			<module name="org.jboss.weld.core" />
+			<module name="org.jboss.weld.spi" />
+		</dependencies>
+	</deployment>
+</jboss-deployment-structure>

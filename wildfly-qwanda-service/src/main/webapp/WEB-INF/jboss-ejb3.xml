@@ -1,0 +1,35 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<jboss:ejb-jar xmlns:jboss="http://www.jboss.com/xml/ns/javaee"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:r="urn:resource-adapter-binding"
+	xsi:schemaLocation="http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-ejb3.2.1.xsd http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd"
+	version="3.1" impl-version="2.0">
+	<assembly-descriptor>
+		<r:resource-adapter-binding>
+			<ejb-name>*</ejb-name>
+			<r:resource-adapter-name>persistent-process-ear.ear#vertx-jca-adapter-3.5.1.rar
+			</r:resource-adapter-name>
+		</r:resource-adapter-binding>
+	</assembly-descriptor>
+	<enterprise-beans>
+		<message-driven>
+			<activation-config>
+				<activation-config-property>
+					<activation-config-property-name>address</activation-config-property-name>
+					<activation-config-property-value>api</activation-config-property-value>
+				</activation-config-property>
+				<activation-config-property>
+					<activation-config-property-name>clusterPort</activation-config-property-name>
+					<activation-config-property-value>15701</activation-config-property-value>
+				</activation-config-property>
+				<activation-config-property>
+					<activation-config-property-name>clusterHost</activation-config-property-name>
+					<activation-config-property-value>${public.host}</activation-config-property-value>
+				</activation-config-property>
+			</activation-config>
+			<ejb-name>VertxMonitor</ejb-name>
+			<ejb-class>io.vertx.resourceadapter.examples.mdb.VertxMonitor</ejb-class>
+			<messaging-type>io.vertx.resourceadapter.inflow.VertxListener</messaging-type>
+		</message-driven>
+	</enterprise-beans>
+</jboss:ejb-jar>
