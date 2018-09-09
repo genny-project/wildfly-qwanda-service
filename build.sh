@@ -1,3 +1,3 @@
 #!/bin/bash
-mvn clean install 
-#mvn eclipse:eclipse
+mvn clean  package 
+mvn eclipse:eclipse
