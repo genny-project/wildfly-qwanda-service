@@ -5,15 +5,15 @@
    http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
-	<artifactId>wildfly-qwanda-service</artifactId>
+	<artifactId>qwanda-service-war</artifactId>
 	<packaging>war</packaging>
     <version>${revision}</version>
-	<name>wildfly-qwanda-service</name>
+	<name>qwanda-service-war</name>
 	<url>http://genny.life</url>
 
 	<parent>
 		<groupId>life.genny</groupId>
-		<artifactId>persistent-process</artifactId>
+		<artifactId>wildfly-qwanda-service</artifactId>
         <version>${revision}</version>
     </parent>
 
@@ -155,7 +155,7 @@
 		<dependency>
 			<groupId>org.wildfly</groupId>
 			<artifactId>wildfly-ejb-client-bom</artifactId>
-			<version>12.0.0.Final</version>
+			<version>14.0.1.Final</version>
 			<type>pom</type>
 		</dependency>
 
@@ -163,7 +163,7 @@
 		<dependency>
 			<groupId>org.wildfly</groupId>
 			<artifactId>wildfly-jms-client-bom</artifactId>
-			<version>12.0.0.Final</version>
+			<version>14.0.1.Final</version>
 			<type>pom</type>
 		</dependency>
 
