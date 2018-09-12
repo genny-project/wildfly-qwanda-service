@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>life.genny</groupId>
-		<artifactId>persistent-process</artifactId>
+		<artifactId>wildfly-qwanda-service</artifactId>
         <version>${revision}</version>
 	</parent>
-	<artifactId>persistent-process-ear</artifactId>
+	<artifactId>qwanda-service-ear</artifactId>
 	<packaging>ear</packaging>
-	<name>persistent-process-ear</name>
+	<name>qwanda-service-ear</name>
 	<properties>
 		<vertx.version>3.5.1</vertx.version>
 		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
@@ -16,7 +16,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>life.genny</groupId>
-			<artifactId>wildfly-qwanda-service</artifactId>
+			<artifactId>qwanda-service-war</artifactId>
 			<version>${project.parent.version}</version>
 			<type>war</type>
 		</dependency>
@@ -28,14 +28,14 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>persistent-process-ear</finalName>
+		<finalName>qwanda-service-ear</finalName>
 		<plugins>
 			<!--Ear plugin -creating the ear - watch out skinny WARS! -->
 			<plugin>
 				<artifactId>maven-ear-plugin</artifactId>
 				<version>2.9.1</version>
 				<configuration>
-					<finalName>persistent-process-ear</finalName>
+					<finalName>qwanda-service-ear</finalName>
                     <skinnyWars>true</skinnyWars>
                         <resources>
                             <resource>
@@ -55,8 +55,8 @@
 					<modules>
                         <webModule>
                             <groupId>life.genny</groupId> 
-                            <artifactId>wildfly-qwanda-service</artifactId>
-                            <bundleFileName>wildfly-qwanda-service.war</bundleFileName>
+                            <artifactId>qwanda-service-war</artifactId>
+                            <bundleFileName>qwanda-service-war.war</bundleFileName>
                             <contextRoot>/</contextRoot>
                         </webModule>
 					</modules>

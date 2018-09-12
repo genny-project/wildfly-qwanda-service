@@ -2,14 +2,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
-	<artifactId>persistent-process</artifactId>
+	<artifactId>wildfly-qwanda-service</artifactId>
     <version>${revision}</version>
 	<packaging>pom</packaging>
-	<name>persistent-process</name>
+	<name>wildfly-qwanda-service</name>
 
 	<modules>
-		<module>persistent-process-ear</module>
-		<module>wildfly-qwanda-service</module>
+		<module>qwanda-service-ear</module>
+		<module>qwanda-service-war</module>
 	</modules>
 
     <properties>
