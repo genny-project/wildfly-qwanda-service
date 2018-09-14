@@ -2,6 +2,9 @@ package life.genny.qwanda.endpoint;
 
 
 import org.apache.logging.log4j.Logger;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import javax.ejb.Stateless;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -9,9 +12,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
-import java.util.Properties;
 import io.swagger.annotations.Api;
+import life.genny.qwandautils.GitUtils;
 
 
 
@@ -34,22 +39,22 @@ public class VersionEndpoint {
    */
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
-
+  
   @GET
   @Path("/")
   public Response version() {
-    Properties properties = new Properties();
+    String versionString = "";
     try {
-      properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties")
-          .openStream());
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    return Response.status(200).entity(properties).build();
+      MavenXpp3Reader reader = new MavenXpp3Reader();
+      InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("pom.xml");
+      if(inputStream != null) {
+        Model model = reader.read(new InputStreamReader(inputStream));
+        versionString = GitUtils.getGitVersionString(model);
+      }
+      
+    } catch (IOException | XmlPullParserException e) {
+      log.error("Error generating version details", e);
+    } 
+    return Response.status(200).entity(versionString).build();
   }
-
-
-
 }
