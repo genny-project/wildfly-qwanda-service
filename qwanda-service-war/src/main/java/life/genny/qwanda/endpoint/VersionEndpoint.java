@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 import io.swagger.annotations.Api;
+import life.genny.qwandautils.GitUtils;
 
 
 
@@ -22,7 +23,7 @@ import io.swagger.annotations.Api;
  */
 
 @Path("/version")
-@Api(value = "/version", description = "Version", tags = "version")
+@Api(value = "/version", tags = "version")
 @Produces(MediaType.APPLICATION_JSON)
 
 @Stateless
@@ -34,20 +35,26 @@ public class VersionEndpoint {
    */
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
-
+  
+  public static final String GIT_VERSION_PROPERTIES = "GitVersion.properties";
+  
+  public static final String PROJECT_DEPENDENCIES = "project_dependencies";
+  
   @GET
   @Path("/")
   public Response version() {
     Properties properties = new Properties();
+    String versionString = "";
     try {
-      properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties")
+      properties.load(Thread.currentThread().getContextClassLoader().getResource(GIT_VERSION_PROPERTIES)
           .openStream());
+      String projectDependencies = properties.getProperty(PROJECT_DEPENDENCIES);
+      versionString = GitUtils.getGitVersionString(projectDependencies);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      log.error("Error reading GitVersion.properties", e);
     }
 
-    return Response.status(200).entity(properties).build();
+    return Response.status(200).entity(versionString).build();
   }
 
 
