@@ -478,7 +478,7 @@
 			<dependency>
 				<groupId>org.wildfly.bom</groupId>
 				<artifactId>wildfly-javaee7</artifactId>
-				<version>12.0.0.Final</version>
+				<version>14.0.1.Final</version>
 				<type>pom</type>
 			</dependency>
 
@@ -688,8 +688,8 @@
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 						<!-- the maven dependency plugin will have already downloaded the server 
 							on /target -->
-						<jboss.home>${project.basedir}/target/wildfly-12.0.0.Final</jboss.home>
-						<module.path>${project.basedir}/target/wildfly-12.0.0.Final/modules</module.path>
+						<jboss.home>${project.basedir}/target/wildfly-14.0.1.Final</jboss.home>
+						<module.path>${project.basedir}/target/wildfly-14.0.1.Final/modules</module.path>
 					</systemPropertyVariables>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 				</configuration>
@@ -774,7 +774,7 @@
 										<artifactItem>
 											<groupId>org.wildfly</groupId>
 											<artifactId>wildfly-dist</artifactId>
-											<version>12.0.0.Final</version>
+											<version>14.0.1.Final</version>
 											<type>zip</type>
 											<overWrite>true</overWrite>
 											<outputDirectory>${project.build.directory}</outputDirectory>

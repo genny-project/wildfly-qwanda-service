@@ -13,7 +13,7 @@
 	</modules>
 
     <properties>
-        <revision>1.0.56</revision>
+        <revision>1.0.57</revision>
 		<ear-plugin-version>2.9</ear-plugin-version>
 		<ejb-plugin-version>2.3</ejb-plugin-version>
 		<ejb-spec-version>3.0</ejb-spec-version>
