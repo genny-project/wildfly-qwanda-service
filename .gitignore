@@ -27,3 +27,4 @@ bin/**/*
 **/bin/
 .settings/org.eclipse.wst.common.component
 **/target/
+qwanda-service-war/src/main/resources/qwanda-service-war-git.properties
