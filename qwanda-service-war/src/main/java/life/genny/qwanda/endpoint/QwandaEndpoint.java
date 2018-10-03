@@ -259,7 +259,6 @@ public class QwandaEndpoint {
 				log.error("Null Entity posted");
 				continue;
 			}
-			if (entity.getAttribute() == null) {
 				Attribute attribute = null;
 
 				try {
@@ -274,7 +273,7 @@ public class QwandaEndpoint {
 					attribute = service.findAttributeByCode(entity.getAttributeCode());
 				}
 				entity.setAttribute(attribute);
-			}
+
 
 		}
 		service.insert(entitys.getItems());
