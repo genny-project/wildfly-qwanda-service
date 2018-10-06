@@ -32,9 +32,9 @@
         <rar.file.name>${rar.name}-${rar.version}.rar</rar.file.name>
         <vertx.version>3.5.1</vertx.version>
 
-		<qwanda-services.version>1.0.57</qwanda-services.version>
+		<qwanda-services.version>1.0.58</qwanda-services.version>
 
-		<version.org.wildfly>14.0.0.Final</version.org.wildfly>
+		<version.org.wildfly>14.0.1.Final</version.org.wildfly>
 
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
 
@@ -173,6 +173,14 @@
 			<version>${qwanda-services.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jsf -->
+		<dependency>
+			<groupId>org.wildfly</groupId>
+			<artifactId>wildfly-jsf</artifactId>
+			<version>${version.org.wildfly}</version>
+		</dependency>
+		
 
         <!-->
 <dependency>

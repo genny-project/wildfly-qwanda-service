@@ -139,10 +139,11 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/attributes")
+	@Transactional
 	public Response create(final Attribute entity) {
-		service.insert(entity);
+		Attribute attr = service.upsert(entity);
 		return Response
-				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
+				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(attr.getId())).build())
 				.build();
 	}
 
@@ -254,28 +255,38 @@ public class QwandaEndpoint {
 
 	public Response createBulk2(final QDataAnswerMessage entitys) {
 
-		for (Answer entity : entitys.getItems()) {
-			if (entity == null) {
-				log.error("Null Entity posted");
-				continue;
-			}
-				Attribute attribute = null;
-
-				try {
-					attribute = service.findAttributeByCode(entity.getAttributeCode());
-				} catch (NoResultException e) {
-					// Create it (ideally if user is admin)
-					String name = entity.getAttributeCode().substring(4).toLowerCase();
-					name = name.replaceAll("_", " ");
-					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(name));
-					service.insert(attribute);
-					attribute = service.findAttributeByCode(entity.getAttributeCode());
-				}
-				entity.setAttribute(attribute);
-
-
-		}
+//		for (Answer entity : entitys.getItems()) {
+//			if (entity == null) {
+//				log.error("Null Entity posted");
+//				continue;
+//			}
+//				Attribute attribute = null;
+//
+//				try {
+//					attribute = service.findAttributeByCode(entity.getAttributeCode());
+//					if (attribute==null) {
+//						throw new NoResultException();
+//					}
+//				} catch (NoResultException e) {
+//					// Create it (ideally if user is admin)
+//					String name = entity.getAttributeCode().substring(4).toLowerCase();
+//					name = name.replaceAll("_", " ");
+//					attribute = new AttributeText(entity.getAttributeCode(),
+//							StringUtils.capitalize(name));
+//					service.insert(attribute);
+//					attribute = service.findAttributeByCode(entity.getAttributeCode());
+//				}
+//				if (attribute == null) {
+//					log.error("attribute is null ");
+//				} else 
+//				if (attribute.getDataType()==null) {
+//					log.error("Bad data type");
+//				} else {
+//
+//				entity.setAttribute(attribute);
+//				}
+//
+//		}
 		service.insert(entitys.getItems());
 		return Response.status(200).build();
 	}
@@ -286,85 +297,92 @@ public class QwandaEndpoint {
 
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-		for (Answer entity : entitys.getItems()) {
-			if (entity == null) {
-				log.error("Null Entity posted");
-				continue;
-			}
-			if (entity.getAttribute() == null) {
-				Attribute attribute = null;
-
-				try {
-					attribute = service.findAttributeByCode(entity.getAttributeCode());
-				} catch (NoResultException e) {
-					// Create it (ideally if user is admin)
-					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
-						attribute = new AttributeBoolean(entity.getAttributeCode(),
-								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-					} else {
-						if (entity.getDataType()!=null) {
-							switch (entity.getDataType()) {
-							case "java.lang.Integer":
-							case "Integer":
-								attribute = new AttributeInteger(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-							case "java.time.LocalDateTime":
-							case "LocalDateTime":
-								attribute = new AttributeDateTime(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-							case "java.lang.Long":
-							case "Long":
-								attribute = new AttributeLong(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-							case "java.time.LocalTime":
-							case "LocalTime":
-								attribute = new AttributeTime(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-							case "org.javamoney.moneta.Money":
-							case "Money":
-								attribute = new AttributeMoney(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-
-							case "java.lang.Double":
-							case "Double":
-								attribute = new AttributeDouble(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-
-							case "java.lang.Boolean":
-								attribute = new AttributeBoolean(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-
-							case "java.time.LocalDate":
-								attribute = new AttributeDate(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-
-
-							case "java.lang.String":
-							default:
-								attribute = new AttributeText(entity.getAttributeCode(),
-										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-								break;
-
-							}						
-							} else {
-					attribute = new AttributeText(entity.getAttributeCode(),
-							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-					}}
-					service.insert(attribute);
-					attribute = service.findAttributeByCode(entity.getAttributeCode());
-				}
-				entity.setAttribute(attribute);
-			}
-			service.insert(entity);
-		}
+//		for (Answer entity : entitys.getItems()) {
+//			if (entity == null) {
+//				log.error("Null Entity posted");
+//				continue;
+//			}
+//			if (entity.getAttribute() == null) {
+//				Attribute attribute = null;
+//
+//				try {
+//					attribute = service.findAttributeByCode(entity.getAttributeCode());
+//				} catch (NoResultException e) {
+//					// Create it (ideally if user is admin)
+//					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
+//						attribute = new AttributeBoolean(entity.getAttributeCode(),
+//								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//					} else {
+//						if (entity.getDataType()!=null) {
+//							switch (entity.getDataType()) {
+//							case "java.lang.Integer":
+//							case "Integer":
+//								attribute = new AttributeInteger(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//							case "java.time.LocalDateTime":
+//							case "LocalDateTime":
+//								attribute = new AttributeDateTime(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//							case "java.lang.Long":
+//							case "Long":
+//								attribute = new AttributeLong(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//							case "java.time.LocalTime":
+//							case "LocalTime":
+//								attribute = new AttributeTime(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//							case "org.javamoney.moneta.Money":
+//							case "Money":
+//								attribute = new AttributeMoney(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//
+//							case "java.lang.Double":
+//							case "Double":
+//								attribute = new AttributeDouble(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//
+//							case "java.lang.Boolean":
+//								attribute = new AttributeBoolean(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//
+//							case "java.time.LocalDate":
+//								attribute = new AttributeDate(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//
+//
+//							case "java.lang.String":
+//							default:
+//								attribute = new AttributeText(entity.getAttributeCode(),
+//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//								break;
+//
+//							}						
+//							} else {
+//					attribute = new AttributeText(entity.getAttributeCode(),
+//							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+//					}}
+//					service.insert(attribute);
+//					attribute = service.findAttributeByCode(entity.getAttributeCode());
+//				}
+//				if (attribute == null) {
+//					log.error("Attribute is null");
+//				} else 
+//				if (attribute.getDataType()==null) {
+//					log.error("Bad data type");
+//				} else {
+//					entity.setAttribute(attribute);
+//				}
+//			}
+			service.insert(entitys.getItems());
+	//	}
 
 		return Response.status(200).build();
 	}
@@ -374,81 +392,8 @@ public class QwandaEndpoint {
 	@Path("/answers")
 
 	public Response create(final Answer entity) {
-		Attribute attribute = null;
-		if (entity.getAttribute() == null) {
-			
-
-			try {
-				attribute = service.findAttributeByCode(entity.getAttributeCode());
-			} catch (NoResultException e) {
-				// Create it (ideally if user is admin)
-				if (entity.getAttributeCode().startsWith("PRI_IS_")) {
-					attribute = new AttributeBoolean(entity.getAttributeCode(),
-							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-				} else {
-					if (entity.getDataType()!=null) {
-						switch (entity.getDataType()) {
-						case "java.lang.Integer":
-						case "Integer":
-							attribute = new AttributeInteger(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-						case "java.time.LocalDateTime":
-						case "LocalDateTime":
-							attribute = new AttributeDateTime(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-						case "java.lang.Long":
-						case "Long":
-							attribute = new AttributeLong(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-						case "java.time.LocalTime":
-						case "LocalTime":
-							attribute = new AttributeTime(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-						case "org.javamoney.moneta.Money":
-						case "Money":
-							attribute = new AttributeMoney(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-
-						case "java.lang.Double":
-						case "Double":
-							attribute = new AttributeDouble(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-
-						case "java.lang.Boolean":
-							attribute = new AttributeBoolean(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-
-						case "java.time.LocalDate":
-							attribute = new AttributeDate(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-
-
-						case "java.lang.String":
-						default:
-							attribute = new AttributeText(entity.getAttributeCode(),
-									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-							break;
-
-						}						
-						} else {
-				attribute = new AttributeText(entity.getAttributeCode(),
-						StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-				}
-					}
-				service.insert(attribute);
-				attribute = service.findAttributeByCode(entity.getAttributeCode());
-			}
-			entity.setAttribute(attribute);
-		}
-		service.insert(entity);
+		QDataAnswerMessage answerMsg = new QDataAnswerMessage(entity);
+		service.insert(answerMsg.getItems());
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
 				.build();
@@ -1413,25 +1358,31 @@ public class QwandaEndpoint {
 		String userCode = "PER_"+QwandaUtils.getNormalisedUsername(username);
 		
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| (userCode.equalsIgnoreCase(baseEntity.getCode()))) ) {  // TODO Remove the true!
+				|| (userCode.equalsIgnoreCase(baseEntity.getCode())))) { // TODO Remove the true!
 
-		Log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
-		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
-		be.setName(baseEntity.getName());
-		// now remove the attributes that are not left over
-		for (EntityAttribute ea : be.getBaseEntityAttributes()) {  // go through wanted survivors
-			Optional<EntityAttribute> optEA = baseEntity.findEntityAttribute(ea.getAttributeCode());
-			if (!optEA.isPresent()) {
-				service.removeEntityAttribute(ea);
-				log.info("Removed attribute "+ ea.getAttributeCode()+" for be "+baseEntity.getCode());
+			Log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
+			BaseEntity be = null;
+			try {
+			be = service.findBaseEntityByCode(baseEntity.getCode());
+			} catch (NoResultException e) {
+				return Response.status(404).build();  // could not find it
 			}
-		}
-		// get updated one
-		be = service.findBaseEntityByCode(baseEntity.getCode());
-		service.writeToDDT(be);
-		QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(be.getCode(),be.getCode(),be,securityService.getToken());
-		service.sendQEventAttributeValueChangeMessage(msg);
-		return Response.status(200).build();
+			be.setName(baseEntity.getName());
+			// now remove the attributes that are not left over
+			for (EntityAttribute ea : be.getBaseEntityAttributes()) { // go through wanted survivors
+				Optional<EntityAttribute> optEA = baseEntity.findEntityAttribute(ea.getAttributeCode());
+				if (!optEA.isPresent()) {
+					service.removeEntityAttribute(ea);
+					log.info("Removed attribute " + ea.getAttributeCode() + " for be " + baseEntity.getCode());
+				}
+			}
+			// get updated one
+			be = service.findBaseEntityByCode(baseEntity.getCode());
+			service.writeToDDT(be);
+			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(be.getCode(), be.getCode(),
+					be, securityService.getToken());
+			service.sendQEventAttributeValueChangeMessage(msg);
+			return Response.status(200).build();
 		} else {
 			return Response.status(401).build();
 		}

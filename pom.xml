@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>wildfly-qwanda-service</artifactId>
-    <version>${revision}</version>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<name>wildfly-qwanda-service</name>
 
@@ -12,8 +13,8 @@
 		<module>qwanda-service-war</module>
 	</modules>
 
-    <properties>
-        <revision>1.0.57</revision>
+	<properties>
+		<revision>1.0.58</revision>
 		<ear-plugin-version>2.9</ear-plugin-version>
 		<ejb-plugin-version>2.3</ejb-plugin-version>
 		<ejb-spec-version>3.0</ejb-spec-version>
@@ -61,6 +62,13 @@
 				<groupId>javax</groupId>
 				<artifactId>javaee-api</artifactId>
 				<version>6.0</version>
+				<scope>provided</scope>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jsf -->
+			<dependency>
+				<groupId>org.wildfly</groupId>
+				<artifactId>wildfly-jsf</artifactId>
+				<version>${version.org.wildfly}</version>
 				<scope>provided</scope>
 			</dependency>
 		</dependencies>

@@ -12,6 +12,7 @@
 	<properties>
 		<vertx.version>3.5.1</vertx.version>
 		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
+		<version.org.wildfly>14.0.1.Final</version.org.wildfly>		
 	</properties>
 	<dependencies>
 		<dependency>
@@ -26,6 +27,7 @@
 			<version>${vertx.version}</version>
 			<type>rar</type>
 		</dependency>
+
 	</dependencies>
 	<build>
 		<finalName>qwanda-service-ear</finalName>
