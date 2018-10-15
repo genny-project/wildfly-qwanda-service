@@ -18,9 +18,6 @@ import life.genny.services.BatchLoading;
 
 public class Controller {
 
-  // @Inject
-  // private Service service;
-
 
   private Boolean getBooleanFromString(final String booleanString) {
     if (booleanString == null) {
@@ -69,19 +66,18 @@ public class Controller {
       String code = (String) item.get("code");
       String name = (String) item.get("name");
       String dataType = (String) item.get("dataType");
-      Attribute attr = null;
       DataType dataTypeRecord = data.get(dataType);
-      try {
-        attr = service.findAttributeByCode(code);
+      Attribute attr = service.findAttributeByCode(code);
+      if (attr == null) {
+        attr = new Attribute(code, name, dataTypeRecord);
+        Long l = service.insert(attr);
+        System.out.println("This is long: " + l);
+      } else {
         attr.setCode(code);
         attr.setName(name);
         attr.setDataType(dataTypeRecord);
         Long updatedAttr = service.update(attr);
         System.out.println("attr updated id: " + updatedAttr);
-      } catch (NoResultException e) {
-        attr = new Attribute(code, name, dataTypeRecord);
-        Long l = service.insert(attr);
-        System.out.println("This is long: " + l);
       }
     });
   }
@@ -136,7 +132,7 @@ public class Controller {
             } catch (final BadDataException e) {
               e.printStackTrace();
             }
-            service.update(be);
+            service.upsert(be);
           } catch (final NoResultException e) {
           }
         });
@@ -201,18 +197,35 @@ public class Controller {
       }
     });
   }
+  
+  public void updateQuestion(final Service service,
+      final Map<String, Map<String, Object>> merge) {
+    merge.get("questions").entrySet().stream().map(entry -> entry.getValue())
+        .forEach(record -> {
+          Map<String, Object> item = (HashMap<String, Object>) record;
+          String code = (String) item.get("code");
+          String name = (String) item.get("name");
+          String attrCode = (String) item.get("attribute_code");
+          String html = (String) item.get("html");
+          
 
-  /*
-   * public void updateQuestions(final Service service, final Map<String, Map<String, Object>>
-   * merge) { merge.get("questions").entrySet().stream().map(entry ->
-   * entry.getValue()).forEach(record -> { Map<String, Object> item = (HashMap<String, Object>)
-   * record; String code = (String) item.get("code"); String name = (String) item.get("name");
-   * String attrCode = (String) item.get("attribute_code"); Attribute attr; attr =
-   * service.findAttributeByCode(attrCode); new Question(code, name, attr);
-   * service.findQuestionByCode(code);
-   * 
-   * }); }
-   */
+          Attribute attr;
+          attr = service.findAttributeByCode(attrCode);
+          Question q = new Question(code, name, attr);
+          q.setHtml(html);
+          Question existing = service.findQuestionByCode(code);
+          if (existing == null) {
+                service.insert(q);
+          } else {
+              existing.setName(name);
+              existing.setHtml(html);
+              existing.setCode(attrCode);
+              service.upsert(existing); 
+          }
+        });
+  }
+  
+  
   public void updateQuestionQuestions(final Service service,
       final Map<String, Map<String, Object>> merge) {
     merge.get("questionQuestions").entrySet().stream().map(entry -> entry.getValue())
@@ -274,177 +287,6 @@ public class Controller {
     });
   }
 
-  // public static void getProject(final Service bes, final String sheetId, final String tables) {
-  // BatchLoading bl = new BatchLoading(bes);
-  // bl.sheets.setSheetId(sheetId);
-  // Map<String, Object> saveProjectData = bl.savedProjectData;
-  // String tablesLC = tables.toLowerCase();
-  // Map<String, Object> table2Update = new HashMap<String, Object>();
-  // Map<String, Object> merge = new HashMap<String, Object>();
-  // if (tablesLC.contains("ask")) {
-  // table2Update.put("ask", bl.sheets.newGetAsk());
-  // ((HashMap<String, HashMap>) table2Update.get("ask")).entrySet().stream().forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("ask")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put(map.getKey(), map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put(map.getKey(), map);
-  // }
-  // });
-  // System.out.println("323232" + saveProjectData);
-  // }
-  // if (tablesLC.contains("datatype")) {
-  // table2Update.put("dataType", bl.sheets.newGetDType());
-  // ((HashMap<String, HashMap>) table2Update.get("dataType")).entrySet().stream().forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("dataType")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("dataType", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("dataType", map);
-  // }
-  // });
-  // bl.dataType(table2Update);
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("attribute")) {
-  // table2Update.put("attributes", bl.sheets.newGetAttr());
-  // if (table2Update.get("dataType") == null)
-  // table2Update.put("dataType", bl.sheets.newGetDType());
-  // ((HashMap<String, HashMap>) table2Update.get("attributes")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("attributes")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("attributes", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("attributes", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("attributelink")) {
-  // bl.attributeLinks(table2Update);
-  // ((HashMap<String, HashMap>) table2Update.get("attributelink")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("attributelink"))
-  // .get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("attributelink", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("attributelink", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("baseentity")) {
-  // table2Update.put("baseEntitys", bl.sheets.newGetBase());
-  // ((HashMap<String, HashMap>) table2Update.get("baseEntitys")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("baseEntitys")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put(map.getKey(), map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put(map.getKey(), map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("entityattribute")) {
-  // table2Update.put("attibutesEntity", bl.sheets.newGetEntAttr());
-  // ((HashMap<String, HashMap>) table2Update.get("attibutesEntity")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("attibutesEntity"))
-  // .get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("attibutesEntity", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("attibutesEntity", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("entityentity")) {
-  // table2Update.put("basebase", bl.sheets.newGetEntEnt());
-  // ((HashMap<String, HashMap>) table2Update.get("basebase")).entrySet().stream().forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("basebase")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("basebase", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("basebase", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("validation")) {
-  // table2Update.put("validations", bl.sheets.newGetVal());
-  // ((HashMap<String, HashMap>) table2Update.get("validations")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("validations")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("validations", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("validations", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("question")) {
-  // table2Update.put("questions", bl.sheets.newGetQtn());
-  // ((HashMap<String, HashMap>) table2Update.get("questions")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("questions")).get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("questions", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("questions", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // if (tablesLC.contains("questionquestion")) {
-  // table2Update.put("questionQuestions", bl.sheets.newGetQueQue());
-  // ((HashMap<String, HashMap>) table2Update.get("questionQuestions")).entrySet().stream()
-  // .forEach(map -> {
-  // try {
-  // HashMap<String, HashMap> newMap =
-  // ((HashMap<String, HashMap>) saveProjectData.get("questionQuestions"))
-  // .get(map.getKey());
-  // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-  // merge.put("questionQuestions", map);
-  // }
-  // } catch (NullPointerException e) {
-  // merge.put("questionQuestions", map);
-  // }
-  // });
-  // System.out.println(merge);
-  // }
-  // }
 
   static Map<String, Object> merge = new HashMap<String, Object>();
 
@@ -648,31 +490,33 @@ public class Controller {
       merge = new HashMap<String, Object>();
     }
 
-    // if (tablesLC.matches(".*question(?!question).*")) {
-    // table2Update.put("questions", bl.sheets.newGetQtn());
-    // ((HashMap<String, HashMap>) table2Update.get("questions")).entrySet().stream()
-    // .forEach(map -> {
-    // try {
-    // HashMap<String, HashMap> newMap =
-    // ((HashMap<String, HashMap>) saveProjectData.get("questions")).get(map.getKey());
-    // if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
-    // merge.put(map.getKey(), map.getValue());
-    // ((HashMap<String, HashMap>) saveProjectData.get("questions")).put(map.getKey(),
-    // map.getValue());
-    // }
-    // } catch (NullPointerException e) {
-    // merge.put(map.getKey(), map.getValue());
-    // ((HashMap<String, HashMap>) saveProjectData.get("questions")).put(map.getKey(),
-    // map.getValue());
-    // }
-    // });
-    // new Controller();
-    // superMerge.put("questions", merge);
-    // if (!merge.isEmpty())
-    // // ctl.updateQuestions(bes, superMerge);
-    // System.out.println(merge);
-    // merge = new HashMap<String, Object>();
-    // }
+    if (tablesLC.contains("question")) {
+      table2Update.put("questions", bl.sheets.newGetQtn());
+      ((HashMap<String, HashMap>) table2Update.get("questions")).entrySet().stream()
+          .forEach(map -> {
+            try {
+              HashMap<String, HashMap> newMap =
+                  ((HashMap<String, HashMap>) saveProjectData.get("questions"))
+                      .get(map.getKey());
+              if (!newMap.entrySet().containsAll(map.getValue().entrySet())) {
+                merge.put(map.getKey(), map.getValue());
+                ((HashMap<String, HashMap>) saveProjectData.get("questions"))
+                    .put(map.getKey(), map.getValue());
+              }
+            } catch (NullPointerException e) {
+              merge.put(map.getKey(), map.getValue());
+              ((HashMap<String, HashMap>) saveProjectData.get("questions"))
+                  .put(map.getKey(), map.getValue());
+            }
+          });
+      Controller ctl = new Controller();
+      superMerge.put("questions", merge);
+      if (!merge.isEmpty())
+        ctl.updateQuestion(bes, superMerge);
+      System.out.println(merge);
+      merge = new HashMap<String, Object>();
+    }
+    
     if (tablesLC.contains("questionquestion")) {
       table2Update.put("questionQuestions", bl.sheets.newGetQueQue());
       ((HashMap<String, HashMap>) table2Update.get("questionQuestions")).entrySet().stream()
@@ -727,36 +571,4 @@ public class Controller {
 
     superMerge = new HashMap<String, Map<String, Object>>();
   }
-
-  // public static void updateInMemory(Object destination,Object origin) {
-  // Arrays.asList(origin.getClass().getMethods()).stream().forEach(arg -> {
-  // if (arg.getName().matches("^get.*") && arg.getParameterCount() == 0
-  // && !arg.getName().contains("getClass")) {
-  // System.out.println(arg.getName());
-  // try {
-  // System.out.println(arg.invoke(obj, null));
-  // } catch (IllegalAccessException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // } catch (IllegalArgumentException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // } catch (InvocationTargetException e) {
-  // // TODO Auto-generated catch block
-  // System.out.println("Do not Update");
-  // }
-  // }
-  // });;
-  // }
-
-  // public static void main(final String... strings) {
-  // new BaseEntity("GRP_VA", "base");
-
-  // String st = "questionquestion";
-  //
-  // System.out.println(st.matches("\\b((question){2})\\b"));
-  //
-  // System.out.println(st.matches("question(?!question)+"));
-
-  // }
 }
