@@ -76,6 +76,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataAttributeMessage;
+import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
@@ -604,6 +605,79 @@ public class QwandaEndpoint {
 			// Override returned parent code if it is supplied, otherwise use search BE code
 			String parentCode = searchBE.getCode();
 			Optional<EntityAttribute> parentAttribute = searchBE.findEntityAttribute("SCH_SOURCE_CODE");
+			if (parentAttribute.isPresent()) {
+				parentCode = parentAttribute.get().getValueString();
+			}
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
+			msg.setTotal(total);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
+		
+
+	}
+	
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search2")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE(final QSearchEntityMessage searchBE) {
+
+		Log.info("Search " + searchBE);
+		
+
+		// Force any user that is not admin to have to use their own code
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev")) || searchDevMode) {  // TODO Remove the true!
+			String stakeHolderCode = null;
+			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+
+			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
+			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE", "SourceStakeholderCode");
+			try {
+				
+				if(searchBE.getParent().containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
+					searchBE.getParent().addAttribute(sourceStakeHolderAttribute, new Double(1.0),
+							stakeHolderCode);
+				}else {
+					searchBE.getParent().addAttribute(stakeHolderAttribute, new Double(1.0),
+							stakeHolderCode);
+				}
+			
+			} catch (BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			// pass the stakeHolderCode through
+			
+		}
+		Long startTime = System.nanoTime();
+			List<BaseEntity> results = service.findBySearchBE(searchBE);
+			System.out.println("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+			Long total = -1L;
+ 
+			try {
+				total = service.findBySearchBECount(searchBE);
+				System.out.println("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				total = -1L;
+			}
+
+			BaseEntity[] beArr = null;
+			if (!((results==null)||(results.isEmpty()))) {
+				beArr = new BaseEntity[results.size()];
+				beArr = results.toArray(beArr);
+			} else {
+				beArr = new BaseEntity[0];
+				total = 0L;
+			}
+			
+			// Override returned parent code if it is supplied, otherwise use search BE code
+			String parentCode = searchBE.getParent().getCode();
+			Optional<EntityAttribute> parentAttribute = searchBE.getParent().findEntityAttribute("SCH_SOURCE_CODE");
 			if (parentAttribute.isPresent()) {
 				parentCode = parentAttribute.get().getValueString();
 			}
