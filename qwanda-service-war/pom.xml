@@ -32,7 +32,7 @@
         <rar.file.name>${rar.name}-${rar.version}.rar</rar.file.name>
         <vertx.version>3.5.1</vertx.version>
 
-		<qwanda-services.version>1.0.59</qwanda-services.version>
+		<qwanda-services.version>1.0.60</qwanda-services.version>
 
 		<version.org.wildfly>14.0.1.Final</version.org.wildfly>
 
@@ -180,7 +180,11 @@
 			<artifactId>wildfly-jsf</artifactId>
 			<version>${version.org.wildfly}</version>
 		</dependency>
-		
+	<dependency>
+    <groupId>javax.cache</groupId>
+    <artifactId>cache-api</artifactId>
+    <version>1.0.0-PFD</version>
+</dependency>	
 
         <!-->
 <dependency>
@@ -445,14 +449,8 @@
 			<artifactId>xnio-api</artifactId>
 			<version>3.5.4.Final</version>
 		</dependency>
-        <!-->
-<dependency>
-    <groupId>javax.cache</groupId>
-        <artifactId>cache-api</artifactId>
-            <version>${javax-cache.version}</version>
-            </dependency>
-        </!-->
-		<!-- https://mvnrepository.com/artifact/com.hazelcast/hazelcast-hibernate -->
+
+
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast-hibernate</artifactId>
