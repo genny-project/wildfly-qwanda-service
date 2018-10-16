@@ -32,7 +32,7 @@
         <rar.file.name>${rar.name}-${rar.version}.rar</rar.file.name>
         <vertx.version>3.5.1</vertx.version>
 
-		<qwanda-services.version>1.0.58</qwanda-services.version>
+		<qwanda-services.version>1.0.59</qwanda-services.version>
 
 		<version.org.wildfly>14.0.1.Final</version.org.wildfly>
 

@@ -287,8 +287,12 @@ public class QwandaEndpoint {
 //				}
 //
 //		}
+		try {
 		service.insert(entitys.getItems());
-		return Response.status(200).build();
+			return Response.status(200).build();
+		} catch (javax.persistence.NoResultException e) {
+			return Response.status(404).build();
+		}
 	}
 
 	@POST
