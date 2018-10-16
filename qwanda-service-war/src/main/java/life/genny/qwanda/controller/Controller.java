@@ -1,13 +1,17 @@
 package life.genny.qwanda.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.persistence.NoResultException;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.converter.StringListConverter;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -141,7 +145,7 @@ public class Controller {
   public void updateBaseBase(final Service service, final Map<String, Map<String, Object>> merge) {
     merge.get("basebase").entrySet().stream().map(entry -> entry.getValue()).forEach(record -> {
       Map<String, Object> item = (HashMap<String, Object>) record;
-      System.out.println("This has been updated" + item);
+      System.out.println("This is going to be updated" + item);
       String linkCode = ((String) item.get("linkCode"));
       String parentCode = ((String) item.get("parentCode"));
       String targetCode = ((String) item.get("targetCode"));
@@ -155,16 +159,15 @@ public class Controller {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
-
-        service.update(sbe);
+        service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
-      } catch (final BadDataException e) {
-        e.printStackTrace();
-      }
+        System.out.println("CODE NOT PRESENT IN LINKING: "+parentCode+":"+targetCode+":"+linkAttribute);
+    } catch (final BadDataException e) {
+      e.printStackTrace();
+    }
     });
   }
-
-
+  
   public void updateValidations(final Service service,
       final Map<String, Map<String, Object>> merge) {
     merge.get("validations").entrySet().stream().map(entry -> entry.getValue()).forEach(record -> {
@@ -176,25 +179,28 @@ public class Controller {
       String multiAllowedStr = ((String) item.get("multi_allowed"));
       Boolean recursive = getBooleanFromString(recursiveStr);
       Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
+      String selectionBaseEntityGroupString = ((String) item.get("group_codes"));
+      List<String> selectionBaseEntityGroupList = new ArrayList<String>();
+      if (selectionBaseEntityGroupString != null) {
+        selectionBaseEntityGroupList = new ArrayList<>(Arrays.asList(selectionBaseEntityGroupString.split(",")));
+      }
 
       Validation val = null;
-
       try {
         val = service.findValidationByCode(code);
-        val.setCode(code);
-        val.setName(name);
-        val.setRegex(regex);
-        val.setRecursiveGroup(recursive);
-        val.setMultiAllowed(multiAllowed);
-        service.update(val);
-      } catch (final NoResultException e) {
-        if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
-          System.out.println("fsdfsdfs12fsd2d");
-        } else {
-          val = new Validation(code, name, regex);
+        if (val != null) {
+          val.setCode(code);
+          val.setName(name);
+          val.setRegex(regex);
+          val.setRecursiveGroup(recursive);
+          val.setMultiAllowed(multiAllowed);
+          val.setSelectionBaseEntityGroupList(selectionBaseEntityGroupList);
         }
-        service.insert(val);
+      } catch(final NoResultException e) {
+        val = new Validation(code, name, selectionBaseEntityGroupList, recursive, multiAllowed);
+        val.setRegex(regex);
       }
+      service.upsert(val);
     });
   }
   
@@ -259,31 +265,38 @@ public class Controller {
     merge.get("messages").entrySet().stream().map(entry -> entry.getValue()).forEach(record -> {
       Map<String, Object> template = (HashMap<String, Object>) record;
       String code = (String) template.get("code");
+      String name = (String) template.get("name");
       String description = (String) template.get("description");
       String subject = (String) template.get("subject");
       String emailTemplateDocId = (String) template.get("email");
       String smsTemplate = (String) template.get("sms");
+      String toastTemplate = (String) template.get("toast");
       QBaseMSGMessageTemplate templateObj;
       try {
         templateObj = service.findTemplateByCode(code);
-        templateObj.setCode(code);
-        templateObj.setCreated(LocalDateTime.now());
-        templateObj.setDescription(description);
-        templateObj.setEmail_templateId(emailTemplateDocId);
-        templateObj.setSms_template(smsTemplate);
-        templateObj.setSubject(subject);
-        service.update(templateObj);
-      } catch (NoResultException e) {
+        if(templateObj != null) {
+          templateObj.setCode(code);
+          templateObj.setName(name);
+          templateObj.setCreated(LocalDateTime.now());
+          templateObj.setDescription(description);
+          templateObj.setEmail_templateId(emailTemplateDocId);
+          templateObj.setSms_template(smsTemplate);
+          templateObj.setSubject(subject);
+          templateObj.setToast_template(toastTemplate);
+          service.update(templateObj);
+        } 
+      }catch(final NoResultException e) {
         templateObj = new QBaseMSGMessageTemplate();
         templateObj.setCode(code);
+        templateObj.setName(name);
         templateObj.setCreated(LocalDateTime.now());
         templateObj.setDescription(description);
         templateObj.setEmail_templateId(emailTemplateDocId);
         templateObj.setSms_template(smsTemplate);
         templateObj.setSubject(subject);
+        templateObj.setToast_template(toastTemplate);
         service.insert(templateObj);
       }
-
     });
   }
 
