@@ -29,14 +29,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.json.JSONObject;
-import org.keycloak.representations.AccessTokenResponse;
 import org.mortbay.log.Log;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -50,22 +48,12 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.GPS;
-import life.genny.qwanda.GPSLocation;
-import life.genny.qwanda.GPSRoute;
-import life.genny.qwanda.GPSRouteStatus;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeBoolean;
-import life.genny.qwanda.attribute.AttributeDate;
-import life.genny.qwanda.attribute.AttributeDateTime;
-import life.genny.qwanda.attribute.AttributeDouble;
 import life.genny.qwanda.attribute.AttributeInteger;
-import life.genny.qwanda.attribute.AttributeLong;
-import life.genny.qwanda.attribute.AttributeMoney;
 import life.genny.qwanda.attribute.AttributeText;
-import life.genny.qwanda.attribute.AttributeTime;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
@@ -82,10 +70,8 @@ import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
-import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
-import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
 
@@ -231,7 +217,6 @@ public class QwandaEndpoint {
 		final QuestionSourceTarget defaultQST = msg.getRootQST();
 		Question rootQuestion = service.findQuestionByCode(msg.getRootQST().getQuestionCode());
 		asks = service.findAsksUsingQuestionSourceTarget(rootQuestion, msg.getItems(), defaultQST);
-		// asks = service.createAsksByQuestionCode2(questionSourceTargetArray);
 		log.debug("Number of asks=" + asks.size());
 		log.debug("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
@@ -255,38 +240,6 @@ public class QwandaEndpoint {
 
 	public Response createBulk2(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//					if (attribute==null) {
-//						throw new NoResultException();
-//					}
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					String name = entity.getAttributeCode().substring(4).toLowerCase();
-//					name = name.replaceAll("_", " ");
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(name));
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("attribute is null ");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//
-//				entity.setAttribute(attribute);
-//				}
-//
-//		}
 		try {
 		service.insert(entitys.getItems());
 			return Response.status(200).build();
@@ -301,93 +254,7 @@ public class QwandaEndpoint {
 
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//			if (entity.getAttribute() == null) {
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
-//						attribute = new AttributeBoolean(entity.getAttributeCode(),
-//								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//					} else {
-//						if (entity.getDataType()!=null) {
-//							switch (entity.getDataType()) {
-//							case "java.lang.Integer":
-//							case "Integer":
-//								attribute = new AttributeInteger(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.time.LocalDateTime":
-//							case "LocalDateTime":
-//								attribute = new AttributeDateTime(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.lang.Long":
-//							case "Long":
-//								attribute = new AttributeLong(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.time.LocalTime":
-//							case "LocalTime":
-//								attribute = new AttributeTime(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "org.javamoney.moneta.Money":
-//							case "Money":
-//								attribute = new AttributeMoney(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.lang.Double":
-//							case "Double":
-//								attribute = new AttributeDouble(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.lang.Boolean":
-//								attribute = new AttributeBoolean(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.time.LocalDate":
-//								attribute = new AttributeDate(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//
-//							case "java.lang.String":
-//							default:
-//								attribute = new AttributeText(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							}						
-//							} else {
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//					}}
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("Attribute is null");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//					entity.setAttribute(attribute);
-//				}
-//			}
-			service.insert(entitys.getItems());
-	//	}
-
+		service.insert(entitys.getItems());
 		return Response.status(200).build();
 	}
 
@@ -440,7 +307,6 @@ public class QwandaEndpoint {
 			try {
 				searchBE.setValue(attributeInteger, Integer.decode(pageStartStr));
 			} catch (NumberFormatException | BadDataException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			qparams.remove("pageStart");
@@ -450,7 +316,6 @@ public class QwandaEndpoint {
 			try {
 				searchBE.setValue(attributeInteger, Integer.decode(pageSizeStr));
 			} catch (NumberFormatException | BadDataException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			qparams.remove("pageSize");
@@ -462,7 +327,6 @@ public class QwandaEndpoint {
 		try {
 			total = service.findBySearchBECount(searchBE);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			total = -1L;
 		}
 
@@ -571,7 +435,6 @@ public class QwandaEndpoint {
 				}
 			
 			} catch (BadDataException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
@@ -588,7 +451,6 @@ public class QwandaEndpoint {
 				System.out.println("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				total = -1L;
 			}
 
@@ -662,7 +524,7 @@ public class QwandaEndpoint {
 	
 	@GET
 	@Path("/attributes/{code}")
-	public Response fetchAttribute(@PathParam("attributeCode") final String attributeCode) {
+	public Response fetchAttribute(@PathParam("code") final String attributeCode) {
 		final Attribute attribute = service.findAttributeByCode(attributeCode);
 		Attribute[] atArr = new Attribute[1];
 		atArr[0] = attribute;
@@ -692,7 +554,6 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/asks")
-	// @RolesAllowed("admin")
 	public Response fetchAsks() {
 		final List<Ask> entitys = service.findAsksWithQuestions();
 		return Response.status(200).entity(entitys).build();
@@ -707,7 +568,6 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(qasks).build();
 	}
 
-	// TODO: This should be deprecated
 	@GET
 	@Path("/asksmsg/{questionCode}")
 	@Transactional
@@ -877,7 +737,6 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	public Response getTargets(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
-	//	log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
@@ -910,13 +769,11 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
-		//log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = -1L;
 
 		try {
 			total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			total = -1L;
 		}
 
@@ -935,7 +792,6 @@ public class QwandaEndpoint {
 	public Response getTargetsUsingLinkValue(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
-		//log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
@@ -968,13 +824,11 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
-		//log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = -1L;
 
 		try {
 			total = service.findChildrenByLinkValueCount(sourceCode, linkCode, linkValue, qparams);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			total = -1L;
 		}
 
@@ -993,7 +847,6 @@ public class QwandaEndpoint {
 	public Response getTargetsUsingLinkValueWithAttributes(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
-		//log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = true;
@@ -1026,13 +879,11 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
-		//log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = -1L;
 
 		try {
 			total = service.findChildrenByLinkValueCount(sourceCode, linkCode, linkValue, qparams);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			total = -1L;
 		}
 
@@ -1051,13 +902,6 @@ public class QwandaEndpoint {
 	public Response getTargetsWithAttributes(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
 		String stakeholderCode = null;
-//		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-//				|| securityService.inRole("dev"))) {
-//			// stakeholderCode = "PER_" + ((String)
-//			// securityService.getUserMap().get("username")).toUpperCase();
-//			stakeholderCode = "PER_" + QwandaUtils
-//					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
-//		}
 
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
@@ -1080,16 +924,10 @@ public class QwandaEndpoint {
 		}
 		if (levelStr != null) {
 			level = Integer.decode(levelStr);
-			// params.remove("level");
 		}
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
 				pageSize, level, qparams,stakeholderCode);
 
-		// for (final BaseEntity be : targets) {
-		// log.info("\n" + be.getCode() + " + attributes");
-		// be.getBaseEntityAttributes().stream().forEach(p ->
-		// log.debug(p.getAttributeCode()));
-		// }
 
 		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams,stakeholderCode);
 
@@ -1130,15 +968,12 @@ public class QwandaEndpoint {
 		}
 		if (levelStr != null) {
 			level = Integer.decode(levelStr);
-			// params.remove("level");
 		}
 
 		// Force any user that is not admin to have to use their own code
 
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev"))) {
-			// stakeholderCode = "PER_" + ((String)
-			// securityService.getUserMap().get("username")).toUpperCase();
 			stakeholderCode = "PER_" + QwandaUtils
 					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 		}
@@ -1163,16 +998,11 @@ public class QwandaEndpoint {
 	    	 searchBE.setStakeholder(stakeholderCode);
 	     }
 	     
-	//     List<BaseEntity> targets = service.findBySearchBE(searchBE);
 	     
 
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
 				pageSize, level, qparams, stakeholderCode);
 
-//		for (final BaseEntity be : targets) {
-//			log.info("\n" + be.getCode() + " + attributes");
-//			be.getBaseEntityAttributes().stream().forEach(p -> log.debug(p.getAttributeCode()));
-//		}
 
 		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams); // TODO add stakeholder
 																								// filtering
@@ -1216,10 +1046,8 @@ public class QwandaEndpoint {
 		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
 
 		String json = JsonUtils.toJson(msg);
-		// log.debug("BE:" + json);
 		return Response.status(200).entity(json).build();
 
-		// return Response.status(200).entity(msg).build();
 
 	}
 
@@ -1234,10 +1062,7 @@ public class QwandaEndpoint {
 			@QueryParam("max") final Integer max,
 			@DefaultValue("GRP_USERS") @QueryParam("parentgroups") final String parentGroupCodes) {
 		log.error("IMPORT KEYCLOAK DISABLED IN CODE");
-		Long usersAddedCount = 0L; // service.importKeycloakUsers(keycloakUrl,
-									// realm, username,
-									// password, clientId,
-									// max, parentGroupCodes);
+		Long usersAddedCount = 0L; 
 		return Response.status(200).entity(usersAddedCount).build();
 	}
 
@@ -1261,9 +1086,6 @@ public class QwandaEndpoint {
 				// convert the uploaded file to inputstream
 				final InputStream inputStream = inputPart.getBody(InputStream.class, null);
 
-				// byte[] bytes = IOUtils.toByteArray(inputStream);
-				// constructs upload file path
-				// writeFile(bytes, fileName);
 				service.importBaseEntitys(inputStream, fileName);
 
 				return Response.status(200).entity("Imported file name : " + fileName).build();
@@ -1448,7 +1270,6 @@ public class QwandaEndpoint {
 			newEntityEntity = service.addLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 					ee.getLinkValue(), ee.getWeight());
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return Response
@@ -1484,7 +1305,6 @@ public class QwandaEndpoint {
 		Link newEntityEntity = service.moveLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 				targetCode);
 		if (newEntityEntity != null) {
-			// TODO: This is a terrible hack.but logically will work
 			newEntityEntity.setAttributeCode(ee.getAttributeCode());
 			newEntityEntity.setSourceCode(targetCode);
 			newEntityEntity.setTargetCode(ee.getTargetCode());
@@ -1493,10 +1313,8 @@ public class QwandaEndpoint {
 				try {
 					service.updateLink(newEntityEntity);
 				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (BadDataException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1662,16 +1480,36 @@ public class QwandaEndpoint {
 
 	Controller ctl = new Controller();
 
+	/**
+     * Since default timeout is set to 30 seconds, calling apiGet method with timeout of 120 seconds.
+     * @param table
+     * @return response of the synchronization
+     */
 	@GET
-	@Path("/synchronize/{sheetId}/{tables}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
-			@PathParam("tables") final String tables) {
-		String response = "Success";
-		ctl.getProject(service, sheetId, tables);
-		return Response.status(200).entity(response).build();
-	}
+    @Path("/synchronize/{table}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronize(@PathParam("table") final String table) {
+     
+      String response = "Failed";
+      
+      try {
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 120);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      
+      return Response.status(200).entity(response).build();
+    }
+    /**
+     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+    @GET
+    @Path("/synchronizesheet/{table}")
+    public String startSynchronisation(@PathParam("table") final String table) {
+       return service.synchronizeSheetsToDataBase(table);
+    }
 
 	@GET
 	@Path("/templates/{templateCode}")
