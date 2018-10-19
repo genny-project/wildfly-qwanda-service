@@ -15,7 +15,6 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 
@@ -40,6 +39,7 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.services.BatchLoading;
 
 @RequestScoped
 
@@ -499,5 +499,15 @@ public class Service extends BaseEntityService2 {
 		}
 
 		return keycloakurl;
+	}
+	
+	@Transactional
+	public String synchronizeSheetsToDataBase(String table) {
+	  if(table == null || table.isEmpty()) {
+	    return "Table name can not be empty!!!";
+	  }
+	  BatchLoading bl = new BatchLoading(this);
+	  bl.persistProject(true, table.toLowerCase());
+	  return "Success";
 	}
 }

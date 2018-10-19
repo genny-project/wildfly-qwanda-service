@@ -62,7 +62,7 @@ public class StartupService {
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
 			System.out.println("Starting Transaction for loading");
 			BatchLoading bl = new BatchLoading(service);
-			bl.persistProject();
+			bl.persistProject(false, null);
 			System.out.println("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			System.out.println("Skipping Google doc loading");
