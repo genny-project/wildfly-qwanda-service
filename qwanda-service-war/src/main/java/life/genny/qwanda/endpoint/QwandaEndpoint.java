@@ -1493,7 +1493,7 @@ public class QwandaEndpoint {
       String response = "Failed";
       
       try {
-        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 120);
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
       } catch (Exception e) {
         e.printStackTrace();
       }
