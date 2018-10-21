@@ -56,12 +56,12 @@
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<version.jboss.bom>13.0.0.Final</version.jboss.bom>
-		<drools.version>6.4.0.Final</drools.version>
-		<jbpm.version>6.4.0.Final</jbpm.version>
+		<drools.version>7.1.0.Final</drools.version>
+		<jbpm.version>7.1.0.Final</jbpm.version>
 		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
 		<keycloak-adapter-core.version>3.4.0.Final</keycloak-adapter-core.version>
 
-		<version.ee7>1.0.2.Final</version.ee7>
+		<version.ee8>1.0.1.Final</version.ee8>
 		<version.resteasy>3.0.10.Final</version.resteasy>
 		<version.slf4j>1.7.21</version.slf4j>
 		<version.swagger>1.5.16</version.swagger>
@@ -210,7 +210,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.7</version>
+			<version>3.8.1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.google.gdata/core -->
@@ -259,7 +259,7 @@
 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-api</artifactId>
-			<version>7.0</version>
+			<version>8.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-validator-provider-11 -->
@@ -373,9 +373,9 @@
 
 		<dependency>
 			<groupId>org.jboss.spec</groupId>
-			<artifactId>jboss-javaee-7.0</artifactId>
+			<artifactId>jboss-javaee-8.0</artifactId>
 			<type>pom</type>
-			<version>${version.ee7}</version>
+			<version>${version.ee8}</version>
 			<scope>provided</scope>
 		</dependency>
 
