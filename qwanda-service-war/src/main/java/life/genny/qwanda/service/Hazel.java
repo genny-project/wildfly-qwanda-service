@@ -45,7 +45,8 @@ public class Hazel {
     cfg.getGroupConfig().setPassword(GennySettings.username);
  
 
-    cfg.setInstanceName("qwanda-service")
+    cfg
+   // .setInstanceName("qwanda-service")
     .setProperty("hazelcast.logging.type", "slf4j")
     .setProperty("hazelcast.http.healthcheck.enabled", "false")
     .setProperty("hazelcast.health.monitoring.level", "OFF")

@@ -40,6 +40,11 @@ import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
+import life.genny.utils.VertxUtils;
+
+import life.genny.eventbus.EventBusInterface;
+import io.vertx.resourceadapter.examples.mdb.EventBusBean;
+import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 
 @RequestScoped
 
@@ -76,10 +81,22 @@ public class Service extends BaseEntityService2 {
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 	
 	String token="DUMMY";
+	
+
+
+	@Inject
+	EventBusBean eventBus;
+	
+	//@Inject
+	WildflyCache cacheInterface;
+
 
 	@PostConstruct
 	public void init() {
+		cacheInterface = new WildflyCache(inDB);
 		
+		VertxUtils.init(eventBus,cacheInterface);
+
 	}
 	
 	public void initServiceToken() {

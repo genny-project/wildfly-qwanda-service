@@ -33,6 +33,8 @@
 		<vertx.version>3.5.1</vertx.version>
 
 		<qwanda-services.version>1.0.62</qwanda-services.version>
+		<genny-verticle.version>1.0.62</genny-verticle.version>
+		
 
 		<version.org.wildfly>14.0.1.Final</version.org.wildfly>
 
@@ -70,7 +72,7 @@
 		<version.junit>4.12</version.junit>
 
 		<hazelcast.version>3.8.2</hazelcast.version>
-		<javax-cache.version>1.1.0</javax-cache.version>
+		<javax-cache.version>1.0.0-PFD</javax-cache.version>
 	</properties>
 
 	<repositories>
@@ -184,14 +186,34 @@
 			</exclusions>
 		</dependency>
 
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>genny-verticle</artifactId>
+			<version>${genny-verticle.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.hazelcast</groupId>
+					<artifactId>hazelcast</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.vertx</groupId>
+					<artifactId>vertx-hazelcast</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.hazelcast</groupId>
+					<artifactId>hazelcast-client</artifactId>
+				</exclusion>
+			</exclusions>
+
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jsf -->
 		<dependency>
 			<groupId>org.wildfly</groupId>
 			<artifactId>wildfly-jsf</artifactId>
 			<version>${version.org.wildfly}</version>
 		</dependency>
-		<!-- <dependency> <groupId>javax.cache</groupId> <artifactId>cache-api</artifactId> 
-			<version>${javax-cache.version}</version> </dependency> -->
+		<dependency> <groupId>javax.cache</groupId> <artifactId>cache-api</artifactId> 
+			<version>${javax-cache.version}</version> </dependency> 
 		<!--> <dependency> <groupId>com.hazelcast</groupId> <artifactId>hazelcast</artifactId> 
 			<version>${hazelcast.version}</version> </dependency> <dependency> <groupId>com.hazelcast</groupId> 
 			<artifactId>hazelcast-client</artifactId> <version>${hazelcast.version}</version> 
