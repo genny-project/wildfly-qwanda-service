@@ -139,10 +139,6 @@
 			<artifactId>jboss-ejb3-ext-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-jca-adapter</artifactId>
 			<version>${vertx.version}</version>

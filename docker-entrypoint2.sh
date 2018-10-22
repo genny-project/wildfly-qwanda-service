@@ -57,10 +57,10 @@ rm -Rf /opt/jboss/wildfly/data/*
 if [[ $DEBUG == "TRUE" ]]; then
    echo "Remote Debug on port 8787 True";
    export JAVA_OPTS="${JAVA_OPTS}   -agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=${DEBUG_SUSPEND:=n}  -Drebel.remoting_plugin=true "
-   /opt/jboss/wildfly/bin/standalone.sh --debug  -Djboss.bind.address.private=$myip  -bmanagement=0.0.0.0 -b 0.0.0.0 -Dadmin.username=${ADMIN_USERNAME} -Dadmin.password=${ADMIN_PASSWORD} -Dpublic.host=${myip}  -DHIBERNATE_SHOW_SQL=${HIBERNATE_SHOW_SQL:=false} -DHIBERNATE_HBM2DDL=$HIBERNATE_HBM2DDL -DMYSQL_USER=$MYSQL_USER -DMYSQL_PASSWORD=$MYSQL_PASSWORD -Djava.security.auth.login.config=''  -b 0.0.0.0 -Dresteasy.preferJacksonOverJsonB -Djboss.tx.node.id=${hostname}  -Dhazelcast.health.monitoring.level=OFF
+   /opt/jboss/wildfly/bin/standalone.sh --debug  -Djboss.bind.address.private=$myip  -bmanagement=0.0.0.0 -b 0.0.0.0 -Dadmin.username=${ADMIN_USERNAME} -Dadmin.password=${ADMIN_PASSWORD} -Dpublic.host=${myip}  -DHIBERNATE_SHOW_SQL=${HIBERNATE_SHOW_SQL:=false} -DHIBERNATE_HBM2DDL=$HIBERNATE_HBM2DDL -DMYSQL_USER=$MYSQL_USER -DMYSQL_PASSWORD=$MYSQLA_PASSWORD -Djava.security.auth.login.config=''  -b 0.0.0.0 -Dresteasy.preferJacksonOverJsonB -Djboss.tx.node.id=${hostname}  -Dhazelcast.health.monitoring.level=OFF -Dhazelcast.http.healthcheck.enabled=false
 #--server-config=standalone-full-ha.xml
 else
    echo "Debug is False";
-   /opt/jboss/wildfly/bin/standalone.sh -Djboss.bind.address.private=$myip  -bmanagement=0.0.0.0 -b 0.0.0.0 -Dadmin.username=${ADMIN_USERNAME} -Dadmin.password=${ADMIN_PASSWORD} -Dpublic.host=${myip}  -Dresteasy.preferJacksonOverJsonB  -Djboss.tx.node.id=${hostname} -Dhazelcast.health.monitoring.level=OFF
+   /opt/jboss/wildfly/bin/standalone.sh -Djboss.bind.address.private=$myip  -bmanagement=0.0.0.0 -b 0.0.0.0 -Dadmin.username=${ADMIN_USERNAME} -Dadmin.password=${ADMIN_PASSWORD} -Dpublic.host=${myip}  -Dresteasy.preferJacksonOverJsonB  -Djboss.tx.node.id=${hostname} -Dhazelcast.health.monitoring.level=OFF -Dhazelcast.http.healthcheck.enabled=false 
  #  -DHIBERNATE_SHOW_SQL=$HIBERNATE_SHOW_SQL -DHIBERNATE_HBM2DDL=$HIBERNATE_HBM2DDL -DMYSQL_USER=$MYSQL_USER -DMYSQL_PASSWORD=$MYSQL_PASSWORD -Djava.security.auth.login.config=''
 fi
