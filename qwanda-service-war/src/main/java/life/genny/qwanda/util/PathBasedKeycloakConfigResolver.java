@@ -90,6 +90,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		}
 
 		// don't bother showing Docker health checks
+		try {
 		if (!request.getURI().equals("http://localhost:8080/version")) {
 			String logtext = ">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
 			+ ":" + request.getRemoteAddr();
@@ -97,6 +98,9 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				log.debug(logtext);
 				lastlog = logtext;
 			}
+		}
+		} catch (Exception e) {
+			
 		}
 
 		KeycloakDeployment deployment = cache.get(realm);

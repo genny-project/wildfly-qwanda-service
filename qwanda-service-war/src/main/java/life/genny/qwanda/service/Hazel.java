@@ -13,7 +13,9 @@ import com.hazelcast.core.IMap;
 
 import life.genny.qwandautils.GennySettings;
 
-@Singleton
+import javax.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
 public class Hazel {
 
 	 HazelcastInstance instance;
@@ -43,14 +45,6 @@ public class Hazel {
     Config cfg = new Config();
     cfg.getGroupConfig().setName(GennySettings.username);
     cfg.getGroupConfig().setPassword(GennySettings.username);
- 
-
-    cfg
-   // .setInstanceName("qwanda-service")
-    .setProperty("hazelcast.logging.type", "slf4j")
-    .setProperty("hazelcast.http.healthcheck.enabled", "false")
-    .setProperty("hazelcast.health.monitoring.level", "OFF")
-    .setProperty("hazelcast.max.no.heartbeat.seconds", "300");
 
     instance = Hazelcast.newHazelcastInstance(cfg);
     mapBaseEntitys = instance.getMap(GennySettings.mainrealm); // To fix

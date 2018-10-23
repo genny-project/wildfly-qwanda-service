@@ -10,9 +10,10 @@ import io.vertx.resourceadapter.*;
 import life.genny.channel.Producer;
 import life.genny.eventbus.EventBusInterface;
 import life.genny.qwanda.entity.BaseEntity;
+import javax.enterprise.context.ApplicationScoped;
 
 
-
+@ApplicationScoped
 public class EventBusBean implements EventBusInterface {
 
   private Logger logger = Logger.getLogger(EventBusBean.class.getName());

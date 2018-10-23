@@ -87,14 +87,13 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	EventBusBean eventBus;
 	
-	//@Inject
+
 	WildflyCache cacheInterface;
 
 
 	@PostConstruct
 	public void init() {
 		cacheInterface = new WildflyCache(inDB);
-		
 		VertxUtils.init(eventBus,cacheInterface);
 
 	}

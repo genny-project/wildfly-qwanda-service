@@ -2,6 +2,7 @@ package io.vertx.resourceadapter.examples.mdb;
 
 
 import java.util.concurrent.TimeUnit;
+import javax.enterprise.context.ApplicationScoped;
 
 import javax.inject.Inject;
 
@@ -10,6 +11,7 @@ import life.genny.qwanda.service.Hazel;
 import life.genny.qwandautils.GennyCacheInterface;
 import life.genny.qwandautils.GennySettings;
 
+@ApplicationScoped
 public class WildflyCache implements GennyCacheInterface {
 	
 	Hazel inDb;
@@ -17,7 +19,6 @@ public class WildflyCache implements GennyCacheInterface {
 	public WildflyCache(Hazel inDb)
 	{
 		this.inDb = inDb;
-		inDb.init();
 		
 	}
 

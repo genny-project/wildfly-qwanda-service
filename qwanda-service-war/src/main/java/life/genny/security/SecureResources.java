@@ -13,6 +13,7 @@ import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 
 import life.genny.qwandautils.GennySettings;
+import javax.annotation.PostConstruct;
 
 @ApplicationScoped
 public class SecureResources {
