@@ -36,7 +36,8 @@ while IFS=$': \t' read -a line ;do
         [ "${ip#127.0.0.1}" ] && myip=$ip
   done< <(LANG=C /sbin/ifconfig eth0)
 
-export IPMY=$myip
+#export IPMY=$myip
+export MYIP=`ip a | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | grep -v 127.0.0.1 | grep -v 0.0.0.0 | head -n 1`
 
 
 if [ $ADMIN_USERNAME ] && [ $ADMIN_PASSWORD ]; then
