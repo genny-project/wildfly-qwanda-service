@@ -13,7 +13,9 @@ import com.hazelcast.core.IMap;
 
 import life.genny.qwandautils.GennySettings;
 
-@Singleton
+import javax.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
 public class Hazel {
 
 	 HazelcastInstance instance;

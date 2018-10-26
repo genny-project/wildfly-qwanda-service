@@ -15,7 +15,6 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 
@@ -40,6 +39,12 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.services.BatchLoading;
+import life.genny.utils.VertxUtils;
+
+import life.genny.eventbus.EventBusInterface;
+import io.vertx.resourceadapter.examples.mdb.EventBusBean;
+import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 
 @RequestScoped
 
@@ -76,10 +81,21 @@ public class Service extends BaseEntityService2 {
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 	
 	String token="DUMMY";
+	
+
+
+	@Inject
+	EventBusBean eventBus;
+	
+
+	WildflyCache cacheInterface;
+
 
 	@PostConstruct
 	public void init() {
-		
+		cacheInterface = new WildflyCache(inDB);
+		VertxUtils.init(eventBus,cacheInterface);
+
 	}
 	
 	public void initServiceToken() {
@@ -499,5 +515,15 @@ public class Service extends BaseEntityService2 {
 		}
 
 		return keycloakurl;
+	}
+	
+	@Transactional
+	public String synchronizeSheetsToDataBase(String table) {
+	  if(table == null || table.isEmpty()) {
+	    return "Table name can not be empty!!!";
+	  }
+	  BatchLoading bl = new BatchLoading(this);
+	  bl.persistProject(true, table.toLowerCase());
+	  return "Success";
 	}
 }
