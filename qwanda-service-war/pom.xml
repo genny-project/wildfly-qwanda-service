@@ -32,8 +32,8 @@
 		<rar.file.name>${rar.name}-${rar.version}.rar</rar.file.name>
 		<vertx.version>3.5.1</vertx.version>
 
-		<qwanda-services.version>1.0.62</qwanda-services.version>
-		<genny-verticle.version>1.0.62</genny-verticle.version>
+		<qwanda-services.version>1.0.59</qwanda-services.version>
+		<genny-verticle.version>1.0.59</genny-verticle.version>
 		
 
 		<version.org.wildfly>14.0.1.Final</version.org.wildfly>
