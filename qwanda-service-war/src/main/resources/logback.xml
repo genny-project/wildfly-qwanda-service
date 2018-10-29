@@ -1,25 +1,40 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
 
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
-    
-    <logger category="com.hazelcast.nio.serialization.HazelcastSerializationException">
-    		<level name="ERROR"/>
-    </logger>
-	
-	   <logger category="com.hazelcast.internal.diagnostics.HealthMonitor">
-    	<level name="ERROR"/>
-    </logger>
-    
-    <logger name="io.netty.handler.codec.http.websocketx.WebSocket08FrameDecoder" level="WARN"/>
-    <logger name="com.hazelcast.internal.diagnostics.HealthMonitor" level="ERROR" />
-    <logger name="com.hazelcast.internal.diagnostics" level="SEVERE"/>
+ <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+		<Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} %-5level %logger{36} - %msg%n
+                </Pattern>
+	</encoder>
+ </appender>
+
+ <appender name="FILE"
+	class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<file>/users/jayavaniswaminathan/projects/genny/wildfly-qwanda-service/logback.log</file>
+	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+	   <Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+           </Pattern>
+	</encoder>
+
+	<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+		<FileNamePattern>/users/jayavaniswaminathan/projects/genny/wildfly-qwanda-service/logback.log</FileNamePattern>
+		<MinIndex>1</MinIndex>
+		<MaxIndex>10</MaxIndex>
+	</rollingPolicy>
+
+	<triggeringPolicy
+		class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+		<MaxFileSize>5MB</MaxFileSize>
+	</triggeringPolicy>
+
+  </appender>
+
+  <logger name="org.hibernate.event.internal.DefaultPersistEventListener" level="TRACE" />
+	<logger name="org.hibernate.event.internal.AbstractFlushingEventListener" level="TRACE" />
+
+  <root level="INFO">
+	<appender-ref ref="FILE" />
+	<appender-ref ref="STDOUT" />
+  </root>
+
 </configuration>
-

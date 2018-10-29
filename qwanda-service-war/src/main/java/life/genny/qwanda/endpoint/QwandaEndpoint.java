@@ -662,7 +662,7 @@ public class QwandaEndpoint {
 	
 	@GET
 	@Path("/attributes/{code}")
-	public Response fetchAttribute(@PathParam("attributeCode") final String attributeCode) {
+	public Response fetchAttribute(@PathParam("code") final String attributeCode) {
 		final Attribute attribute = service.findAttributeByCode(attributeCode);
 		Attribute[] atArr = new Attribute[1];
 		atArr[0] = attribute;
@@ -1663,15 +1663,31 @@ public class QwandaEndpoint {
 	Controller ctl = new Controller();
 
 	@GET
-	@Path("/synchronize/{sheetId}/{tables}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
-			@PathParam("tables") final String tables) {
-		String response = "Success";
-		ctl.getProject(service, sheetId, tables);
-		return Response.status(200).entity(response).build();
-	}
+    @Path("/synchronize/{table}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronize(@PathParam("table") final String table) {
+     
+      String response = "Failed";
+      
+      try {
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      
+      return Response.status(200).entity(response).build();
+    }
+    /**
+     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+    @GET
+    @Path("/synchronizesheet/{table}")
+    public String startSynchronisation(@PathParam("table") final String table) {
+       ctl.synchronizeSheetsToDataBase(service, table);
+       return "Success";
+    }
 
 	@GET
 	@Path("/templates/{templateCode}")

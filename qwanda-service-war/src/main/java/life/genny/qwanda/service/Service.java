@@ -216,7 +216,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	protected EntityManager getEntityManager() {
+  public EntityManager getEntityManager() {
 		return helper.getEntityManager();
 	}
 

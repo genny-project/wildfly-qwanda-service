@@ -9,13 +9,18 @@
 			<PatternLayout
 				pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
-
+		<File name="FILE" fileName="/users/jayavaniswaminathan/projects/genny/wildfly-qwanda-service/hibernate.log">
+      		<PatternLayout pattern="%d{yyyy-MMM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n" />
+   		</File>
 
 	</Appenders>
 
 	<Loggers>
-		<Root level="INFO">
-			<AppenderRef ref="STDOUT" />
+		<logger name="org.hibernate" level="ALL">
+			<AppenderRef ref="FILE" />
+		</logger>
+		<Root level="DEBUG">
+			<AppenderRef ref="FILE" />
 		</Root>
 		<Logger name="com.hazelcast.internal.diagnostics.HealthMonitor"
 			level="ERROR" additivity="false">
@@ -29,7 +34,6 @@
 		<Logger name="life.genny" level="INFO" additivity="false">
 			<AppenderRef ref="STDOUT" />
 		</Logger>
-
 
 	</Loggers>
 </Configuration>
