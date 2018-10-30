@@ -160,10 +160,6 @@ public class Controller {
                 e.printStackTrace();
               }
             });
-    
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
-    List<BaseEntity> baseEntitys = service.findChildrenByAttributeLink("SEL_TEST301", "LNK_APP", false, 0, 10, 2, params);
-    System.out.println("After Removal: " + baseEntitys.contains(service.findBaseEntityByCode("PER_USER1")));
   }
 
   public void updateValidation(
@@ -230,8 +226,7 @@ public class Controller {
               String targetCode = ((String) item.get("targetCode"));
 
               try {
-                QuestionQuestion qq = service.findQuestionQuestionByCode(parentCode, targetCode);
-                service.removeQuestionQuestion(qq);
+                service.removeQuestionQuestion(parentCode, targetCode);
                 System.out.println("Successfully removed question questions");
               } catch (final NoResultException e) {
                 e.printStackTrace();
