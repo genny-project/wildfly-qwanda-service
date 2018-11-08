@@ -40,6 +40,7 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.services.BatchLoading;
 
 @RequestScoped
 
@@ -499,5 +500,11 @@ public class Service extends BaseEntityService2 {
 		}
 
 		return keycloakurl;
+	}
+	
+	@Transactional
+	public void synchronizeSheetsToDataBase(String table) {
+	  BatchLoading bl = new BatchLoading(this);
+	  bl.persistProject(true, table, false);
 	}
 }

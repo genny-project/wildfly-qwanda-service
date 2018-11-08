@@ -268,7 +268,7 @@ public class Controller {
     Map<String, Map<String, Object>> superMerge = new HashMap<String, Map<String, Object>>();
 
     if (tablesLC.equalsIgnoreCase("baseentity")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("baseEntitys")).entrySet().iterator();
 
@@ -290,7 +290,7 @@ public class Controller {
     }
     
     else if (tablesLC.equalsIgnoreCase("attributelink")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
 
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("attributeLink")).entrySet().iterator();
@@ -306,12 +306,14 @@ public class Controller {
       }
       superMerge.put("attributeLink", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateAttributeLink(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateAttributeLink(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
     
     else if (tablesLC.equalsIgnoreCase("entityattribute")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("attibutesEntity")).entrySet().iterator();
 
@@ -327,12 +329,14 @@ public class Controller {
       }
       superMerge.put("attibutesEntity", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateEntityAttribute(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateEntityAttribute(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
 
     else if (tablesLC.equalsIgnoreCase("attribute")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
 
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("attributes")).entrySet().iterator();
@@ -347,12 +351,14 @@ public class Controller {
       }
       superMerge.put("attributes", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateAttributes(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateAttributes(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
 
     else if (tablesLC.equalsIgnoreCase("question")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("questions")).entrySet().iterator();
 
@@ -367,12 +373,14 @@ public class Controller {
       }
       superMerge.put("questions", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateQuestion(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateQuestion(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
 
     else if (tablesLC.equalsIgnoreCase("questionquestion")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("questionQuestions"))
               .entrySet()
@@ -398,12 +406,14 @@ public class Controller {
       }
       superMerge.put("questionQuestions", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateQuestionQuestion(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateQuestionQuestion(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
 
     else if (tablesLC.equalsIgnoreCase("message")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("messages")).entrySet().iterator();
 
@@ -418,12 +428,14 @@ public class Controller {
       }
       superMerge.put("messages", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateMessage(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateMessage(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
 
     else if (tablesLC.equalsIgnoreCase("validation")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("validations")).entrySet().iterator();
 
@@ -438,12 +450,14 @@ public class Controller {
       }
       superMerge.put("validations", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateValidation(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateValidation(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
 
     else if (tablesLC.equalsIgnoreCase("entityentity")) {
-      sheetMap = bl.persistProject(true, tablesLC); // contains records from sheets
+      sheetMap = bl.persistProject(true, tablesLC, true); // contains records from sheets
       Iterator iter =
           ((HashMap<String, HashMap>) saveProjectData.get("basebase")).entrySet().iterator();
 
@@ -458,7 +472,9 @@ public class Controller {
       }
       superMerge.put("basebase", merge);
       System.out.println("Things to delete: " + merge);
-      if (!merge.isEmpty()) updateEntityEntity(bes, superMerge);
+      if (!merge.isEmpty()) {
+        updateEntityEntity(bes, superMerge);
+      }
       merge = new HashMap<String, Object>();
     }
   }

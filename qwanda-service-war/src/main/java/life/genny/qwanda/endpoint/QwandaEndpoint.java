@@ -1685,6 +1685,33 @@ public class QwandaEndpoint {
     @GET
     @Path("/synchronizesheet/{table}")
     public String startSynchronisation(@PathParam("table") final String table) {
+       service.synchronizeSheetsToDataBase(table);
+       return "Success";
+    }
+    
+    @GET
+    @Path("/delete/{table}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response delete(@PathParam("table") final String table) {
+     
+      String response = "Failed";
+      
+      try {
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/deletesheet/" + table, securityService.getToken(), 240);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      
+      return Response.status(200).entity(response).build();
+    }
+    /**
+     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+    @GET
+    @Path("/deletesheet/{table}")
+    public String startDeletion(@PathParam("table") final String table) {
        ctl.synchronizeSheetsToDataBase(service, table);
        return "Success";
     }
