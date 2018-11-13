@@ -18,51 +18,51 @@ import javax.naming.InitialContext;
 @ManagedBean(name = "wildflyJms2", eager = true)
 public class WildflyJms {
 
-	// Set the JNDI context factory for a JBOSS/ WildFly Server.
-	public final static String JNDI_FACTORY = "org.jboss.ejb.client.naming";
+  // Set the JNDI context factory for a JBOSS/ WildFly Server.
+  public final static String JNDI_FACTORY = "org.jboss.ejb.client.naming";
 
-	// Set the JMS context factory.
-	public final static String JMS_FACTORY = "java:/ConnectionFactory";
+  // Set the JMS context factory.
+  public final static String JMS_FACTORY = "java:/ConnectionFactory";
 
-	// Set the queue.
-	public final static String QUEUE = "java:/GennyQ";
+  // Set the queue.
+  public final static String QUEUE = "java:/GennyQ";
 
-	// Set Wildfly URL.
-	public final static String WildflyURL = "http-remoting://localhost:8080";
+  // Set Wildfly URL.
+  public final static String WildflyURL = "http-remoting://localhost:8080";
 
-	public void send(final String message) throws Exception {
+  public void send(final String message) throws Exception {
 
-		// 1) Create and start a connection
-		Properties properties = new Properties();
-		properties.put(Context.URL_PKG_PREFIXES, JNDI_FACTORY);
+    // 1) Create and start a connection
+    final Properties properties = new Properties();
+    properties.put(Context.URL_PKG_PREFIXES, JNDI_FACTORY);
 
-		InitialContext ic = new InitialContext(properties);
+    final InitialContext ic = new InitialContext(properties);
 
-		QueueConnectionFactory f = (QueueConnectionFactory) ic.lookup(JMS_FACTORY);
+    final QueueConnectionFactory f = (QueueConnectionFactory) ic.lookup(JMS_FACTORY);
 
-		QueueConnection con = f.createQueueConnection();
-		con.start();
+    final QueueConnection con = f.createQueueConnection();
+    con.start();
 
-		// 2) create queue session
-		QueueSession ses = con.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+    // 2) create queue session
+    final QueueSession ses = con.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 
-		// 3) get the Queue object
-		Queue t = (Queue) ic.lookup(QUEUE);
+    // 3) get the Queue object
+    final Queue t = (Queue) ic.lookup(QUEUE);
 
-		// 4)create QueueSender object
-		QueueSender sender = ses.createSender(t);
+    // 4)create QueueSender object
+    final QueueSender sender = ses.createSender(t);
 
-		// 5) create TextMessage object
-		TextMessage msg = ses.createTextMessage();
-		msg.setText("This message will be send to a WildFly Queue !");
+    // 5) create TextMessage object
+    final TextMessage msg = ses.createTextMessage();
+    msg.setText("This message will be send to a WildFly Queue !");
 
-		// 6) send message
-		sender.send(msg);
-		System.out.println("Message successfully sent to a WildFly Queue.");
+    // 6) send message
+    sender.send(msg);
+    System.out.println("Message successfully sent to a WildFly Queue.");
 
-		// 7) connection close
-		con.close();
+    // 7) connection close
+    con.close();
 
-	}
+  }
 
 }

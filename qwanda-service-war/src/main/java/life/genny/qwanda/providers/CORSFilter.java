@@ -55,14 +55,14 @@ public class CORSFilter implements ContainerResponseFilter {
       final ContainerResponseContext responseContext) throws IOException {
     final String requestOrigin = request.getHeader("origin");
     final String allowedOrigins = System.getenv("CORS_ALLOWED_ORIGINS"); // ACC: This could come
-                                                                         // form keycloak jwt?
-  //  log.info("RequestOrigin:" + requestOrigin + " AllowedOrigins=[" + allowedOrigins + "]");
-  //  log.info("sysReq=" + request.getHeader("Authorization"));
+    // form keycloak jwt?
+    //  log.info("RequestOrigin:" + requestOrigin + " AllowedOrigins=[" + allowedOrigins + "]");
+    //  log.info("sysReq=" + request.getHeader("Authorization"));
     if ((allowedOrigins != null) && (requestOrigin != null)) {
       // String[] originList = allowedOrigins.split(",");
       // for(String origin: originList){
       if (allowedOrigins.contains(requestOrigin)) {
-   //     log.debug("requestOrigin Match" + requestOrigin);
+        //     log.debug("requestOrigin Match" + requestOrigin);
         /* Origins match let's allow it to access the API */
         responseContext.getHeaders().putSingle("Access-Control-Allow-Origin", requestOrigin);
         responseContext.getHeaders().putSingle("Access-Control-Allow-Methods",
@@ -71,7 +71,7 @@ public class CORSFilter implements ContainerResponseFilter {
             "Content-Type, Authorization, X-Requested-With, Accept");
         responseContext.getHeaders().putSingle("Access-Control-Max-Age", "-1");
       } else {
-    	  log.info(requestOrigin+" not in allowedOrigins:"+allowedOrigins);
+        log.info(requestOrigin+" not in allowedOrigins:"+allowedOrigins);
       }
     }
     // }

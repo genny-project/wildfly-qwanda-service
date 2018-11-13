@@ -1,10 +1,7 @@
 package io.vertx.resourceadapter.examples.mdb;
 
 import java.util.logging.Logger;
-import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
-import javax.naming.NamingException;
-import javax.resource.ResourceException;
 import io.vertx.core.eventbus.Message;
 import io.vertx.resourceadapter.inflow.VertxListener;
 
@@ -19,7 +16,7 @@ import io.vertx.resourceadapter.inflow.VertxListener;
 public class VertxMonitor implements VertxListener {
 
   final static String st = System.getenv("MYIP");
-  private Logger logger = Logger.getLogger(VertxMonitor.class.getName());
+  private final Logger logger = Logger.getLogger(VertxMonitor.class.getName());
 
   /**
    * Default constructor.
@@ -30,7 +27,7 @@ public class VertxMonitor implements VertxListener {
 
   @Override
   public <T> void onMessage(Message<T> message) {
-    Object ob = message.body().toString();
+    message.body().toString();
     logger.info("Get a aaaaaaaaaaaaaaaaaaaamessage from Vert.x: " + message.body());
     // T body = message.body();
     // if (body != null) {

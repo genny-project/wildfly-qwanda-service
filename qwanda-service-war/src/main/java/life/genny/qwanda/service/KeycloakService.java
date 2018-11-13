@@ -91,7 +91,7 @@ public class KeycloakService {
 
       post.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-      final List<NameValuePair> formParams = new ArrayList<NameValuePair>();
+      final List<NameValuePair> formParams = new ArrayList<>();
       formParams.add(new BasicNameValuePair("username", username));
       formParams.add(new BasicNameValuePair("password", password));
       formParams.add(new BasicNameValuePair(OAuth2Constants.GRANT_TYPE, "password"));
@@ -124,8 +124,9 @@ public class KeycloakService {
   }
 
   public static String getContent(final HttpEntity httpEntity) throws IOException {
-    if (httpEntity == null)
+    if (httpEntity == null) {
       return null;
+    }
     final InputStream is = httpEntity.getContent();
     try {
       final ByteArrayOutputStream os = new ByteArrayOutputStream();

@@ -55,12 +55,12 @@ public class ApiTest {
 
 	@Test
 	public void searchTest() {
-		if (GennySettings.devMode) { // only run when in eclipse dev mode
+		if (GennySettings.DEV_MODE) { // only run when in eclipse dev mode
 			String hostip = System.getenv("HOSTIP");
 			if (hostip == null)
 				hostip = "localhost";
 
-			String qwandaurl = GennySettings.qwandaServiceUrl;
+			String qwandaurl = GennySettings.QWANDA_SERVICE_URL;
 			if (qwandaurl == null) {
 				qwandaurl = "http://" + hostip + ":8280";
 			}
@@ -134,13 +134,13 @@ public class ApiTest {
 	public void asks2Test() {
 		// http://localhost:8280/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/OFR_OFFER1
 
-		if (GennySettings.devMode) { // only run when in eclipse dev mode
+		if (GennySettings.DEV_MODE) { // only run when in eclipse dev mode
 
 			String hostip = System.getenv("HOSTIP");
 			if (hostip == null)
 				hostip = "localhost";
 
-			String qwandaurl = GennySettings.qwandaServiceUrl;
+			String qwandaurl = GennySettings.QWANDA_SERVICE_URL;
 			if (qwandaurl == null) {
 				qwandaurl = "http://" + hostip + ":8280";
 			}
@@ -248,7 +248,7 @@ public class ApiTest {
 
 	@Test
 	public void linkTest() {
-		if (GennySettings.devMode) { // only run when in eclipse dev mode
+		if (GennySettings.DEV_MODE) { // only run when in eclipse dev mode
 
 			String hostip = System.getenv("HOSTIP");
 			if (hostip == null)
@@ -268,7 +268,7 @@ public class ApiTest {
 						}
 					}).create();
 
-			String qwandaurl = GennySettings.qwandaServiceUrl;
+			String qwandaurl = GennySettings.QWANDA_SERVICE_URL;
 			if (qwandaurl == null) {
 				qwandaurl = "http://" + hostip + ":8280";
 			}

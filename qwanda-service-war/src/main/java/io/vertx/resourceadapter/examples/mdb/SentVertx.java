@@ -1,19 +1,16 @@
 package io.vertx.resourceadapter.examples.mdb;
 
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.naming.NamingException;
 import javax.resource.ResourceException;
-import io.vertx.resourceadapter.*;
 
 
 @Singleton
 // @Startup
 public class SentVertx {
 
-  private Logger logger = Logger.getLogger(SentVertx.class.getName());
+  private final Logger logger = Logger.getLogger(SentVertx.class.getName());
 
   // @PostConstruct
   public static void whatever() throws NamingException, ResourceException {
@@ -21,12 +18,12 @@ public class SentVertx {
     io.vertx.resourceadapter.VertxConnection conn = null;
     try {
       ctx = new javax.naming.InitialContext();
-      io.vertx.resourceadapter.VertxConnectionFactory connFactory =
+      final io.vertx.resourceadapter.VertxConnectionFactory connFactory =
           (io.vertx.resourceadapter.VertxConnectionFactory) ctx
-              .lookup("java:/eis/VertxConnectionFactory");
+          .lookup("java:/eis/VertxConnectionFactory");
       conn = connFactory.getVertxConnection();
       conn.vertxEventBus().send("cmds", "Hello from JCA");
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     } finally {
       if (ctx != null) {

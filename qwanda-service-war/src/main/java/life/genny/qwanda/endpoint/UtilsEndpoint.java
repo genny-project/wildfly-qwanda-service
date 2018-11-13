@@ -2,10 +2,8 @@ package life.genny.qwanda.endpoint;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -67,197 +65,194 @@ import life.genny.security.SecureResources;
 @RequestScoped
 public class UtilsEndpoint {
 
-	/**
-	 * Stores logger object.
-	 */
-	protected static final Logger log = org.apache.logging.log4j.LogManager
-			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 
-	@PersistenceContext
-	private EntityManager em;
+  @PersistenceContext
+  private EntityManager em;
 
-	@Inject
-	private Service service;
+  @Inject
+  private Service service;
 
-	@Inject
-	private SecurityService securityService;
+  public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
-	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
-
-		@Override
-		public void serialize(final JavassistLazyInitializer initializer, final JsonGenerator jsonGenerator,
-				final SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
-			jsonGenerator.writeNull();
-		}
-	}
-
-	
-
-	
-	@GET
-	@Path("/token/{keycloakurl}/{realm}/{secret}/{key}/{initVector}/{username}/{encryptedPassword}")
-	@Produces("application/json")
-	@Transactional
-	public Response getToken(@PathParam("keycloakurl") final String keycloakUrl,
-			@PathParam("realm") final String realm,@PathParam("secret") final String secret, @PathParam("key") final String key,
-			@PathParam("initVector") final String initVector,@PathParam("username") final String username,@PathParam("encryptedPassword") final String encryptedPassword) {
-		
-		AccessTokenResponse accessToken=null;
-		try {
-			accessToken = KeycloakUtils.getAccessTokenResponse(keycloakUrl, realm, realm,
-					secret, username, encryptedPassword);
-		} catch (IOException e) {
-			return Response.status(400).entity("Could not obtain token").build();
-		}
-		String token = accessToken.getToken();
-
-		
-		return Response.status(200).entity(token).build();
-	}
-	
-	static String env_security_key = System.getenv("ENV_SECURITY_KEY");
-
-	@GET
-	@Consumes("application/json")
-	@Path("/subscribe/{projectcode}/{encryptedsubscriptiondata}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response processSubscription(@PathParam("projectcode") final String projectcode,@PathParam("encryptedsubscriptiondata") final String encryptedsubscriptiondata) {
-
-		// convert projectcode to realm
-		String realm = projectcode.substring("PRJ_".length()).toLowerCase();
-		
-		// decrypt the data
-		String initVector = "PRJ_" + realm.toUpperCase();
-		initVector = StringUtils.rightPad(initVector, 16, '*');
-		
-		String messageString = SecurityUtils.decrypt(env_security_key, initVector, encryptedsubscriptiondata);
-		// update the subscription attributes for the user
-		JsonObject json = new JsonObject(messageString);
-		
-		String usercode = json.getString("code");	
-		String encProjectCode = json.getString("projectCode");
-		if (!(projectcode.equalsIgnoreCase(encProjectCode))) {
-			return Response.status(204).build();
-		}
-		BaseEntity user = null;
-		try {
-			user = service.findBaseEntityByCode(usercode);
-		} catch (NoResultException e) {
-			return Response.status(204).build();
-		}	     
-		
-		Optional<EntityAttribute> username = user.findEntityAttribute("PRI_USERNAME");
-		if (username.isPresent()) {
-			// now get the service token
-			try {
-				String encryptedPassword = System.getenv("ENV_SERVICE_PASSWORD");
-				
-				String service_password = SecurityUtils.decrypt(env_security_key, initVector, encryptedPassword);
-				// Now determine for the keycloak to use from the realm
-				final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(realm + ".json");
-				JsonObject keycloakJson  = new JsonObject(keycloakJsonText);
-				String keycloakUrl = keycloakJson.getString("auth-server-url");
-				String secret = keycloakJson.getJsonObject("credentials").getString("secret");
-				String token = KeycloakUtils.getToken(keycloakUrl, realm, realm,
-						secret, "service", service_password);
-				log.info("token = "+token);
-				QwandaUtils.apiPostEntity(GennySettings.vertxUrl, json.toString(), token);
-				
-			} catch (Exception e) {
-				log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");
-			}
-			
-		}
-		
-	
+    @Override
+    public void serialize(final JavassistLazyInitializer initializer, final JsonGenerator jsonGenerator,
+        final SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+      jsonGenerator.writeNull();
+    }
+  }
 
 
-		return Response.status(200).build();
-	}
 
-	private static final CurrencyUnit DEFAULT_CURRENCY_AUD = Monetary.getCurrency("AUD");
-	
-	@GET
-	@Consumes("application/json")
-	@Path("/stats")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response getStats() {
-		
-		// get number of sellers
-		Long buyers  = (Long)em.createQuery("SELECT distinct count(*) FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'PER_%' and ea.attributeCode='PRI_IS_SELLER' and ea.valueBoolean=1 ")
-				.getSingleResult();
 
-		// get number of  companies
-		Long companies  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be  where be.code LIKE 'CPY_%' ")
-				.getSingleResult();
+  @GET
+  @Path("/token/{keycloakurl}/{realm}/{secret}/{key}/{initVector}/{username}/{encryptedPassword}")
+  @Produces("application/json")
+  @Transactional
+  public Response getToken(@PathParam("keycloakurl") final String keycloakUrl,
+      @PathParam("realm") final String realm,@PathParam("secret") final String secret, @PathParam("key") final String key,
+      @PathParam("initVector") final String initVector,@PathParam("username") final String username,@PathParam("encryptedPassword") final String encryptedPassword) {
 
-		// get total items moved
-		Long items  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 ")
-				.getSingleResult();
+    AccessTokenResponse accessToken=null;
+    try {
+      accessToken = KeycloakUtils.getAccessTokenResponse(keycloakUrl, realm, realm,
+          secret, username, encryptedPassword);
+    } catch (final IOException e) {
+      return Response.status(400).entity("Could not obtain token").build();
+    }
+    final String token = accessToken.getToken();
 
-		// get total available items moved
-		Long availitems  = (Long)em.createQuery("SELECT distinct count(be)  FROM BaseEntity be, EntityEntity ee where ee.link.targetCode=be.code and ee.link.targetCode LIKE 'BEG_%' and ee.link.sourceCode='GRP_NEW_ITEMS'")
-				.getSingleResult();
 
-		
-		// get paid to drivers in past month
-		Calendar c = Calendar.getInstance();
-		c.add(Calendar.MONTH, -1);// then one month
-		java.util.Date utilDate = c.getTime();
-		String pattern = "yyyy-MM-dd";
-        SimpleDateFormat formatter = new SimpleDateFormat(pattern);
-        String mysqlDateString = formatter.format(utilDate);
-		List<BaseEntity> results  = em.createQuery("SELECT distinct be  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1  and ea.updated > "+mysqlDateString)
-				.getResultList();
+    return Response.status(200).entity(token).build();
+  }
 
-		Money sum = Money.zero(DEFAULT_CURRENCY_AUD);
-		
-		for (BaseEntity mon : results) {
-			Money value = mon.getValue("PRI_DRIVER_PRICE_INC_GST" , Money.zero(DEFAULT_CURRENCY_AUD));
-			sum = sum.add(value);
-		}
-	
+  static String env_security_key = System.getenv("ENV_SECURITY_KEY");
 
-		QDataStatsMessage msg = new QDataStatsMessage(buyers.intValue(),companies.intValue(),items.intValue(),availitems.intValue(),sum);
-		
-		return Response.status(200).entity(msg).build();
-	}
+  @GET
+  @Consumes("application/json")
+  @Path("/subscribe/{projectcode}/{encryptedsubscriptiondata}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Transactional
+  public Response processSubscription(@PathParam("projectcode") final String projectcode,@PathParam("encryptedsubscriptiondata") final String encryptedsubscriptiondata) {
 
-	@GET
-	@Consumes("application/json")
-	@Path("/project/{realm}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response getProject(@PathParam("realm") final String realm) {
-		String projectCode = "PRJ_"+realm.toUpperCase();
-		// get number of buyers
-		Query q = em.createQuery("SELECT distinct (be) FROM BaseEntity be JOIN be.baseEntityAttributes bee where be.code=:code and bee.baseEntityCode=be.code");
-				q.setParameter("code", projectCode);
-				BaseEntity be = (BaseEntity)q.getSingleResult();
-				Set<EntityAttribute> allowedAttributes = new HashSet<EntityAttribute>();
-				for (EntityAttribute entityAttribute : be.getBaseEntityAttributes()) {
-						String attributeCode = entityAttribute.getAttributeCode();
-						switch (attributeCode) {
-						case "PRI_COLOR":
-						case "PRI_ONBOARDING_VIDEO":
-						case "PRI_GREETING":
-						case "PRI_LOGO":
-						case "PRI_VERSION":
-						case "PRI_IMAGE_URL":
-						case "PRI_CODE":
-						case "PRI_NAME":
-							allowedAttributes.add(entityAttribute);
-						default:
-							}
-	
-				}
-				be.setBaseEntityAttributes(allowedAttributes);
-				String beString = JsonUtils.toJson(be);
-		
-		return Response.status(200).entity(beString).build();
-	}
-	
+    // convert projectcode to realm
+    final String realm = projectcode.substring("PRJ_".length()).toLowerCase();
+
+    // decrypt the data
+    String initVector = "PRJ_" + realm.toUpperCase();
+    initVector = StringUtils.rightPad(initVector, 16, '*');
+
+    final String messageString = SecurityUtils.decrypt(env_security_key, initVector, encryptedsubscriptiondata);
+    // update the subscription attributes for the user
+    final JsonObject json = new JsonObject(messageString);
+
+    final String usercode = json.getString("code");	
+    final String encProjectCode = json.getString("projectCode");
+    if (!(projectcode.equalsIgnoreCase(encProjectCode))) {
+      return Response.status(204).build();
+    }
+    BaseEntity user = null;
+    try {
+      user = service.findBaseEntityByCode(usercode);
+    } catch (final NoResultException e) {
+      return Response.status(204).build();
+    }	     
+
+    final Optional<EntityAttribute> username = user.findEntityAttribute("PRI_USERNAME");
+    if (username.isPresent()) {
+      // now get the service token
+      try {
+        final String encryptedPassword = System.getenv("ENV_SERVICE_PASSWORD");
+
+        final String service_password = SecurityUtils.decrypt(env_security_key, initVector, encryptedPassword);
+        // Now determine for the keycloak to use from the realm
+        final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(realm + ".json");
+        final JsonObject keycloakJson  = new JsonObject(keycloakJsonText);
+        final String keycloakUrl = keycloakJson.getString("auth-server-url");
+        final String secret = keycloakJson.getJsonObject("credentials").getString("secret");
+        final String token = KeycloakUtils.getToken(keycloakUrl, realm, realm,
+            secret, "service", service_password);
+        log.info("token = "+token);
+        QwandaUtils.apiPostEntity(GennySettings.VERTX_URL, json.toString(), token);
+
+      } catch (final Exception e) {
+        log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");
+      }
+
+    }
+
+
+
+
+    return Response.status(200).build();
+  }
+
+  private static final CurrencyUnit DEFAULT_CURRENCY_AUD = Monetary.getCurrency("AUD");
+
+  @GET
+  @Consumes("application/json")
+  @Path("/stats")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Transactional
+  public Response getStats() {
+
+    // get number of sellers
+    final Long buyers  = (Long)em.createQuery("SELECT distinct count(*) FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'PER_%' and ea.attributeCode='PRI_IS_SELLER' and ea.valueBoolean=1 ")
+        .getSingleResult();
+
+    // get number of  companies
+    final Long companies  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be  where be.code LIKE 'CPY_%' ")
+        .getSingleResult();
+
+    // get total items moved
+    final Long items  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 ")
+        .getSingleResult();
+
+    // get total available items moved
+    final Long availitems  = (Long)em.createQuery("SELECT distinct count(be)  FROM BaseEntity be, EntityEntity ee where ee.link.targetCode=be.code and ee.link.targetCode LIKE 'BEG_%' and ee.link.sourceCode='GRP_NEW_ITEMS'")
+        .getSingleResult();
+
+
+    // get paid to drivers in past month
+    final Calendar c = Calendar.getInstance();
+    c.add(Calendar.MONTH, -1);// then one month
+    final java.util.Date utilDate = c.getTime();
+    final String pattern = "yyyy-MM-dd";
+    final SimpleDateFormat formatter = new SimpleDateFormat(pattern);
+    final String mysqlDateString = formatter.format(utilDate);
+    final List<BaseEntity> results  = em.createQuery("SELECT distinct be  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1  and ea.updated > "+mysqlDateString)
+        .getResultList();
+
+    Money sum = Money.zero(DEFAULT_CURRENCY_AUD);
+
+    for (final BaseEntity mon : results) {
+      final Money value = mon.getValue("PRI_DRIVER_PRICE_INC_GST" , Money.zero(DEFAULT_CURRENCY_AUD));
+      sum = sum.add(value);
+    }
+
+
+    final QDataStatsMessage msg = new QDataStatsMessage(buyers.intValue(),companies.intValue(),items.intValue(),availitems.intValue(),sum);
+
+    return Response.status(200).entity(msg).build();
+  }
+
+  @GET
+  @Consumes("application/json")
+  @Path("/project/{realm}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Transactional
+  public Response getProject(@PathParam("realm") final String realm) {
+    final String projectCode = "PRJ_"+realm.toUpperCase();
+    // get number of buyers
+    final Query q = em.createQuery("SELECT distinct (be) FROM BaseEntity be JOIN be.baseEntityAttributes bee where be.code=:code and bee.baseEntityCode=be.code");
+    q.setParameter("code", projectCode);
+    final BaseEntity be = (BaseEntity)q.getSingleResult();
+    final Set<EntityAttribute> allowedAttributes = new HashSet<>();
+    for (final EntityAttribute entityAttribute : be.getBaseEntityAttributes()) {
+      final String attributeCode = entityAttribute.getAttributeCode();
+      switch (attributeCode) {
+        case "PRI_COLOR":
+        case "PRI_ONBOARDING_VIDEO":
+        case "PRI_GREETING":
+        case "PRI_LOGO":
+        case "PRI_VERSION":
+        case "PRI_IMAGE_URL":
+        case "PRI_CODE":
+        case "PRI_NAME":
+          allowedAttributes.add(entityAttribute);
+        default:
+      }
+
+    }
+    be.setBaseEntityAttributes(allowedAttributes);
+    final String beString = JsonUtils.toJson(be);
+
+    return Response.status(200).entity(beString).build();
+  }
+
 }

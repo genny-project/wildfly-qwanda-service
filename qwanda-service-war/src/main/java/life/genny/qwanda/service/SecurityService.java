@@ -30,102 +30,87 @@ import life.genny.qwandautils.QwandaUtils;
 @RequestScoped
 
 public class SecurityService implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-	/**
-	 * Stores logger object.
-	 */
-	protected static final Logger log = org.apache.logging.log4j.LogManager
-			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	@Context
-	SecurityContext sc;
+  @Context
+  SecurityContext sc;
 
-	@Inject
-	private HttpServletRequest request;
+  @Inject
+  private HttpServletRequest request;
 
-	@Produces
-	public AccessToken getAccessToken() {
-		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken();
-	}
+  @Produces
+  public AccessToken getAccessToken() {
+    return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken();
+  }
 
-	KeycloakSecurityContext kc = null;
+  KeycloakSecurityContext kc = null;
 
-	Map<String, Object> user = new HashMap<String, Object>();
+  Map<String, Object> user = new HashMap<>();
 
-	static boolean importMode = false;
+  static boolean importMode = false;
 
-	@PostConstruct
-	public void init() {
-		if (!importMode) {
-			user.put("username", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext()
-					.getToken().getPreferredUsername());
-			user.put("realm", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm());
-			user.put("email", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken()
-					.getEmail());
-			user.put("name",
-					((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getName());
-			;
+  @PostConstruct
+  public void init() {
+    if (!importMode) {
+      user.put("username", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext()
+          .getToken().getPreferredUsername());
+      user.put("realm", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm());
+      user.put("email", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken()
+          .getEmail());
+      user.put("name",
+          ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getName());
+      ;
 
-		}
+    }
 
-	}
+  }
 
-	public Boolean inRole(final String role) {
-		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getRealmAccess()
-				.isUserInRole(role);
-	}
+  public Boolean inRole(final String role) {
+    return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getRealmAccess()
+        .isUserInRole(role);
+  }
 
-	public String getRealm() {
-		return CoreEntity.DEFAULT_REALM;
-		// if (!importMode) {
-		// return ((KeycloakPrincipal)
-		// request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
-		// } else {
-		// return CoreEntity.DEFAULT_REALM;
-		// }
-	}
+  public String getRealm() {
+    return CoreEntity.DEFAULT_REALM;
+    // if (!importMode) {
+    // return ((KeycloakPrincipal)
+    // request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+    // } else {
+    // return CoreEntity.DEFAULT_REALM;
+    // }
+  }
 
-	public Map<String, Object> getUserMap() {
-		return user;
-	}
+  public Map<String, Object> getUserMap() {
+    return user;
+  }
 
-	public boolean isAuthorised() {
+  public boolean isAuthorised() {
 
-		return true;
-	}
+    return true;
+  }
 
-	private KeycloakSecurityContext getKeycloakUser() {
-		if (sc != null) {
-			if (sc.getUserPrincipal() != null) {
-				if (sc.getUserPrincipal() instanceof KeycloakPrincipal) {
-					final KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) sc
-							.getUserPrincipal();
+  public String getUserCode()
+  {
+    final String username = (String)getUserMap().get("username");
+    return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+  }
 
-					return kp.getKeycloakSecurityContext();
-				}
-			}
-		}
-		// throw new SecurityException("Unauthorised User");
-		return null;
-	}
+  public static void setImportMode(final boolean mode) {
+    importMode = mode;
+  }
 
-	public String getUserCode()
-	{
-		String username = (String)getUserMap().get("username");
-		return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
-	}
-	
-	public static void setImportMode(final boolean mode) {
-		importMode = mode;
-	}
+  public String getToken() {
+    return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getTokenString();
 
-	public String getToken() {
-		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getTokenString();
-
-	}
+  }
 
 }

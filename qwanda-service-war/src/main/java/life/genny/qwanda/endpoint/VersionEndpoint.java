@@ -35,22 +35,22 @@ public class VersionEndpoint {
    */
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
-  
+
   public static final String GIT_VERSION_PROPERTIES = "GitVersion.properties";
-  
+
   public static final String PROJECT_DEPENDENCIES = "project_dependencies";
-  
+
   @GET
   @Path("/")
   public Response version() {
-    Properties properties = new Properties();
+    final Properties properties = new Properties();
     String versionString = "";
     try {
       properties.load(Thread.currentThread().getContextClassLoader().getResource(GIT_VERSION_PROPERTIES)
           .openStream());
-      String projectDependencies = properties.getProperty(PROJECT_DEPENDENCIES);
+      final String projectDependencies = properties.getProperty(PROJECT_DEPENDENCIES);
       versionString = GitUtils.getGitVersionString(projectDependencies);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       log.error("Error reading GitVersion.properties", e);
     }
 

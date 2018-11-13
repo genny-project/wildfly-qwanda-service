@@ -16,7 +16,7 @@ public class RestApplication extends Application {
 
   @Override
   public Set<Class<?>> getClasses() {
-    final Set<Class<?>> resources = new HashSet<Class<?>>();
+    final Set<Class<?>> resources = new HashSet<>();
     resources.add(JsonDateTimeProvider.class);
     resources.add(QwandaEndpoint.class);
     resources.add(ServiceEndpoint.class);
