@@ -18,14 +18,6 @@
 					<activation-config-property-name>address</activation-config-property-name>
 					<activation-config-property-value>api</activation-config-property-value>
 				</activation-config-property>
-				<activation-config-property>
-					<activation-config-property-name>clusterPort</activation-config-property-name>
-					<activation-config-property-value>15701</activation-config-property-value>
-				</activation-config-property>
-				<activation-config-property>
-					<activation-config-property-name>clusterHost</activation-config-property-name>
-					<activation-config-property-value>${public.host}</activation-config-property-value>
-				</activation-config-property>
 			</activation-config>
 			<ejb-name>VertxMonitor</ejb-name>
 			<ejb-class>io.vertx.resourceadapter.examples.mdb.VertxMonitor</ejb-class>

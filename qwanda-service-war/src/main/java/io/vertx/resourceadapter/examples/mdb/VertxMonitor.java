@@ -8,7 +8,7 @@ import javax.resource.ResourceException;
 import io.vertx.core.eventbus.Message;
 import io.vertx.resourceadapter.inflow.VertxListener;
 
-
+import org.jboss.ejb3.annotation.ResourceAdapter;
 
 /**
  * Message-Driven Bean implementation class for: VertxMonitor
@@ -16,6 +16,7 @@ import io.vertx.resourceadapter.inflow.VertxListener;
 @MessageDriven(name = "VertxMonitor", messageListenerInterface = VertxListener.class)
 //@MessageDriven(name = "VertxMonitor", messageListenerInterface = VertxListener.class, activationConfig = { @ActivationConfigProperty(propertyName = "address", propertyValue = "inbound-address"), })
 
+@ResourceAdapter("vertx-ra")
 public class VertxMonitor implements VertxListener {
 
   final static String st = System.getenv("MYIP");
