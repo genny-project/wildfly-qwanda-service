@@ -231,7 +231,7 @@ public class Controller {
 
   public Map<String, Map<String, Object>> retrieveDeletionRecords(final Service bes, final String table, final String projectKey ) {
     final BatchLoading bl = new BatchLoading(bes);
-    final Map<String, Object> saveProjectData = new HashMap(BatchLoading.savedProjectData);
+    final Map<String, Object> saveProjectData = new HashMap(bl.savedProjectData);
     Map<String, Object> sheetMap;
     Map<String, Object> merge = new HashMap<>();
     final Map<String, Map<String, Object>> superMerge = new HashMap<>();
@@ -251,7 +251,6 @@ public class Controller {
     }
     superMerge.put(projectKey, merge);
     System.out.println("Things to delete: " + merge);
-    BatchLoading.savedProjectData.put(projectKey, sheetMap.get(projectKey));
     return superMerge;
   }
 
