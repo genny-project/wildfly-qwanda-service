@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Properties;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
@@ -14,11 +13,8 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.attribute.Attribute;
@@ -40,7 +36,6 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
-import life.genny.services.BatchLoading;
 
 @RequestScoped
 
@@ -230,7 +225,7 @@ public class Service extends BaseEntityService2 {
 
 		List<BaseEntity> users = this.findBaseEntitysByAttributeValues(params, true, 0, 1);
 
-		if (!((users == null) || (users.isEmpty()))) {
+		if (!(users == null || users.isEmpty())) {
 			user = users.get(0);
 
 		}
@@ -299,13 +294,13 @@ public class Service extends BaseEntityService2 {
 			try {
 				int arrSize = pageSize;
 				if (page==pages) {
-					arrSize = bes.size()-(page*pageSize);
+					arrSize = bes.size()-page*pageSize;
 				}
 			
 				
 				BaseEntity[] arr = new BaseEntity[arrSize];
 				for (int index=0;index<arrSize;index++) {
-					int offset = (page*pageSize)+index;
+					int offset = page*pageSize+index;
 					arr[index] = bes.get(offset);
 				}
 				System.out.println("Sending "+page+" to cache api");
@@ -339,7 +334,7 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
 		if (!GennySettings.isDdtHost) {
-			if (!securityService.importMode) {
+			if (!SecurityService.importMode) {
 				try {
 					
 					JsonObject json = new JsonObject();
@@ -396,7 +391,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	public void pushAttributes() {
-		if (!securityService.importMode) {
+		if (!SecurityService.importMode) {
 			pushAttributesAsync();
 		}
 	}
@@ -457,7 +452,7 @@ public class Service extends BaseEntityService2 {
 
 		// Now ask the bridge for the keycloak to use
 		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - ("/auth".length()));
+				realmJson.getString("auth-server-url").length() - "/auth".length());
 
 		log.info(keycloakurl);
 
@@ -496,15 +491,9 @@ public class Service extends BaseEntityService2 {
 		log.info("secret:"+secret);
 
 		keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - ("/auth".length()));
+				realmJson.getString("auth-server-url").length() - "/auth".length());
 		}
 
 		return keycloakurl;
-	}
-	
-	@Transactional
-	public void synchronizeSheetsToDataBase(String table) {
-	  BatchLoading bl = new BatchLoading(this);
-	  bl.persistProject(true, table, false);
 	}
 }

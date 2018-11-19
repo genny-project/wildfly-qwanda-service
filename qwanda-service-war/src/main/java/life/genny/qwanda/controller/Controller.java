@@ -251,11 +251,13 @@ public class Controller {
     }
     superMerge.put(projectKey, merge);
     System.out.println("Things to delete: " + merge);
+    saveProjectData.put(projectKey, sheetMap.get(projectKey));
     return superMerge;
   }
 
   @Transactional
   public void synchronizeSheetsToDataBase(final Service bes, final String table) {
+    final BatchLoading bl = new BatchLoading(bes);
     Map<String, Map<String, Object>> superMerge;
     switch(table) {
       case "baseentity":
@@ -324,5 +326,6 @@ public class Controller {
       default:
         System.out.println("Incorrect table name");
       }
+    bl.persistProject(true, table.toLowerCase(), false);
     }
 }
