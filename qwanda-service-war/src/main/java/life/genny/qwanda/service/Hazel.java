@@ -43,27 +43,23 @@ public class Hazel {
 
   @PostConstruct
   public void init() {
-    Config cfg = new Config();
-    cfg.getGroupConfig().setName(GennySettings.username);
-    cfg.getGroupConfig().setPassword(GennySettings.username);
+    Config config = new Config();
+    config.getGroupConfig().setName(GennySettings.username);
+    config.getGroupConfig().setPassword(GennySettings.username);
 
-    instance = Hazelcast.newHazelcastInstance(cfg);
-    
-//    Config config = new Config();
-//    config.getGroupConfig().setName(GennySettings.username);
-//    config.getGroupConfig().setPassword(GennySettings.username);
-//    config.setInstanceName("wildfly-qwanda-service");
-//    config.getNetworkConfig().setPortAutoIncrement(true);
-//    config.getNetworkConfig().setPort(5701);
-//    config.getNetworkConfig().getJoin().getMulticastConfig().setMulticastPort(54327).setMulticastGroup("224.2.2.3").setEnabled(true);
-//  //  config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
-//  //  config.getNetworkConfig().getJoin().getTcpIpConfig().addMember("127.0.0.1");
+     
+    config.setInstanceName("wildfly-qwanda-service");
+    config.getNetworkConfig().setPortAutoIncrement(true);
+    config.getNetworkConfig().setPort(5701);
+    config.getNetworkConfig().getJoin().getMulticastConfig().setMulticastPort(54327).setMulticastGroup("224.2.2.3").setEnabled(true);
+  //  config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
+  //  config.getNetworkConfig().getJoin().getTcpIpConfig().addMember("127.0.0.1");
 //
 ////    SSLConfig sslConfig = new SSLConfig();
 ////    sslConfig.setEnabled(false);
 ////    config.getNetworkConfig().setSSLConfig(sslConfig);
 //
-//    instance = Hazelcast.newHazelcastInstance(config);
+    instance = Hazelcast.newHazelcastInstance(config);
     mapBaseEntitys = instance.getMap(GennySettings.mainrealm); // To fix
   }
 
