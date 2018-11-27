@@ -83,7 +83,8 @@ public class StartupService {
 	public void pushToDTT() {
 		// BaseEntitys
 		List<BaseEntity> results = em
-				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
+				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.realm=:realm")
+				.setParameter("realm", BatchLoading.REALM).getResultList();
 	
 		
 		// Collect all the baseentitys

@@ -53,6 +53,7 @@ import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
+import life.genny.services.BatchLoading;
 
 /**
  * JAX-RS endpoint
@@ -187,20 +188,20 @@ public class UtilsEndpoint {
 	public Response getStats() {
 		
 		// get number of sellers
-		Long buyers  = (Long)em.createQuery("SELECT distinct count(*) FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'PER_%' and ea.attributeCode='PRI_IS_SELLER' and ea.valueBoolean=1 ")
-				.getSingleResult();
+		Long buyers  = (Long)em.createQuery("SELECT distinct count(*) FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'PER_%' and ea.attributeCode='PRI_IS_SELLER' and ea.valueBoolean=1 and be.realm=:realm")
+		    .setParameter("realm", BatchLoading.REALM).getSingleResult();
 
 		// get number of  companies
-		Long companies  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be  where be.code LIKE 'CPY_%' ")
-				.getSingleResult();
+		Long companies  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be  where be.code LIKE 'CPY_%' and be.realm=:realm")
+		    .setParameter("realm", BatchLoading.REALM).getSingleResult();
 
 		// get total items moved
-		Long items  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 ")
-				.getSingleResult();
+		Long items  = (Long)em.createQuery("SELECT distinct count(*)  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 and be.realm=:realm")
+		    .setParameter("realm", BatchLoading.REALM).getSingleResult();
 
 		// get total available items moved
-		Long availitems  = (Long)em.createQuery("SELECT distinct count(be)  FROM BaseEntity be, EntityEntity ee where ee.link.targetCode=be.code and ee.link.targetCode LIKE 'BEG_%' and ee.link.sourceCode='GRP_NEW_ITEMS'")
-				.getSingleResult();
+		Long availitems  = (Long)em.createQuery("SELECT distinct count(be)  FROM BaseEntity be, EntityEntity ee where ee.link.targetCode=be.code and ee.link.targetCode LIKE 'BEG_%' and ee.link.sourceCode='GRP_NEW_ITEMS' and be.realm=:realm")
+		    .setParameter("realm", BatchLoading.REALM).getSingleResult();
 
 		
 		// get paid to drivers in past month
@@ -210,8 +211,8 @@ public class UtilsEndpoint {
 		String pattern = "yyyy-MM-dd";
         SimpleDateFormat formatter = new SimpleDateFormat(pattern);
         String mysqlDateString = formatter.format(utilDate);
-		List<BaseEntity> results  = em.createQuery("SELECT distinct be  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1  and ea.updated > "+mysqlDateString)
-				.getResultList();
+		List<BaseEntity> results  = em.createQuery("SELECT distinct be  FROM BaseEntity be, EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'BEG_%' and ea.attributeCode='PRI_IS_RELEASE_PAYMENT_DONE' and ea.valueBoolean=1 and be.realm=:realm and ea.updated > "+mysqlDateString)
+		    .setParameter("realm", BatchLoading.REALM).getResultList();
 
 		Money sum = Money.zero(DEFAULT_CURRENCY_AUD);
 		
@@ -234,8 +235,9 @@ public class UtilsEndpoint {
 	public Response getProject(@PathParam("realm") final String realm) {
 		String projectCode = "PRJ_"+realm.toUpperCase();
 		// get number of buyers
-		Query q = em.createQuery("SELECT distinct (be) FROM BaseEntity be JOIN be.baseEntityAttributes bee where be.code=:code and bee.baseEntityCode=be.code");
+		Query q = em.createQuery("SELECT distinct (be) FROM BaseEntity be JOIN be.baseEntityAttributes bee where be.code=:code and bee.baseEntityCode=be.code and be.realm=:realm");
 				q.setParameter("code", projectCode);
+				q.setParameter("realm", realm);
 				BaseEntity be = (BaseEntity)q.getSingleResult();
 				Set<EntityAttribute> allowedAttributes = new HashSet<EntityAttribute>();
 				for (EntityAttribute entityAttribute : be.getBaseEntityAttributes()) {

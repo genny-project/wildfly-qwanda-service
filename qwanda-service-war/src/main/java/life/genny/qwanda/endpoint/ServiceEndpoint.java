@@ -56,6 +56,7 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.services.BatchLoading;
 
 /**
  * JAX-RS endpoint
@@ -281,8 +282,8 @@ public class ServiceEndpoint {
 				service.insert(answerArray);
 				result = (BaseEntity) em
 						.createQuery(
-								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
-						.setParameter("code", targetCode).getSingleResult();
+								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code and be.realm=:realm")
+						        .setParameter("realm", BatchLoading.REALM).setParameter("code", targetCode).getSingleResult();
 			}
 
 		}
@@ -299,8 +300,8 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			result = (BaseEntity) em
-					.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
-					.setParameter("code", code).getSingleResult();
+					.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code and be.realm=:realm")
+					.setParameter("realm", BatchLoading.REALM).setParameter("code", code).getSingleResult();
 			service.writeToDDT(result);
 		}
 		return Response.status(200).entity(result).build();

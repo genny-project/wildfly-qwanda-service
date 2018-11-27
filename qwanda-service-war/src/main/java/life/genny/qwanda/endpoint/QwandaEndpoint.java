@@ -662,7 +662,7 @@ public class QwandaEndpoint {
 	
 	@GET
 	@Path("/attributes/{code}")
-	public Response fetchAttribute(@PathParam("attributeCode") final String attributeCode) {
+	public Response fetchAttribute(@PathParam("code") final String attributeCode) {
 		final Attribute attribute = service.findAttributeByCode(attributeCode);
 		Attribute[] atArr = new Attribute[1];
 		atArr[0] = attribute;
