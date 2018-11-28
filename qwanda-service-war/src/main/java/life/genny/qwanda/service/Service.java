@@ -262,12 +262,6 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	@Transactional
-	public void removeLink(final Link link) {
-		super.removeLink(link);
-	}
-
-	@Override
 	protected String getRealm() {
 		return securityService.getRealm();
 	//	return "genny"; // TODO HACK
