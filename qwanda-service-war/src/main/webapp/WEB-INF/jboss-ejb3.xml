@@ -19,8 +19,8 @@
 					<activation-config-property-value>api</activation-config-property-value>
 				</activation-config-property>
 			</activation-config>
-			<ejb-name>VertxMonitor</ejb-name>
-			<ejb-class>io.vertx.resourceadapter.examples.mdb.VertxMonitor</ejb-class>
+			<ejb-name>VertxApiMonitor</ejb-name>
+			<ejb-class>io.vertx.resourceadapter.examples.mdb.VertxApiMonitor</ejb-class>
 			<messaging-type>io.vertx.resourceadapter.inflow.VertxListener</messaging-type>
 		</message-driven>
 	</enterprise-beans>

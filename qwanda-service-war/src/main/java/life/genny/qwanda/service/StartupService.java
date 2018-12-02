@@ -17,6 +17,12 @@ import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.services.BatchLoading;
 
+import life.genny.eventbus.EventBusInterface;
+import io.vertx.resourceadapter.examples.mdb.EventBusBean;
+import io.vertx.resourceadapter.examples.mdb.WildflyCache;
+import javax.inject.Inject;
+import life.genny.utils.VertxUtils;
+
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
  *
@@ -34,27 +40,33 @@ public class StartupService {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	@Inject
+	Hazel inDb;
+
+	@Inject
+	EventBusBean eventBus;
+
+	@Inject
 	private Service service;
 
 	@Inject
 	private SecurityService securityService;
+	
+	
 
-	// @Inject
-	// private Hazel inDB;
-	// @PersistenceContext(unitName = "genny-persistence-unit", type =
-	// PersistenceContextType.EXTENDED)
+	WildflyCache cacheInterface;
+
+
 	@PersistenceContext
 	private EntityManager em;
 
-	// @PersistenceUnit(unitName = "genny-persistence-unit")
-	// EntityManagerFactory emf;
-
-	// @Inject
-	// private PersistenceHelper helper;
 
 	@PostConstruct
 	@Transactional
 	public void init() {
+
+		cacheInterface = new WildflyCache(inDb);
+		
+		VertxUtils.init(eventBus,cacheInterface);
 
 		securityService.setImportMode(true); // ugly way of getting past security
 
