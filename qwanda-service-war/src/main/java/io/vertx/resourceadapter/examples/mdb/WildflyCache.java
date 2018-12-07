@@ -7,12 +7,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import life.genny.channel.DistMap;
+
+import life.genny.eventbus.WildflyCacheInterface;
 import life.genny.qwanda.service.Hazel;
-import life.genny.qwandautils.GennyCacheInterface;
 import life.genny.qwandautils.GennySettings;
 
 //@ApplicationScoped
-public class WildflyCache implements GennyCacheInterface {
+public class WildflyCache implements WildflyCacheInterface {
 	
 
 	Hazel inDb;
