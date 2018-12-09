@@ -294,6 +294,10 @@ public class QwandaEndpoint {
 		} catch (javax.persistence.NoResultException e) {
 			return Response.status(404).build();
 		}
+		catch (IllegalArgumentException e) {
+			return Response.status(422).entity(e.getMessage()).build();
+		}
+
 	}
 
 	@POST
@@ -302,94 +306,18 @@ public class QwandaEndpoint {
 
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//			if (entity.getAttribute() == null) {
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
-//						attribute = new AttributeBoolean(entity.getAttributeCode(),
-//								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//					} else {
-//						if (entity.getDataType()!=null) {
-//							switch (entity.getDataType()) {
-//							case "java.lang.Integer":
-//							case "Integer":
-//								attribute = new AttributeInteger(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.time.LocalDateTime":
-//							case "LocalDateTime":
-//								attribute = new AttributeDateTime(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.lang.Long":
-//							case "Long":
-//								attribute = new AttributeLong(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.time.LocalTime":
-//							case "LocalTime":
-//								attribute = new AttributeTime(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "org.javamoney.moneta.Money":
-//							case "Money":
-//								attribute = new AttributeMoney(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.lang.Double":
-//							case "Double":
-//								attribute = new AttributeDouble(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.lang.Boolean":
-//								attribute = new AttributeBoolean(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.time.LocalDate":
-//								attribute = new AttributeDate(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//
-//							case "java.lang.String":
-//							default:
-//								attribute = new AttributeText(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							}						
-//							} else {
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//					}}
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("Attribute is null");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//					entity.setAttribute(attribute);
-//				}
-//			}
-			service.insert(entitys.getItems());
-	//	}
 
-		return Response.status(200).build();
+			try {
+				service.insert(entitys.getItems());
+					return Response.status(200).build();
+				} catch (javax.persistence.NoResultException e) {
+					return Response.status(404).build();
+				}
+				catch (IllegalArgumentException e) {
+					return Response.status(422).entity(e.getMessage()).build();
+				}
+
+
 	}
 
 	@POST

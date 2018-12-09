@@ -27,7 +27,7 @@ import life.genny.qwandautils.GennySettings;
 import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandles;
 
-
+@Singleton
 public class Hazel {
 	
 	/**

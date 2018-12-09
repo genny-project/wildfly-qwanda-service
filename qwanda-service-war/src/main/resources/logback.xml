@@ -20,6 +20,7 @@
     
     <logger name="io.netty.handler.codec.http.websocketx.WebSocket08FrameDecoder" level="WARN"/>
     <logger name="com.hazelcast.internal.diagnostics.HealthMonitor" level="ERROR" />
+    <logger name="com.hazelcast.client.spi.impl.ClientMembershipListener" level="ERROR" />
     <logger name="com.hazelcast.internal.diagnostics" level="SEVERE"/>
 </configuration>
 
