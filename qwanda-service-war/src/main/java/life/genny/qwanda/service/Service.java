@@ -334,11 +334,11 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
 		JsonObject json = new JsonObject();
-		json.put("key", key);
-		json.put("json", jsonValue);
+//		json.put("key", key);
+//		json.put("json", jsonValue);
 		
-		VertxUtils.writeCachedJson(key, json.toString(), token);
-		
+		VertxUtils.writeCachedJson(key, jsonValue, token);
+	//	VertxUtils.writeCachedJson(key, json.toString(), token);
 //		if (!GennySettings.isDdtHost) {
 //			if (!securityService.importMode) {
 //				try {
