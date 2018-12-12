@@ -262,7 +262,6 @@ public class Service extends BaseEntityService2 {
 		return null;
 	}
 
-
 	@Override
 	protected String getRealm() {
 		return securityService.getRealm();
