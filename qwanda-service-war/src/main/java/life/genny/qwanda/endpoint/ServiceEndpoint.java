@@ -195,20 +195,6 @@ public class ServiceEndpoint {
 	Controller ctl = new Controller();
 
 	@GET
-	@Path("/synchronize/{sheetId}/{tables}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
-			@PathParam("tables") final String tables) {
-		String response = "Success";
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-
-			ctl.getProject(service, sheetId, tables);
-		}
-		return Response.status(200).entity(response).build();
-	}
-
-	@GET
 	@Path("/synchronize/cache/attributes")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
