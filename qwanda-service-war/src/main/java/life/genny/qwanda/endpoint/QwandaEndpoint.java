@@ -1649,7 +1649,7 @@ public class QwandaEndpoint {
     @GET
     @Path("/synchronize/{table}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response delete(@PathParam("table") final String table) {
+    public Response synchronize(@PathParam("table") final String table) {
      
       String response = "Failed";
       
@@ -1668,7 +1668,7 @@ public class QwandaEndpoint {
      */
     @GET
     @Path("/synchronizesheet/{table}")
-    public String startDeletion(@PathParam("table") final String table) {
+    public String startSynchronization(@PathParam("table") final String table) {
        ctl.synchronizeSheetsToDataBase(service, table);
        return "Success";
     }
