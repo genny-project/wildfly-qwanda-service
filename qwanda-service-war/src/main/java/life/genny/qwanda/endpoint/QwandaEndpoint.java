@@ -662,7 +662,7 @@ public class QwandaEndpoint {
 	
 	@GET
 	@Path("/attributes/{code}")
-	public Response fetchAttribute(@PathParam("attributeCode") final String attributeCode) {
+	public Response fetchAttribute(@PathParam("code") final String attributeCode) {
 		final Attribute attribute = service.findAttributeByCode(attributeCode);
 		Attribute[] atArr = new Attribute[1];
 		atArr[0] = attribute;
@@ -1469,6 +1469,32 @@ public class QwandaEndpoint {
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
 
+	@GET
+    @Consumes("application/json")
+    @Path("/removeuser/{username}")
+    @Produces("application/json")
+
+    public Response removeUser(@PathParam("username") final String username) {
+	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+          || securityService.inRole("dev")) || GennySettings.devMode) {
+	    Log.info("Removing User " + username);
+
+        service.removeBaseEntity("PER_" + username);
+        Log.info("Successfully removed the user from database");
+        
+        Log.info("Keycloak Username: " + username);
+        try {
+          KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), username);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        Log.info("Successfully removed the user from keycloak");
+        return Response.status(200).build();
+	  } else {
+	    return Response.status(503).build();
+	  }
+        
+    }
 
 
 	
