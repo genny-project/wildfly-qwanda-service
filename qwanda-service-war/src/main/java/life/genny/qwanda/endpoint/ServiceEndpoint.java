@@ -48,6 +48,7 @@ import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
@@ -513,13 +514,20 @@ public class ServiceEndpoint {
 									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
 
 									try {
-										KeycloakUtils.createUser(serviceToken,
+										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
 												securityService.getRealm(), newUsername, newFirstname, newLastname,
 												newEmail);
+										System.out.println("KEYCLOAK USER ID: " + keycloakUserId);
+										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(), "PRI_KEYCLOAK_UUID", keycloakUserId);
+										be.addAnswer(keycloakIdAnswer);
+										service.updateWithAttributes(be);
 									} catch (IOException e) {
 										// TODO Auto-generated catch block
 										e.printStackTrace();
-									}
+									} catch (BadDataException e) {
+                                      // TODO Auto-generated catch block
+                                      e.printStackTrace();
+                                  }
 								}
 							}
 						}

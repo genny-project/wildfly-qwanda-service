@@ -1469,22 +1469,36 @@ public class QwandaEndpoint {
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
 
-	@GET
+	@DELETE
     @Consumes("application/json")
-    @Path("/removeuser/{username}")
+    @Path("/baseEntitys/{code}")
     @Produces("application/json")
 
-    public Response removeUser(@PathParam("username") final String username) {
+    public Response removeUser(@PathParam("code") final String code) {
 	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
           || securityService.inRole("dev")) || GennySettings.devMode) {
-	    Log.info("Removing User " + username);
+	    String keycloakUserId = null;
+	    if(code.startsWith("PER_")) {
+	      List<EntityAttribute> entityAttributeList = service.findAttributesByBaseEntityCode(code);
+	      for(EntityAttribute ea : entityAttributeList) {
+	        if("PRI_KEYCLOAK_UUID".equals(ea.getAttributeCode())) {
+	          keycloakUserId = ea.getValueString();
+	        }
+	      }
+	    }
+	    Log.info("Removing User " + code);
 
-        service.removeBaseEntity("PER_" + username);
+        service.removeBaseEntity(code);
         Log.info("Successfully removed the user from database");
         
-        Log.info("Keycloak Username: " + username);
+        Log.info("Keycloak User ID: " + keycloakUserId);
         try {
-          KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), username);
+          if(keycloakUserId != null) {
+            KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), keycloakUserId);
+          } else {
+            log.error("Keycloak User ID is null, can't delete it from Keycloak!!!");
+            return Response.status(400).build();
+          }
         } catch (Exception e) {
           e.printStackTrace();
         }
