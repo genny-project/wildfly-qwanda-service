@@ -1468,10 +1468,10 @@ public class QwandaEndpoint {
 		service.removeLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode());
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
-
+	
 	@DELETE
     @Consumes("application/json")
-    @Path("/baseEntitys/{code}")
+    @Path("/baseentitys/{code}")
     @Produces("application/json")
 
     public Response removeUser(@PathParam("code") final String code) {
