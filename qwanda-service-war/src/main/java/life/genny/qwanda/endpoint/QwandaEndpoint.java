@@ -69,6 +69,7 @@ import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
 
