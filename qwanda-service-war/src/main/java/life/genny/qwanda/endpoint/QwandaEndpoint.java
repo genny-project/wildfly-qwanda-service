@@ -1452,7 +1452,47 @@ public class QwandaEndpoint {
 		service.removeLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode());
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
+	
+	@DELETE
+    @Consumes("application/json")
+    @Path("/baseentitys/{code}")
+    @Produces("application/json")
 
+    public Response removeUser(@PathParam("code") final String code) {
+	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+          || securityService.inRole("dev")) || GennySettings.devMode) {
+	    String keycloakUserId = null;
+	    if(code.startsWith("PER_")) {
+	      List<EntityAttribute> entityAttributeList = service.findAttributesByBaseEntityCode(code);
+	      for(EntityAttribute ea : entityAttributeList) {
+	        if("PRI_KEYCLOAK_UUID".equals(ea.getAttributeCode())) {
+	          keycloakUserId = ea.getValueString();
+	        }
+	      }
+	    }
+	    Log.info("Removing User " + code);
+
+        service.removeBaseEntity(code);
+        Log.info("Successfully removed the user from database");
+        
+        Log.info("Keycloak User ID: " + keycloakUserId);
+        try {
+          if(keycloakUserId != null) {
+            KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), keycloakUserId);
+          } else {
+            log.error("Keycloak User ID is null, can't delete it from Keycloak!!!");
+            return Response.status(400).build();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        Log.info("Successfully removed the user from keycloak");
+        return Response.status(200).build();
+	  } else {
+	    return Response.status(503).build();
+	  }
+        
+    }
 
 
 	
