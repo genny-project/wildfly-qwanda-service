@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Properties;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
@@ -14,11 +13,8 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.attribute.Attribute;
@@ -40,6 +36,7 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.utils.VertxUtils;
 
 @RequestScoped
 
@@ -216,7 +213,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	protected EntityManager getEntityManager() {
+  public EntityManager getEntityManager() {
 		return helper.getEntityManager();
 	}
 
@@ -229,7 +226,7 @@ public class Service extends BaseEntityService2 {
 
 		List<BaseEntity> users = this.findBaseEntitysByAttributeValues(params, true, 0, 1);
 
-		if (!((users == null) || (users.isEmpty()))) {
+		if (!(users == null || users.isEmpty())) {
 			user = users.get(0);
 
 		}
@@ -292,13 +289,13 @@ public class Service extends BaseEntityService2 {
 			try {
 				int arrSize = pageSize;
 				if (page==pages) {
-					arrSize = bes.size()-(page*pageSize);
+					arrSize = bes.size()-page*pageSize;
 				}
 			
 				
 				BaseEntity[] arr = new BaseEntity[arrSize];
 				for (int index=0;index<arrSize;index++) {
-					int offset = (page*pageSize)+index;
+					int offset = page*pageSize+index;
 					arr[index] = bes.get(offset);
 				}
 				System.out.println("Sending "+page+" to cache api");
@@ -331,45 +328,51 @@ public class Service extends BaseEntityService2 {
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
-		if (!GennySettings.isDdtHost) {
-			if (!securityService.importMode) {
-				try {
-					
-					JsonObject json = new JsonObject();
-					json.put("key", key);
-					json.put("json", jsonValue);
-					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-
-				} catch (IOException e) {
-					log.error("Could not write to cache");
-				}
-			}
-		} else { // production or docker
-			if (GennySettings.devMode) {
-			try {
-					
-					JsonObject json = new JsonObject();
-					json.put("key", key);
-					json.put("json", jsonValue);
-					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-
-				} catch (IOException e) {
-					log.error("Could not write to cache");
-				}
-			
-			} else {
-				String dDTrealm = "genny";
-				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
-					dDTrealm = GennySettings.mainrealm;
-				}
-			if (jsonValue == null) {
-				
-				inDB.getMapBaseEntitys(dDTrealm).remove(key);
-			} else {
-				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
-			}
-			}
-		}
+		JsonObject json = new JsonObject();
+//		json.put("key", key);
+//		json.put("json", jsonValue);
+		
+		VertxUtils.writeCachedJson(key, jsonValue, token);
+	//	VertxUtils.writeCachedJson(key, json.toString(), token);
+//		if (!GennySettings.isDdtHost) {
+//			if (!securityService.importMode) {
+//				try {
+//					
+//					JsonObject json = new JsonObject();
+//					json.put("key", key);
+//					json.put("json", jsonValue);
+//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
+//
+//				} catch (IOException e) {
+//					log.error("Could not write to cache");
+//				}
+//			}
+//		} else { // production or docker
+//			if (GennySettings.devMode) {
+//			try {
+//					
+//					JsonObject json = new JsonObject();
+//					json.put("key", key);
+//					json.put("json", jsonValue);
+//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
+//
+//				} catch (IOException e) {
+//					log.error("Could not write to cache");
+//				}
+//			
+//			} else {
+//				String dDTrealm = "genny";
+//				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
+//					dDTrealm = GennySettings.mainrealm;
+//				}
+//			if (jsonValue == null) {
+//				
+//				inDB.getMapBaseEntitys(dDTrealm).remove(key);
+//			} else {
+//				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
+//			}
+//			}
+//		}
 		log.debug("Written to cache :" + key + ":" + jsonValue);
 	}
 
@@ -389,7 +392,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	public void pushAttributes() {
-		if (!securityService.importMode) {
+		if (!SecurityService.importMode) {
 			pushAttributesAsync();
 		}
 	}
@@ -450,7 +453,7 @@ public class Service extends BaseEntityService2 {
 
 		// Now ask the bridge for the keycloak to use
 		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - ("/auth".length()));
+				realmJson.getString("auth-server-url").length() - "/auth".length());
 
 		log.info(keycloakurl);
 
@@ -489,7 +492,7 @@ public class Service extends BaseEntityService2 {
 		log.info("secret:"+secret);
 
 		keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - ("/auth".length()));
+				realmJson.getString("auth-server-url").length() - "/auth".length());
 		}
 
 		return keycloakurl;

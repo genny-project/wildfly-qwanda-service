@@ -48,6 +48,7 @@ import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
@@ -193,20 +194,6 @@ public class ServiceEndpoint {
 	}
 
 	Controller ctl = new Controller();
-
-	@GET
-	@Path("/synchronize/{sheetId}/{tables}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
-			@PathParam("tables") final String tables) {
-		String response = "Success";
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-
-			ctl.getProject(service, sheetId, tables);
-		}
-		return Response.status(200).entity(response).build();
-	}
 
 	@GET
 	@Path("/synchronize/cache/attributes")
@@ -513,13 +500,20 @@ public class ServiceEndpoint {
 									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
 
 									try {
-										KeycloakUtils.createUser(serviceToken,
+										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
 												securityService.getRealm(), newUsername, newFirstname, newLastname,
 												newEmail);
+										System.out.println("KEYCLOAK USER ID: " + keycloakUserId);
+										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(), "PRI_KEYCLOAK_UUID", keycloakUserId);
+										be.addAnswer(keycloakIdAnswer);
+										service.updateWithAttributes(be);
 									} catch (IOException e) {
 										// TODO Auto-generated catch block
 										e.printStackTrace();
-									}
+									} catch (BadDataException e) {
+                                      // TODO Auto-generated catch block
+                                      e.printStackTrace();
+                                  }
 								}
 							}
 						}

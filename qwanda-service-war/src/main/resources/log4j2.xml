@@ -29,6 +29,12 @@
 		<Logger name="life.genny" level="INFO" additivity="false">
 			<AppenderRef ref="STDOUT" />
 		</Logger>
+		
+		<Logger
+			name="com.hazelcast.client.spi.impl.ClientMembershipListener"
+			level="ERROR" additivity="false">
+			<AppenderRef ref="STDOUT" />
+		</Logger>
 
 
 	</Loggers>

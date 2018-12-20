@@ -14,7 +14,7 @@
 	</modules>
 
 	<properties>
-		<revision>1.0.59</revision>
+		<revision>2.0.0</revision>
 		<ear-plugin-version>2.9</ear-plugin-version>
 		<ejb-plugin-version>2.3</ejb-plugin-version>
 		<ejb-spec-version>3.0</ejb-spec-version>
@@ -61,7 +61,7 @@
 			<dependency>
 				<groupId>javax</groupId>
 				<artifactId>javaee-api</artifactId>
-				<version>6.0</version>
+				<version>8.0</version>
 				<scope>provided</scope>
 			</dependency>
 			<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jsf -->

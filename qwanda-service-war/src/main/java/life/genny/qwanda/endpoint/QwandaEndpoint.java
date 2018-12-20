@@ -6,7 +6,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.NoResultException;
@@ -28,44 +27,29 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.json.JSONObject;
-import org.keycloak.representations.AccessTokenResponse;
 import org.mortbay.log.Log;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.GPS;
-import life.genny.qwanda.GPSLocation;
-import life.genny.qwanda.GPSRoute;
-import life.genny.qwanda.GPSRouteStatus;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeBoolean;
-import life.genny.qwanda.attribute.AttributeDate;
-import life.genny.qwanda.attribute.AttributeDateTime;
-import life.genny.qwanda.attribute.AttributeDouble;
 import life.genny.qwanda.attribute.AttributeInteger;
-import life.genny.qwanda.attribute.AttributeLong;
-import life.genny.qwanda.attribute.AttributeMoney;
 import life.genny.qwanda.attribute.AttributeText;
-import life.genny.qwanda.attribute.AttributeTime;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
@@ -76,13 +60,13 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataAttributeMessage;
+import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
-import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
@@ -293,6 +277,10 @@ public class QwandaEndpoint {
 		} catch (javax.persistence.NoResultException e) {
 			return Response.status(404).build();
 		}
+		catch (IllegalArgumentException e) {
+			return Response.status(422).entity(e.getMessage()).build();
+		}
+
 	}
 
 	@POST
@@ -301,94 +289,18 @@ public class QwandaEndpoint {
 
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//			if (entity.getAttribute() == null) {
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
-//						attribute = new AttributeBoolean(entity.getAttributeCode(),
-//								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//					} else {
-//						if (entity.getDataType()!=null) {
-//							switch (entity.getDataType()) {
-//							case "java.lang.Integer":
-//							case "Integer":
-//								attribute = new AttributeInteger(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.time.LocalDateTime":
-//							case "LocalDateTime":
-//								attribute = new AttributeDateTime(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.lang.Long":
-//							case "Long":
-//								attribute = new AttributeLong(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "java.time.LocalTime":
-//							case "LocalTime":
-//								attribute = new AttributeTime(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//							case "org.javamoney.moneta.Money":
-//							case "Money":
-//								attribute = new AttributeMoney(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.lang.Double":
-//							case "Double":
-//								attribute = new AttributeDouble(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.lang.Boolean":
-//								attribute = new AttributeBoolean(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							case "java.time.LocalDate":
-//								attribute = new AttributeDate(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//
-//							case "java.lang.String":
-//							default:
-//								attribute = new AttributeText(entity.getAttributeCode(),
-//										StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//								break;
-//
-//							}						
-//							} else {
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
-//					}}
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("Attribute is null");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//					entity.setAttribute(attribute);
-//				}
-//			}
-			service.insert(entitys.getItems());
-	//	}
 
-		return Response.status(200).build();
+			try {
+				service.insert(entitys.getItems());
+					return Response.status(200).build();
+				} catch (javax.persistence.NoResultException e) {
+					return Response.status(404).build();
+				}
+				catch (IllegalArgumentException e) {
+					return Response.status(422).entity(e.getMessage()).build();
+				}
+
+
 	}
 
 	@POST
@@ -425,12 +337,12 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(@Context final UriInfo uriInfo) {
 
-		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 
 		BaseEntity searchBE = new BaseEntity("SER_");
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -485,8 +397,8 @@ public class QwandaEndpoint {
 	public Response findBySearchBE3(final String hql) {
 
 		Log.info("Search " + hql);
-		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -508,8 +420,8 @@ public class QwandaEndpoint {
 	public Response findBySearchBE4(final String hql) {
 
 		Log.info("Search " + hql);
-		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 
 			List<Object> results = service.findBySearchBE3(hql);
 			String json = JsonUtils.toJson(results);
@@ -527,8 +439,8 @@ public class QwandaEndpoint {
 	public Response findBySearchBE2(@PathParam("hql") final String hql) {
 
 		Log.info("Search " + hql);
-		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -580,6 +492,79 @@ public class QwandaEndpoint {
 		}
 		Long startTime = System.nanoTime();
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
+			System.out.println("search from db takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
+			Long total = -1L;
+ 
+			try {
+				total = service.findBySearchBECount(searchBE);
+				System.out.println("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				total = -1L;
+			}
+
+			BaseEntity[] beArr = null;
+			if (!(results==null||results.isEmpty())) {
+				beArr = new BaseEntity[results.size()];
+				beArr = results.toArray(beArr);
+			} else {
+				beArr = new BaseEntity[0];
+				total = 0L;
+			}
+			
+			// Override returned parent code if it is supplied, otherwise use search BE code
+			String parentCode = searchBE.getCode();
+			Optional<EntityAttribute> parentAttribute = searchBE.findEntityAttribute("SCH_SOURCE_CODE");
+			if (parentAttribute.isPresent()) {
+				parentCode = parentAttribute.get().getValueString();
+			}
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
+			msg.setTotal(total);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
+		
+
+	}
+	
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search2")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchBE(final QSearchEntityMessage searchBE) {
+
+		Log.info("Search " + searchBE);
+		
+
+		// Force any user that is not admin to have to use their own code
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev")) || searchDevMode) {  // TODO Remove the true!
+			String stakeHolderCode = null;
+			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+
+			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
+			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE", "SourceStakeholderCode");
+			try {
+				
+				if(searchBE.getParent().containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
+					searchBE.getParent().addAttribute(sourceStakeHolderAttribute, new Double(1.0),
+							stakeHolderCode);
+				}else {
+					searchBE.getParent().addAttribute(stakeHolderAttribute, new Double(1.0),
+							stakeHolderCode);
+				}
+			
+			} catch (BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			// pass the stakeHolderCode through
+			
+		}
+		Long startTime = System.nanoTime();
+			List<BaseEntity> results = service.findBySearchBE(searchBE);
 			System.out.println("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 			Long total = -1L;
  
@@ -602,8 +587,8 @@ public class QwandaEndpoint {
 			}
 			
 			// Override returned parent code if it is supplied, otherwise use search BE code
-			String parentCode = searchBE.getCode();
-			Optional<EntityAttribute> parentAttribute = searchBE.findEntityAttribute("SCH_SOURCE_CODE");
+			String parentCode = searchBE.getParent().getCode();
+			Optional<EntityAttribute> parentAttribute = searchBE.getParent().findEntityAttribute("SCH_SOURCE_CODE");
 			if (parentAttribute.isPresent()) {
 				parentCode = parentAttribute.get().getValueString();
 			}
@@ -662,7 +647,7 @@ public class QwandaEndpoint {
 	
 	@GET
 	@Path("/attributes/{code}")
-	public Response fetchAttribute(@PathParam("attributeCode") final String attributeCode) {
+	public Response fetchAttribute(@PathParam("code") final String attributeCode) {
 		final Attribute attribute = service.findAttributeByCode(attributeCode);
 		Attribute[] atArr = new Attribute[1];
 		atArr[0] = attribute;
@@ -844,7 +829,7 @@ public class QwandaEndpoint {
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -883,7 +868,7 @@ public class QwandaEndpoint {
 		boolean includeAttributes = false;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -941,7 +926,7 @@ public class QwandaEndpoint {
 		boolean includeAttributes = false;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -999,7 +984,7 @@ public class QwandaEndpoint {
 		boolean includeAttributes = true;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -1064,7 +1049,7 @@ public class QwandaEndpoint {
 		Integer level = 1;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -1114,7 +1099,7 @@ public class QwandaEndpoint {
 		Integer level = 1;
 
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -1193,7 +1178,7 @@ public class QwandaEndpoint {
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
@@ -1280,7 +1265,7 @@ public class QwandaEndpoint {
 		final String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
 
 		for (final String filename : contentDisposition) {
-			if ((filename.trim().startsWith("filename"))) {
+			if (filename.trim().startsWith("filename")) {
 
 				final String[] name = filename.split("=");
 
@@ -1361,8 +1346,8 @@ public class QwandaEndpoint {
 		String username = (String) securityService.getUserMap().get("username");
 		String userCode = "PER_"+QwandaUtils.getNormalisedUsername(username);
 		
-		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| (userCode.equalsIgnoreCase(baseEntity.getCode())))) { // TODO Remove the true!
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| userCode.equalsIgnoreCase(baseEntity.getCode())) { // TODO Remove the true!
 
 			Log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
 			BaseEntity be = null;
@@ -1403,7 +1388,7 @@ public class QwandaEndpoint {
 		String userCode = QwandaUtils.getNormalisedUsername(username);
 		
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || (userCode.equalsIgnoreCase(baseEntityCode))) {  // TODO Remove the true!
+				|| securityService.inRole("dev")) || userCode.equalsIgnoreCase(baseEntityCode)) {  // TODO Remove the true!
 
 		service.removeEntityAttribute(baseEntityCode, attributeCode);
 		return Response.status(200).build();
@@ -1468,7 +1453,47 @@ public class QwandaEndpoint {
 		service.removeLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode());
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
+	
+	@DELETE
+    @Consumes("application/json")
+    @Path("/baseentitys/{code}")
+    @Produces("application/json")
 
+    public Response removeUser(@PathParam("code") final String code) {
+	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+          || securityService.inRole("dev")) || GennySettings.devMode) {
+	    String keycloakUserId = null;
+	    if(code.startsWith("PER_")) {
+	      List<EntityAttribute> entityAttributeList = service.findAttributesByBaseEntityCode(code);
+	      for(EntityAttribute ea : entityAttributeList) {
+	        if("PRI_KEYCLOAK_UUID".equals(ea.getAttributeCode())) {
+	          keycloakUserId = ea.getValueString();
+	        }
+	      }
+	    }
+	    Log.info("Removing User " + code);
+
+        service.removeBaseEntity(code);
+        Log.info("Successfully removed the user from database");
+        
+        Log.info("Keycloak User ID: " + keycloakUserId);
+        try {
+          if(keycloakUserId != null) {
+            KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), keycloakUserId);
+          } else {
+            log.error("Keycloak User ID is null, can't delete it from Keycloak!!!");
+            return Response.status(400).build();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        Log.info("Successfully removed the user from keycloak");
+        return Response.status(200).build();
+	  } else {
+	    return Response.status(503).build();
+	  }
+        
+    }
 
 
 	
@@ -1662,16 +1687,32 @@ public class QwandaEndpoint {
 
 	Controller ctl = new Controller();
 
-	@GET
-	@Path("/synchronize/{sheetId}/{tables}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response synchronizeSheets2DB(@PathParam("sheetId") final String sheetId,
-			@PathParam("tables") final String tables) {
-		String response = "Success";
-		ctl.getProject(service, sheetId, tables);
-		return Response.status(200).entity(response).build();
-	}
+    @GET
+    @Path("/synchronize/{table}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronize(@PathParam("table") final String table) {
+     
+      String response = "Failed";
+      
+      try {
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      
+      return Response.status(200).entity(response).build();
+    }
+    /**
+     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+    @GET
+    @Path("/synchronizesheet/{table}")
+    public String startSynchronization(@PathParam("table") final String table) {
+       ctl.synchronizeSheetsToDataBase(service, table);
+       return "Success";
+    }
 
 	@GET
 	@Path("/templates/{templateCode}")
