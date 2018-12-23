@@ -461,7 +461,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(final BaseEntity searchBE) {
 
-		Log.info("Search " + searchBE);
+		log.info("Search " + searchBE);
 		
 
 		// Force any user that is not admin to have to use their own code
@@ -483,8 +483,7 @@ public class QwandaEndpoint {
 				}
 			
 			} catch (BadDataException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				return Response.status(401).entity("Bad Data Exception").build();
 			}
 		} else {
 			// pass the stakeHolderCode through
@@ -492,12 +491,12 @@ public class QwandaEndpoint {
 		}
 		Long startTime = System.nanoTime();
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
-			System.out.println("search from db takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
+			log.info("search from db takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
 			Long total = -1L;
  
 			try {
 				total = service.findBySearchBECount(searchBE);
-				System.out.println("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
+				log.info("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -556,8 +555,7 @@ public class QwandaEndpoint {
 				}
 			
 			} catch (BadDataException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				return Response.status(401).entity("Bad Data").build();
 			}
 		} else {
 			// pass the stakeHolderCode through
@@ -565,12 +563,12 @@ public class QwandaEndpoint {
 		}
 		Long startTime = System.nanoTime();
 			List<BaseEntity> results = service.findBySearchBE(searchBE);
-			System.out.println("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+			log.info("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 			Long total = -1L;
  
 			try {
 				total = service.findBySearchBECount(searchBE);
-				System.out.println("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+				log.info("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
