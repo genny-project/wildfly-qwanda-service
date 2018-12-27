@@ -36,6 +36,7 @@ import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
+import life.genny.utils.VertxUtils;
 
 @RequestScoped
 
@@ -212,7 +213,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	protected EntityManager getEntityManager() {
+  public EntityManager getEntityManager() {
 		return helper.getEntityManager();
 	}
 
@@ -320,45 +321,51 @@ public class Service extends BaseEntityService2 {
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
-		if (!GennySettings.isDdtHost) {
-			if (!SecurityService.importMode) {
-				try {
-					
-					JsonObject json = new JsonObject();
-					json.put("key", key);
-					json.put("json", jsonValue);
-					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-
-				} catch (IOException e) {
-					log.error("Could not write to cache");
-				}
-			}
-		} else { // production or docker
-			if (GennySettings.devMode) {
-			try {
-					
-					JsonObject json = new JsonObject();
-					json.put("key", key);
-					json.put("json", jsonValue);
-					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-
-				} catch (IOException e) {
-					log.error("Could not write to cache");
-				}
-			
-			} else {
-				String dDTrealm = "genny";
-				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
-					dDTrealm = GennySettings.mainrealm;
-				}
-			if (jsonValue == null) {
-				
-				inDB.getMapBaseEntitys(dDTrealm).remove(key);
-			} else {
-				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
-			}
-			}
-		}
+		JsonObject json = new JsonObject();
+//		json.put("key", key);
+//		json.put("json", jsonValue);
+		
+		VertxUtils.writeCachedJson(key, jsonValue, token);
+	//	VertxUtils.writeCachedJson(key, json.toString(), token);
+//		if (!GennySettings.isDdtHost) {
+//			if (!securityService.importMode) {
+//				try {
+//					
+//					JsonObject json = new JsonObject();
+//					json.put("key", key);
+//					json.put("json", jsonValue);
+//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
+//
+//				} catch (IOException e) {
+//					log.error("Could not write to cache");
+//				}
+//			}
+//		} else { // production or docker
+//			if (GennySettings.devMode) {
+//			try {
+//					
+//					JsonObject json = new JsonObject();
+//					json.put("key", key);
+//					json.put("json", jsonValue);
+//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
+//
+//				} catch (IOException e) {
+//					log.error("Could not write to cache");
+//				}
+//			
+//			} else {
+//				String dDTrealm = "genny";
+//				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
+//					dDTrealm = GennySettings.mainrealm;
+//				}
+//			if (jsonValue == null) {
+//				
+//				inDB.getMapBaseEntitys(dDTrealm).remove(key);
+//			} else {
+//				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
+//			}
+//			}
+//		}
 		log.debug("Written to cache :" + key + ":" + jsonValue);
 	}
 

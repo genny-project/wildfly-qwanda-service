@@ -66,7 +66,7 @@
 				/> -->
 			<!-- Infinispan -->
 			<property name="hibernate.cache.infinispan.statistics"
-				value="true" />
+				value="false" />
 			<property name="hibernate.cache.use_structured_entries"
 				value="true" />
 
@@ -75,6 +75,7 @@
 				value="true" />
 			<property name="hibernate.cache.use_query_cache"
 				value="true" />
+		<!-- 	<property name="cache.provider_class" value="org.hibernate.cache.NoCacheProvider" />  -->
 		<!--  <property name="hibernate.cache.region.factory_class"
 				value="com.hazelcast.hibernate.HazelcastCacheRegionFactory" /> -->
 			<property name="hibernate.connection.pool_size" value="50" />
