@@ -377,7 +377,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	public String readFromDDT(final String key) {
-		final String realmKey = this.getRealm() + "_" + key;
+		final String realmKey = securityService.getRealm() + "_" + key;
 		String json = (String) inDB.getMapBaseEntitys(GennySettings.mainrealm).get(realmKey);
 
 		return json; // TODO make resteasy @Provider exception
