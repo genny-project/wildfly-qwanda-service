@@ -329,23 +329,24 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key, final String jsonValue) {
 		JsonObject json = new JsonObject();
-//		json.put("key", key);
-//		json.put("json", jsonValue);
+		if (System.getenv("USE_VERTX_UTILS")!=null) {
+			VertxUtils.writeCachedJson(key, jsonValue, token);
+			return;
+		}
+		json.put("key", key);
+		json.put("json", jsonValue);
 		
-		VertxUtils.writeCachedJson(key, jsonValue, token);
+		
 	//	VertxUtils.writeCachedJson(key, json.toString(), token);
 //		if (!GennySettings.isDdtHost) {
 //			if (!securityService.importMode) {
-//				try {
-//					
-//					JsonObject json = new JsonObject();
-//					json.put("key", key);
-//					json.put("json", jsonValue);
-//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-//
-//				} catch (IOException e) {
-//					log.error("Could not write to cache");
-//				}
+				try {
+					
+					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
+
+				} catch (IOException e) {
+					log.error("Could not write to cache");
+				}
 //			}
 //		} else { // production or docker
 //			if (GennySettings.devMode) {
