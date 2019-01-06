@@ -328,67 +328,8 @@ public class Service extends BaseEntityService2 {
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key,String jsonValue) {
-		if (key == null) {
-			log.error("write to DDT: key is null");
-			return;
-		}
-		JsonObject json = new JsonObject();
-		if (System.getenv("USE_VERTX_UTILS")!=null) {
 			VertxUtils.writeCachedJson(key, jsonValue, token);
-			return;
-		}
-		json.put("key", key);
-		if (jsonValue == null) {
-			log.error("write to DDT: jsonValue is null");
-			jsonValue = "{}";
-		}
-		json.put("json", jsonValue);
-		
-		
-	//	VertxUtils.writeCachedJson(key, json.toString(), token);
-//		if (!GennySettings.isDdtHost) {
-//			if (!securityService.importMode) {
-				try {
-					if (token == null) token = "DUMMY"; // TODO
-					if (GennySettings.ddtUrl == null) {
-						log.error("GennySettings.ddtUrl is null");
-					}
-					log.info("Writing to "+GennySettings.ddtUrl + "/write");
-					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
 
-				} catch (IOException e) {
-					log.error("Could not write to cache");
-				} catch (NullPointerException ne) {
-					log.error("Could not post to cache: ["+json.toString()+"] with token="+token);
-				}
-//			}
-//		} else { // production or docker
-//			if (GennySettings.devMode) {
-//			try {
-//					
-//					JsonObject json = new JsonObject();
-//					json.put("key", key);
-//					json.put("json", jsonValue);
-//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-//
-//				} catch (IOException e) {
-//					log.error("Could not write to cache");
-//				}
-//			
-//			} else {
-//				String dDTrealm = "genny";
-//				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
-//					dDTrealm = GennySettings.mainrealm;
-//				}
-//			if (jsonValue == null) {
-//				
-//				inDB.getMapBaseEntitys(dDTrealm).remove(key);
-//			} else {
-//				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
-//			}
-//			}
-//		}
-		log.debug("Written to cache :" + key + ":" + jsonValue);
 	}
 
 	@Override

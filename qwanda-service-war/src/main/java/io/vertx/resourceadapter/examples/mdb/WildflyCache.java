@@ -1,6 +1,5 @@
 package io.vertx.resourceadapter.examples.mdb;
 
-
 import java.util.concurrent.TimeUnit;
 import javax.enterprise.context.ApplicationScoped;
 import java.lang.invoke.MethodHandles;
@@ -26,11 +25,9 @@ public class WildflyCache implements WildflyCacheInterface {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-
 	Hazel inDb;
-	
-	public WildflyCache(Hazel inDb)
-	{
+
+	public WildflyCache(Hazel inDb) {
 		this.inDb = inDb;
 	}
 
@@ -43,34 +40,21 @@ public class WildflyCache implements WildflyCacheInterface {
 	}
 
 	@Override
-	public void writeCache(String key, String value, String token,long ttl_seconds) {
+	public void writeCache(String key, String value, String token, long ttl_seconds) {
+		synchronized (this) {
 		if (value == null) {
-			
 			inDb.getMapBaseEntitys().remove(key);
 		} else {
-			if (System.getenv("USE_VERTX_UTILS")!=null) {
-				log.info("Writing directly to Cache :"+key);
-				inDb.getMapBaseEntitys().put(key, value);
-			} else {
-				JsonObject json = new JsonObject();
-				json.put("key", key);
-				json.put("json", value);
-				try {					
-					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-				} catch (IOException e) {
-					log.error("Could not write to cache");
-				}
-			}
+			inDb.getMapBaseEntitys().put(key, value);
 		}
+		}
+
 	}
 
 	@Override
 	public void clear() {
 		inDb.getMapBaseEntitys().clear();
-		
+
 	}
-
-
-
 
 }
