@@ -101,12 +101,13 @@ public class Service extends BaseEntityService2 {
 		// Send a vertx message broadcasting an attribute value Change
 		log.info("!!ATTRIBUTE CHANGE EVENT ->" + event.getBe().getCode());
 
-		try {
-			String json = JsonUtils.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
-		} catch (Exception e) {
-			log.error("Error in posting attribute changeto JMS:" + event);
-		}
+//		try {
+			VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
+//		//	String json = JsonUtils.toJson(event);
+//		//	QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+//		} catch (Exception e) {
+//			log.error("Error in posting attribute changeto JMS:" + event);
+//		}
 
 	}
 
@@ -143,8 +144,9 @@ public class Service extends BaseEntityService2 {
 			}
 			
 			
-			String json = JsonUtils.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+//			String json = JsonUtils.toJson(event);
+//			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+			VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
 		} catch (Exception e) {
 			log.error("Error in posting link Change to JMS:" + e.getLocalizedMessage());
 		}
@@ -182,12 +184,13 @@ public class Service extends BaseEntityService2 {
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
-		try {
-			String json = JsonUtils.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, token);
-		} catch (Exception e) {
-			log.error("Error in posting System Event to JMS:" + e.getLocalizedMessage());
-		}
+		VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
+//		try {
+//			String json = JsonUtils.toJson(event);
+//			QwandaUtils.apiPostEntity(bridgeApi, json, token);
+//		} catch (Exception e) {
+//			log.error("Error in posting System Event to JMS:" + e.getLocalizedMessage());
+//		}
 
 	}
 
