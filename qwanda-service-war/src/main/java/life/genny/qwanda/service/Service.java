@@ -99,7 +99,7 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
-		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
+		log.info("!!ATTRIBUTE CHANGE EVENT ->" + event.getBe().getCode());
 
 		try {
 			String json = JsonUtils.toJson(event);
@@ -114,7 +114,7 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event) {
 		// Send a vertx message broadcasting an link Change
-		System.out.println("!!LINK CHANGE EVENT ->" + event);
+		log.info("!!LINK CHANGE EVENT ->" + event);
 
 		BaseEntity originalParent  = null;
 		BaseEntity targetParent = null;
@@ -146,7 +146,7 @@ public class Service extends BaseEntityService2 {
 			String json = JsonUtils.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 		} catch (Exception e) {
-			log.error("Error in posting link Change to JMS:" + event);
+			log.error("Error in posting link Change to JMS:" + e.getLocalizedMessage());
 		}
 
 	}
@@ -178,7 +178,7 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
 		// Send a vertx message broadcasting an link Change
-		System.out.println("!!System EVENT ->" + systemCode);
+		log.info("!!System EVENT ->" + systemCode);
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
@@ -186,7 +186,7 @@ public class Service extends BaseEntityService2 {
 			String json = JsonUtils.toJson(event);
 			QwandaUtils.apiPostEntity(bridgeApi, json, token);
 		} catch (Exception e) {
-			log.error("Error in posting link Change to JMS:" + event);
+			log.error("Error in posting System Event to JMS:" + e.getLocalizedMessage());
 		}
 
 	}
@@ -298,7 +298,7 @@ public class Service extends BaseEntityService2 {
 					int offset = page*pageSize+index;
 					arr[index] = bes.get(offset);
 				}
-				System.out.println("Sending "+page+" to cache api");
+				log.info("Sending "+page+" to cache api");
 				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
 						token);
 				String jsonMsg = JsonUtils.toJson(msg);
