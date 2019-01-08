@@ -284,40 +284,40 @@ public class Service extends BaseEntityService2 {
 	public void writeToDDT(final List<BaseEntity> bes) {
 
 
-		if (GennySettings.devMode) {
-			this.initServiceToken();
-			int pageSize = 100;
-			int pages = bes.size()/pageSize;
-			for (int page=0;page<=pages;page++) {
-			try {
-				int arrSize = pageSize;
-				if (page==pages) {
-					arrSize = bes.size()-page*pageSize;
-				}
-			
-				
-				BaseEntity[] arr = new BaseEntity[arrSize];
-				for (int index=0;index<arrSize;index++) {
-					int offset = page*pageSize+index;
-					arr[index] = bes.get(offset);
-				}
-				log.info("Sending "+page+" to cache api");
-				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
-						token);
-				String jsonMsg = JsonUtils.toJson(msg);
-				JsonObject json = new JsonObject();
-				json.put("json", jsonMsg);
-				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
-				
-			} catch (IOException e) {
-				log.error("Could not write to cache");
-			}
-			}
-		} else {
+//		if (GennySettings.devMode) {
+//			this.initServiceToken();
+//			int pageSize = 100;
+//			int pages = bes.size()/pageSize;
+//			for (int page=0;page<=pages;page++) {
+//			try {
+//				int arrSize = pageSize;
+//				if (page==pages) {
+//					arrSize = bes.size()-page*pageSize;
+//				}
+//			
+//				
+//				BaseEntity[] arr = new BaseEntity[arrSize];
+//				for (int index=0;index<arrSize;index++) {
+//					int offset = page*pageSize+index;
+//					arr[index] = bes.get(offset);
+//				}
+//				log.info("Sending "+page+" to cache api");
+//				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
+//						token);
+//				String jsonMsg = JsonUtils.toJson(msg);
+//				JsonObject json = new JsonObject();
+//				json.put("json", jsonMsg);
+//				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
+//				
+//			} catch (IOException e) {
+//				log.error("Could not write to cache");
+//			}
+//			}
+//		} else {
 			for (BaseEntity be : bes) {
 				writeToDDT(be);
 			}
-		}
+//		}
 
 	}
 
