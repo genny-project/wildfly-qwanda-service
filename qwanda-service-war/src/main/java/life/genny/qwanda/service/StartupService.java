@@ -22,6 +22,7 @@ import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import javax.inject.Inject;
 import life.genny.utils.VertxUtils;
+import life.genny.qwandautils.GennySettings;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -86,7 +87,7 @@ public class StartupService {
 			pushToDTT();
 		}
 
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", "NO_TOKEN");
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
 		// em.close();
 		// emf.close();
 	}

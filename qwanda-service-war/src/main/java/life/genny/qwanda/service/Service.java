@@ -76,7 +76,7 @@ public class Service extends BaseEntityService2 {
 
 	@PostConstruct
 	public void init() {
-		
+		initServiceToken();
 	}
 	
 	public void initServiceToken() {
@@ -84,6 +84,7 @@ public class Service extends BaseEntityService2 {
 
 		log.info("Initialising realm - "+GennySettings.mainrealm);
 		token = getServiceToken(GennySettings.mainrealm);
+		log.info("Service token = "+token);
 	}
 	
 	@Override
@@ -331,7 +332,7 @@ public class Service extends BaseEntityService2 {
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key,String jsonValue) {
-			VertxUtils.writeCachedJson(key, jsonValue, token);
+			VertxUtils.writeCachedJson(key, jsonValue, getToken());
 
 	}
 
