@@ -1,6 +1,6 @@
 package io.vertx.resourceadapter.examples.mdb;
 
-import java.util.logging.Logger;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -11,15 +11,37 @@ import life.genny.channel.Producer;
 import life.genny.eventbus.EventBusInterface;
 import life.genny.qwanda.entity.BaseEntity;
 import javax.enterprise.context.ApplicationScoped;
-
+import io.vertx.core.json.JsonObject;
+import life.genny.qwandautils.QwandaUtils;
+import java.lang.invoke.MethodHandles;
+import org.apache.logging.log4j.Logger;
 
 @ApplicationScoped
 public class EventBusBean implements EventBusInterface {
 
-  private Logger logger = Logger.getLogger(EventBusBean.class.getName());
+	/**
+	 * Stores logger object.
+	 */
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+  
+	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	public void write(final String channel, final Object msg) throws NamingException 
 	{
+		String json = (String)msg;
+		JsonObject event = new JsonObject(json);
+		
+		if (System.getenv("FORCE_EVENTBUS_USE_API")!=null) {
+			try {
+
+				QwandaUtils.apiPostEntity(bridgeApi, json, event.getString("token"));
+			} catch (Exception e) {
+				log.error("Error in posting message to bridge eventbus:" + event);
+			}
+			
+		} else {
+
 		   javax.naming.InitialContext ctx = null;
 		    io.vertx.resourceadapter.VertxConnection conn = null;
 		    try {
@@ -28,7 +50,7 @@ public class EventBusBean implements EventBusInterface {
 		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
 		              .lookup("java:/eis/VertxConnectionFactory");
 		      conn = connFactory.getVertxConnection();
-		      conn.vertxEventBus().publish(channel, msg);
+		      conn.vertxEventBus().publish(channel, json);
 		    } catch (Exception e) {
 		      e.printStackTrace();
 		    } finally {
@@ -39,15 +61,27 @@ public class EventBusBean implements EventBusInterface {
 		    	  try {
 		        conn.close();
 		    	  } catch (ResourceException e) {
-		    		  
+		    		  e.printStackTrace();
 		    	  }
 		      }
 		    }
+		}
 	}
   
 
 	public void send(final String channel, final Object msg) throws NamingException 
 	{
+		String json = (String)msg;
+		JsonObject event = new JsonObject(json);
+		if ((System.getenv("FORCE_EVENTBUS_USE_API")!=null)&&(System.getenv("FORCE_EVENTBUS_USE_API").equalsIgnoreCase("TRUE"))) {
+			try {
+				QwandaUtils.apiPostEntity(bridgeApi, json, event.getString("token"));
+			} catch (Exception e) {
+				log.error("Error in posting message to bridge eventbus:" + event);
+			}
+			
+			
+		} else {
 		   javax.naming.InitialContext ctx = null;
 		    io.vertx.resourceadapter.VertxConnection conn = null;
 		    try {
@@ -55,8 +89,10 @@ public class EventBusBean implements EventBusInterface {
 		      io.vertx.resourceadapter.VertxConnectionFactory connFactory =
 		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
 		              .lookup("java:/eis/VertxConnectionFactory");
+		      log.info("Sending Vertx Bus Message:");
 		      conn = connFactory.getVertxConnection();
-		      conn.vertxEventBus().send(channel, msg);
+		      conn.vertxEventBus().send(channel, json);
+		      log.info("Sent Vertx Bus Message");
 		    } catch (Exception e) {
 		      e.printStackTrace();
 		    } finally {
@@ -67,10 +103,11 @@ public class EventBusBean implements EventBusInterface {
 		    	  try {
 		        conn.close();
 		    	  } catch (ResourceException e) {
-		    		  
+		    		  e.printStackTrace();
 		    	  }
 		      }
 		    }
+		}
 	}
   // @PostConstruct
   public static void whatever() throws NamingException, ResourceException {
