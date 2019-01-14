@@ -422,7 +422,7 @@ public class Service extends BaseEntityService2 {
 					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
 					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
-			String token = KeycloakUtils.getToken(keycloakurl, realm, realm, secret, "service", password);
+			String token = KeycloakUtils.getAccessToken(keycloakurl, realm, realm, secret, "service", password);
 			log.info("token = " + token);
 			return token;
 

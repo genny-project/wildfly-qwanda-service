@@ -160,7 +160,7 @@ public class UtilsEndpoint {
 				JsonObject keycloakJson  = new JsonObject(keycloakJsonText);
 				String keycloakUrl = keycloakJson.getString("auth-server-url");
 				String secret = keycloakJson.getJsonObject("credentials").getString("secret");
-				String token = KeycloakUtils.getToken(keycloakUrl, realm, realm,
+				String token = KeycloakUtils.getAccessToken(keycloakUrl, realm, realm,
 						secret, "service", service_password);
 				log.info("token = "+token);
 				QwandaUtils.apiPostEntity(GennySettings.vertxUrl, json.toString(), token);
