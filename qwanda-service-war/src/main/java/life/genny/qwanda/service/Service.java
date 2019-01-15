@@ -38,6 +38,27 @@ import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.utils.VertxUtils;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.apache.commons.lang3.StringUtils;
+
+
 @RequestScoped
 
 public class Service extends BaseEntityService2 {
@@ -371,6 +392,36 @@ public class Service extends BaseEntityService2 {
 	}
 	
 	public  String getServiceToken(String realm) {
+
+		/* we get the service token currently stored in the cache */
+		String serviceToken = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN", String.class);
+
+		/* if we have got a service token cached */
+		if (serviceToken != null) {
+
+			/* we decode it */
+			JSONObject decodedServiceToken = KeycloakUtils.getDecodedToken(serviceToken);
+
+			/* we get the expiry timestamp */
+			long expiryTime = decodedServiceToken.getLong("exp");
+
+			/* we get the current time */
+			long nowTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()).toEpochSecond();
+
+			/* we calculate the differencr */ 
+			long duration = expiryTime - nowTime;
+
+			/* if the difference is negative it means the expiry time is less than the nowTime 
+				 if the difference < 180000, it means the token will expire in 3 hours
+			*/
+			if(duration >= 10800) {
+
+				/* if the token is NOTn about to expire (> 3 hours), we reuse it */
+				return serviceToken;
+			}
+		}
+
+
 		log.info("Generating Service Token for "+realm);
 		
 		realm = GennySettings.dynamicRealm(realm);
@@ -422,9 +473,23 @@ public class Service extends BaseEntityService2 {
 					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
 					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
-			String token = KeycloakUtils.getAccessToken(keycloakurl, realm, realm, secret, "service", password);
-			log.info("token = " + token);
-			return token;
+			/* we get the refresh token from the cache */
+			String cached_refresh_token = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", String.class); 
+
+			/* we get a secure token payload containing a refresh token and an access token */
+			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakurl, realm, realm, secret, "service", password, cached_refresh_token);
+
+			/* we get the access token and the refresh token */
+			String access_token = secureTokenPayload.getString("access_token");
+			String refresh_token = secureTokenPayload.getString("refresh_token");
+
+			/* if we have an access token */
+			if (access_token != null) {
+
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", access_token); // TODO
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", refresh_token); // TODO
+				return access_token;
+			}
 
 		} catch (Exception e) {
 			log.info(e);
