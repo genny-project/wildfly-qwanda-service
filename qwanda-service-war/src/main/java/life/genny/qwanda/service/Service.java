@@ -412,9 +412,11 @@ public class Service extends BaseEntityService2 {
 			long duration = expiryTime - nowTime;
 
 			/* if the difference is negative it means the expiry time is less than the nowTime 
-				 if the difference < 180000, it means the token will expire in 3 hours
+				 if the difference < ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS, it means the token will expire in 3 hours
 			*/
-			if(duration >= 10800) {
+			if(duration > GennySettings.ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS) {
+
+				System.out.println("======= USING CACHED ACCESS TOKEN ========");
 
 				/* if the token is NOTn about to expire (> 3 hours), we reuse it */
 				return serviceToken;
