@@ -394,7 +394,7 @@ public class Service extends BaseEntityService2 {
 	public  String getServiceToken(String realm) {
 
 		/* we get the service token currently stored in the cache */
-		String serviceToken = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN", String.class);
+		String serviceToken = this.readFromDDT("CACHE:SERVICE_TOKEN");
 
 		/* if we have got a service token cached */
 		if (serviceToken != null) {
