@@ -121,7 +121,7 @@ public class KeycloakEndpoint {
 				JsonObject secretJson = realmJson.getJsonObject("credentials");
 				String secret = secretJson.getString("secret");
 				log.info("secret " + secret);
-				userToken = KeycloakUtils.getToken(registration.getKeycloakUrl(), realm, realm, secret, registration.getUsername(), registration.getPassword());
+				userToken = KeycloakUtils.getAccessToken(registration.getKeycloakUrl(), realm, realm, secret, registration.getUsername(), registration.getPassword());
 				log.info("User token = "+userToken);
 			} catch (IOException e) {
 				return Response.status(400).entity("could not obtain access token").build();
