@@ -28,3 +28,4 @@ bin/**/*
 .settings/org.eclipse.wst.common.component
 **/target/
 qwanda-service-war/src/main/resources/qwanda-service-war-git.properties
+./qwanda-service-war/.externalToolBuilders/org.jboss.tools.jst.web.kb.kbbuilder.launch
