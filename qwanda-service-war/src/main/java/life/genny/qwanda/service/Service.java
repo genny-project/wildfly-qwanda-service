@@ -337,6 +337,7 @@ public class Service extends BaseEntityService2 {
 //			}
 //		} else {
 			for (BaseEntity be : bes) {
+				be = super.findBaseEntityByCode(be.getCode(),true); // ugly
 				writeToDDT(be);
 			}
 //		}
@@ -414,9 +415,9 @@ public class Service extends BaseEntityService2 {
 			/* if the difference is negative it means the expiry time is less than the nowTime 
 				 if the difference < ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS, it means the token will expire in 3 hours
 			*/
-			if(duration > GennySettings.ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS) {
+			if(duration >= GennySettings.ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS) {
 
-				System.out.println("======= USING CACHED ACCESS TOKEN ========");
+				log.info("======= USING CACHED ACCESS TOKEN ========");
 
 				/* if the token is NOTn about to expire (> 3 hours), we reuse it */
 				return serviceToken;
