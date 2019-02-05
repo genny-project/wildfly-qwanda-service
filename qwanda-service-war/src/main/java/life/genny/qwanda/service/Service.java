@@ -337,7 +337,7 @@ public class Service extends BaseEntityService2 {
 //			}
 //		} else {
 			for (BaseEntity be : bes) {
-				be = super.findBaseEntityByCode(be.getCode(),true); // ugly
+			//	be = super.findBaseEntityByCode(be.getCode(),true); // ugly
 				writeToDDT(be);
 			}
 //		}

@@ -102,13 +102,13 @@ public class StartupService {
 //				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
 
 		List<BaseEntity> results = em
-				.createQuery("SELECT be FROM BaseEntity be").getResultList();
+				.createQuery("SELECT be FROM BaseEntity be  JOIN  be.baseEntityAttributes ea ").getResultList();
 
 		
 		// Collect all the baseentitys
 		log.info("Pushing "+results.size()+" Basentitys to Cache");
 		service.writeToDDT(results);
-		
+		log.info("Pushed "+results.size()+" Basentitys to Cache");		
 	
 		// Attributes
 		log.info("Pushing Attributes to Cache");
