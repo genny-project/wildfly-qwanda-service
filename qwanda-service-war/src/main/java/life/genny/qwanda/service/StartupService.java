@@ -9,6 +9,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import org.jboss.ejb3.annotation.TransactionTimeout;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.attribute.Attribute;
@@ -32,6 +34,7 @@ import life.genny.qwandautils.GennySettings;
 @Singleton
 @Startup
 @Transactional
+@TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
