@@ -34,7 +34,7 @@ import life.genny.qwandautils.GennySettings;
 @Singleton
 @Startup
 @Transactional
-//@TransactionTimeout(1500)
+
 @TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
 public class StartupService {
 
