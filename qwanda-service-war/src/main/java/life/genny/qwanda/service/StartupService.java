@@ -9,6 +9,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import org.jboss.ejb3.annotation.TransactionTimeout;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.attribute.Attribute;
@@ -32,6 +34,8 @@ import life.genny.qwandautils.GennySettings;
 @Singleton
 @Startup
 @Transactional
+
+@TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
@@ -62,7 +66,7 @@ public class StartupService {
 
 
 	@PostConstruct
-	@Transactional
+//	@Transactional
 	public void init() {
 
 		cacheInterface = new WildflyCache(inDb);
@@ -73,12 +77,12 @@ public class StartupService {
 
 		// em = emf.createEntityManager();
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
-			System.out.println("Starting Transaction for loading");
+			log.info("Starting Transaction for loading");
 			BatchLoading bl = new BatchLoading(service);
 			bl.persistProject(false, null, false);
-			System.out.println("*********************** Finished Google Doc Import ***********************************");
+			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
-			System.out.println("Skipping Google doc loading");
+			log.info("Skipping Google doc loading");
 		}
 		securityService.setImportMode(false);
 
@@ -88,31 +92,33 @@ public class StartupService {
 		}
 
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
-		// em.close();
-		// emf.close();
+
 	}
 
-	// @javax.ejb.Asynchronous
+
 	public void pushToDTT() {
 		// BaseEntitys
+//		List<BaseEntity> results = em
+//				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
+
 		List<BaseEntity> results = em
-				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
-	
+				.createQuery("SELECT be FROM BaseEntity be  JOIN  be.baseEntityAttributes ea ").getResultList();
+
 		
 		// Collect all the baseentitys
-		System.out.println("Pushing "+results.size()+" Basentitys to Cache");
+		log.info("Pushing "+results.size()+" Basentitys to Cache");
 		service.writeToDDT(results);
-		
+		log.info("Pushed "+results.size()+" Basentitys to Cache");		
 	
 		// Attributes
-		System.out.println("Pushing Attributes to Cache");
+		log.info("Pushing Attributes to Cache");
 		final List<Attribute> entitys = service.findAttributes();
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
 		String json = JsonUtils.toJson(msg);
 		service.writeToDDT("attributes", json);
-		System.out.println("---------------- Completed Startup ----------------");
+		log.info("---------------- Completed Startup ----------------");
 	}
 
 }

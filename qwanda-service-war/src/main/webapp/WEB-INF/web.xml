@@ -79,7 +79,7 @@
 	        <url-pattern>/api-docs/*</url-pattern>
 	    </web-resource-collection>
 	<auth-constraint>
-        <role-name>user</role-name>
+        <role-name>dev</role-name>
 
     </auth-constraint>
 	</security-constraint>
