@@ -220,10 +220,10 @@ public class ServiceEndpoint {
 	@Transactional
 	@TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
 	public Response synchronizeCacheBEs() {
-
+		long startTimeMs = System.nanoTime();
 		List<BaseEntity> results = new ArrayList<BaseEntity>();
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-			long startTimeMs = System.nanoTime();
+			
 			log.info(" Writing BaseEntitys to cache.");
 			results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
 					.getResultList();
