@@ -91,7 +91,6 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private Hazel inDB;
 
-	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 	
 	String token="DUMMY";
 
@@ -102,18 +101,15 @@ public class Service extends BaseEntityService2 {
 	
 	public void initServiceToken() {
 		
-
-		log.info("Initialising realm - "+GennySettings.mainrealm);
 		token = getServiceToken(GennySettings.mainrealm);
-		log.info("Service token = "+token);
 	}
 	
 	@Override
 	public String getToken()
 	{
-		if ("DUMMY".equals(token)) {
-			init();
-		}
+//		if ("DUMMY".equals(token)) {
+//			initServiceToken();
+//		}
 		return token;
 	}
 
@@ -148,7 +144,7 @@ public class Service extends BaseEntityService2 {
 				if (event.getOldLink().getSourceCode()!=null) {
 					String originalParentCode = event.getOldLink().getSourceCode();
 					originalParent = this.findBaseEntityByCode(originalParentCode);
-					updateDDT(originalParent.getCode(),JsonUtils.toJson(originalParent));
+					updateDDT(originalParent.getRealm(),originalParent.getCode(),JsonUtils.toJson(originalParent));
 					QEventAttributeValueChangeMessage parentEvent = new QEventAttributeValueChangeMessage(originalParent.getCode(),originalParent.getCode(),originalParent,event.getToken());
 					this.sendQEventAttributeValueChangeMessage(parentEvent);
 				}
@@ -158,7 +154,7 @@ public class Service extends BaseEntityService2 {
 				if (event.getLink().getSourceCode()!=null) {
 					String targetParentCode = event.getLink().getSourceCode();
 					targetParent = this.findBaseEntityByCode(targetParentCode);
-					updateDDT(targetParent.getCode(),JsonUtils.toJson(targetParent));
+					updateDDT(targetParent.getRealm(),targetParent.getCode(),JsonUtils.toJson(targetParent));
 					QEventAttributeValueChangeMessage targetEvent = new QEventAttributeValueChangeMessage(targetParent.getCode(),targetParent.getCode(),targetParent,event.getToken());
 					this.sendQEventAttributeValueChangeMessage(targetEvent);
 
@@ -306,70 +302,73 @@ public class Service extends BaseEntityService2 {
 	public void writeToDDT(final List<BaseEntity> bes) {
 
 
-//		if (GennySettings.devMode) {
-//			this.initServiceToken();
-//			int pageSize = 100;
-//			int pages = bes.size()/pageSize;
-//			for (int page=0;page<=pages;page++) {
-//			try {
-//				int arrSize = pageSize;
-//				if (page==pages) {
-//					arrSize = bes.size()-page*pageSize;
-//				}
-//			
-//				
-//				BaseEntity[] arr = new BaseEntity[arrSize];
-//				for (int index=0;index<arrSize;index++) {
-//					int offset = page*pageSize+index;
-//					arr[index] = bes.get(offset);
-//				}
-//				log.info("Sending "+page+" to cache api");
-//				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
-//						token);
-//				String jsonMsg = JsonUtils.toJson(msg);
-//				JsonObject json = new JsonObject();
-//				json.put("json", jsonMsg);
-//				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
-//				
-//			} catch (IOException e) {
-//				log.error("Could not write to cache");
-//			}
-//			}
-//		} else {
+		if (GennySettings.devMode) {
+			this.initServiceToken();
+			int pageSize = 100;
+			int pages = bes.size()/pageSize;
+			for (int page=0;page<=pages;page++) {
+			try {
+				int arrSize = pageSize;
+				if (page==pages) {
+					arrSize = bes.size()-page*pageSize;
+				}
+			
+				
+				BaseEntity[] arr = new BaseEntity[arrSize];
+				for (int index=0;index<arrSize;index++) {
+					int offset = page*pageSize+index;
+					arr[index] = bes.get(offset);
+				}
+				log.info("Sending "+page+" to cache api");
+				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
+						token);
+				String jsonMsg = JsonUtils.toJson(msg);
+				JsonObject json = new JsonObject();
+				json.put("json", jsonMsg);
+				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
+				
+			} catch (IOException e) {
+				log.error("Could not write to cache");
+			}
+			}
+		} else {
 			for (BaseEntity be : bes) {
 			//	be = super.findBaseEntityByCode(be.getCode(),true); // ugly
-				writeToDDT(be);
+				writeToDDT( be);
 			}
-//		}
+		}
 
 	}
 
 	@Override
 	public void writeToDDT(final BaseEntity be) {
 		String json = JsonUtils.toJson(be);
-		writeToDDT(be.getCode(), json);
+		writeToDDT(be.getRealm(), be.getCode(), json);
 
 	}
 
 	@Override
 	@javax.ejb.Asynchronous
-	public void writeToDDT(final String key,String jsonValue) {
-			VertxUtils.writeCachedJson(key, jsonValue, getToken());
+	public void writeToDDT(final String realm, final String key,String jsonValue) {
+		// If no servlet session then no token is available , so supply ServiceToken
+			
+			VertxUtils.writeCachedJson(realm, key, jsonValue, getToken());
 
 	}
 
 	@Override
 	@javax.ejb.Asynchronous
-	public void updateDDT(final String key, final String value) {
-		writeToDDT(key, value);
+	public void updateDDT(final String realm, final String key, final String value) {
+		writeToDDT(realm, key, value);
 	}
 
 	@Override
-	public String readFromDDT(final String key) {
-		final String realmKey = this.getRealm() + "_" + key;
-		String json = (String) inDB.getMapBaseEntitys(GennySettings.mainrealm).get(realmKey);
-
-		return json; // TODO make resteasy @Provider exception
+	public String readFromDDT(final String realm, final String key) {
+	//	JsonObject jsonObj = VertxUtils.readCachedJson(realm, key, getToken());
+	//	final String realmKey = realm + "_" + key;
+		String json = (String) inDB.getMapBaseEntitys(realm).get(key);
+		return json;
+	//	return jsonObj.getJsonObject("value").toString(); // TODO make resteasy @Provider exception
 	}
 
 	@Override
@@ -388,14 +387,14 @@ public class Service extends BaseEntityService2 {
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
 		msg.setToken(securityService.getToken());
 		String json = JsonUtils.toJson(msg);
-		writeToDDT("attributes", json);
+		writeToDDT(securityService.getRealm(),"attributes", json);
 
 	}
 	
 	public  String getServiceToken(String realm) {
 
 		/* we get the service token currently stored in the cache */
-		String serviceToken = this.readFromDDT("CACHE:SERVICE_TOKEN");
+		String serviceToken = this.readFromDDT(realm,"CACHE:SERVICE_TOKEN");
 
 		/* if we have got a service token cached */
 		if (serviceToken != null) {

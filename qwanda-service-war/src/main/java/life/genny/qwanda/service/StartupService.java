@@ -35,7 +35,7 @@ import life.genny.qwandautils.GennySettings;
 @Startup
 @Transactional
 
-@TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
+@TransactionTimeout(value=3000, unit=TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
@@ -67,27 +67,30 @@ public class StartupService {
 
 	@PostConstruct
 //	@Transactional
+//	@TransactionTimeout(value=3000, unit=TimeUnit.SECONDS)
 	public void init() {
 
 		cacheInterface = new WildflyCache(inDb);
 		
 		VertxUtils.init(eventBus,cacheInterface);
 
-		securityService.setImportMode(true); // ugly way of getting past security
 
 		// em = emf.createEntityManager();
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
+			securityService.setImportMode(true); // ugly way of getting past security
 			log.info("Starting Transaction for loading");
 			BatchLoading bl = new BatchLoading(service);
 			bl.persistProject(false, null, false);
+			securityService.setImportMode(false);
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
-		securityService.setImportMode(false);
+	
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP")!=null) {
+			log.info("Pushing BaseEntities to DDT");
 			pushToDTT();
 		}
 
@@ -97,6 +100,15 @@ public class StartupService {
 
 
 	public void pushToDTT() {
+		// Attributes
+		log.info("Pushing Attributes to Cache");
+		final List<Attribute> entitys = service.findAttributes();
+		Attribute[] atArr = new Attribute[entitys.size()];
+		atArr = entitys.toArray(atArr);
+		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+		String json = JsonUtils.toJson(msg);
+		service.writeToDDT(securityService.getRealm(),"attributes", json);
+
 		// BaseEntitys
 //		List<BaseEntity> results = em
 //				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
@@ -110,14 +122,6 @@ public class StartupService {
 		service.writeToDDT(results);
 		log.info("Pushed "+results.size()+" Basentitys to Cache");		
 	
-		// Attributes
-		log.info("Pushing Attributes to Cache");
-		final List<Attribute> entitys = service.findAttributes();
-		Attribute[] atArr = new Attribute[entitys.size()];
-		atArr = entitys.toArray(atArr);
-		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
-		String json = JsonUtils.toJson(msg);
-		service.writeToDDT("attributes", json);
 		log.info("---------------- Completed Startup ----------------");
 	}
 

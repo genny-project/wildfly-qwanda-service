@@ -223,6 +223,7 @@ public class ServiceEndpoint {
 
 		List<BaseEntity> results = new ArrayList<BaseEntity>();
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			long startTimeMs = System.nanoTime();
 			log.info(" Writing BaseEntitys to cache.");
 			results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
 					.getResultList();
@@ -232,7 +233,10 @@ public class ServiceEndpoint {
 		} else {
 			return Response.status(401).entity("You need to be a dev.").build();
 		}
-		log.info(results.size() + " BaseEntitys written to cache.");
+		long endTimeMs = System.nanoTime();
+		double difference = (endTimeMs - startTimeMs) / 1e6; // get ms
+
+		log.info(results.size() + " BaseEntitys written to cache. in "+difference+" ms");
 		return Response.status(200).entity(results.size() + " BaseEntitys written to cache.").build();
 	}
 
@@ -245,7 +249,7 @@ public class ServiceEndpoint {
 		String results = null;
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
-			results = service.readFromDDT(key);
+			results = service.readFromDDT(securityService.getRealm(),key);
 		}
 		return Response.status(200).entity(results).build();
 	}
@@ -393,7 +397,7 @@ public class ServiceEndpoint {
 		String returnMessage = "";
 
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-			service.removeBaseEntity(code);
+			service.removeBaseEntity(securityService.getRealm(),code);
 
 		} else {
 			returnMessage = "Cannot find BE " + code;

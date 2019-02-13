@@ -1471,7 +1471,7 @@ public class QwandaEndpoint {
 	    }
 	    Log.info("Removing User " + code);
 
-        service.removeBaseEntity(code);
+        service.removeBaseEntity(securityService.getRealm(),code);
         Log.info("Successfully removed the user from database");
         
         Log.info("Keycloak User ID: " + keycloakUserId);

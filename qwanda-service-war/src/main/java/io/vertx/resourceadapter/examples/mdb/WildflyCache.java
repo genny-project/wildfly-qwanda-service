@@ -32,28 +32,28 @@ public class WildflyCache implements WildflyCacheInterface {
 	}
 
 	@Override
-	public Object readCache(String key, String token) {
+	public Object readCache(final String realm, final String key,final  String token) {
 
-		Object ret = inDb.getMapBaseEntitys().get(key);
+		Object ret = inDb.getMapBaseEntitys(realm).get(key);
 
 		return ret;
 	}
 
 	@Override
-	public void writeCache(String key, String value, String token, long ttl_seconds) {
+	public void writeCache(final String realm, final String key,final  String value,final  String token, long ttl_seconds) {
 		synchronized (this) {
 		if (value == null) {
-			inDb.getMapBaseEntitys().remove(key);
+			inDb.getMapBaseEntitys(realm).remove(key);
 		} else {
-			inDb.getMapBaseEntitys().put(key, value);
+			inDb.getMapBaseEntitys(realm).put(key, value);
 		}
 		}
 
 	}
 
 	@Override
-	public void clear() {
-		inDb.getMapBaseEntitys().clear();
+	public void clear(final String realm) {
+		inDb.getMapBaseEntitys(realm).clear();
 
 	}
 
