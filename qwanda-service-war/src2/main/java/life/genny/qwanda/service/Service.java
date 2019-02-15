@@ -97,7 +97,6 @@ public class Service extends BaseEntityService2 {
 
 	@PostConstruct
 	public void init() {
-	
 		initServiceToken();
 	}
 	
@@ -113,7 +112,7 @@ public class Service extends BaseEntityService2 {
 	public String getToken()
 	{
 		if ("DUMMY".equals(token)) {
-			token = generateServiceToken(GennySettings.mainrealm);
+			init();
 		}
 		return token;
 	}
@@ -393,10 +392,8 @@ public class Service extends BaseEntityService2 {
 	public  String getServiceToken(String realm) {
 
 		/* we get the service token currently stored in the cache */
-		String serviceToken = null;
-		if ("DUMMY".equals(token)) {
-			this.readFromDDT("CACHE:SERVICE_TOKEN");
-		}
+		String serviceToken = this.readFromDDT("CACHE:SERVICE_TOKEN");
+
 		/* if we have got a service token cached */
 		if (serviceToken != null) {
 
@@ -423,16 +420,6 @@ public class Service extends BaseEntityService2 {
 				return serviceToken;
 			}
 		}
-
-
-		log.info("Generating Service Token for "+realm);
-		
-		return generateServiceToken(realm);
-	}
-	
-	public  String generateServiceToken(String realm) {
-
-
 
 
 		log.info("Generating Service Token for "+realm);
