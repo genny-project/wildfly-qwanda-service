@@ -128,9 +128,7 @@ public class StartupService {
 
 		//
 		service.writeToDDT(projectBe);
-		final String key = projectBe.getCode();
-		final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).toString(); ;
-		//service.readFromDTT(key);
+		final String prjJsonString = service.readFromDTT(projectBe.getCode());
 		
 		BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
 		log.info("Cached Project = ["+cachedProject+"]");
