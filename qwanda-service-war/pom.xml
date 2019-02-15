@@ -36,7 +36,7 @@
 		<genny-verticle.version>${revision}</genny-verticle.version>
 		
 
-		<version.org.wildfly>15.0.0.Final</version.org.wildfly>
+		<version.org.wildfly>15.0.1.Final</version.org.wildfly>
 
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
 
