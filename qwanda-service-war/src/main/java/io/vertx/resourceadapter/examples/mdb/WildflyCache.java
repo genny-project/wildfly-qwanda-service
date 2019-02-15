@@ -53,7 +53,7 @@ public class WildflyCache implements WildflyCacheInterface {
 
 	@Override
 	public void clear(String realm) {
-		inDb.getMapBaseEntitys().clear();
+		inDb.getMapBaseEntitys(realm).clear();
 
 	}
 
