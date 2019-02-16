@@ -92,6 +92,7 @@ public class StartupService {
 		}
 
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
+		log.info("---------------- Completed Startup ----------------");
 
 	}
 
@@ -123,20 +124,22 @@ public class StartupService {
 
 		// Test cache
 		final String projectCode = "PRJ_"+GennySettings.mainrealm.toUpperCase();
+		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"'";
+		log.info("sql code = "+sqlCode);
 		final BaseEntity projectBe = (BaseEntity)em
-				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"'").getSingleResult();
-
+				.createQuery(sqlCode).getSingleResult();
+		log.info("DB project = ["+projectBe+"]");
 		//
 		service.writeToDDT(projectBe);
 		final String key = projectBe.getCode();
-		final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).toString(); ;
+		final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value"); ;
 		//service.readFromDTT(key);
-		
+		log.info("json from cache=["+prjJsonString+"]");
 		BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
 		log.info("Cached Project = ["+cachedProject+"]");
 						
 		
-		log.info("---------------- Completed Startup ----------------");
+
 	}
 
 }
