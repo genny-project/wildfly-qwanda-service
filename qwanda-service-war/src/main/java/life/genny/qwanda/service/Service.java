@@ -104,9 +104,9 @@ public class Service extends BaseEntityService2 {
 	public void initServiceToken() {
 		
 
-		log.info("Initialising realm - "+GennySettings.mainrealm);
+	//	log.info("Initialising realm - "+GennySettings.mainrealm);
 		token = getServiceToken(GennySettings.mainrealm);
-		log.info("Service token = "+token);
+	//	log.info("Service token = "+token);
 	}
 	
 	@Override
@@ -394,8 +394,11 @@ public class Service extends BaseEntityService2 {
 
 		/* we get the service token currently stored in the cache */
 		String serviceToken = null;
-		if ("DUMMY".equals(token)) {
-			this.readFromDDT("CACHE:SERVICE_TOKEN");
+		if (!"DUMMY".equals(token)) {
+			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",getToken());
+			if ("ok".equals(jsonServiceToken.getString("status"))) {
+				serviceToken = jsonServiceToken.getString("value");
+			}
 		}
 		/* if we have got a service token cached */
 		if (serviceToken != null) {
