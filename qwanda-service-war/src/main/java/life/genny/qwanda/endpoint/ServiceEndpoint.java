@@ -243,9 +243,14 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response cacheRead(@PathParam("key") final String key) {
 		String results = null;
+		log.info("Cache Fetch for key="+key);
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-
+			log.info("Reading from cache : key = ["+key+"]");
+			log.info("realm=["+securityService.getRealm()+"]");
+			log.info("token=["+service.getToken()+"]");
 			results = service.readFromDDT(key);
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
 		}
 		return Response.status(200).entity(results).build();
 	}
