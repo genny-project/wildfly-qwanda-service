@@ -84,7 +84,6 @@ public class StartupService {
 		} else {
 			log.info("Skipping Google doc loading");
 		}
-		securityService.setImportMode(false);
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP")!=null) {
@@ -93,6 +92,7 @@ public class StartupService {
 
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
 		log.info("---------------- Completed Startup ----------------");
+		securityService.setImportMode(false);
 
 	}
 

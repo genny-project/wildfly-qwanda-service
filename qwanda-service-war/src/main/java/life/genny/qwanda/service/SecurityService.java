@@ -75,18 +75,22 @@ public class SecurityService implements Serializable {
 	}
 
 	public Boolean inRole(final String role) {
+		if (!importMode) {
 		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken().getRealmAccess()
 				.isUserInRole(role);
+		} else {
+			return true;
+		}
 	}
 
 	public String getRealm() {
-		return CoreEntity.DEFAULT_REALM;
-		// if (!importMode) {
-		// return ((KeycloakPrincipal)
-		// request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
-		// } else {
-		// return CoreEntity.DEFAULT_REALM;
-		// }
+		//return CoreEntity.DEFAULT_REALM;
+		 if (!importMode) {
+			 return ((KeycloakPrincipal)
+		 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+		 } else {
+			 return CoreEntity.DEFAULT_REALM;
+		 }
 	}
 
 	public Map<String, Object> getUserMap() {

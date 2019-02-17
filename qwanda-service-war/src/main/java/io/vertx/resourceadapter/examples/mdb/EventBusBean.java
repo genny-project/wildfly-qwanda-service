@@ -12,6 +12,7 @@ import life.genny.eventbus.EventBusInterface;
 import life.genny.qwanda.entity.BaseEntity;
 import javax.enterprise.context.ApplicationScoped;
 import io.vertx.core.json.JsonObject;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.QwandaUtils;
 import java.lang.invoke.MethodHandles;
 import org.apache.logging.log4j.Logger;
@@ -25,17 +26,16 @@ public class EventBusBean implements EventBusInterface {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
   
-	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	public void write(final String channel, final Object msg) throws NamingException 
 	{
 		String json = (String)msg;
 		JsonObject event = new JsonObject(json);
 		
-		if (System.getenv("FORCE_EVENTBUS_USE_API")!=null) {
+		if (GennySettings.forceEventBusApi) {
 			try {
 
-				QwandaUtils.apiPostEntity(bridgeApi, json, event.getString("token"));
+				QwandaUtils.apiPostEntity(GennySettings.bridgeServiceUrl, json, event.getString("token"));
 			} catch (Exception e) {
 				log.error("Error in posting message to bridge eventbus:" + event);
 			}
@@ -73,9 +73,9 @@ public class EventBusBean implements EventBusInterface {
 	{
 		String json = (String)msg;
 		JsonObject event = new JsonObject(json);
-		if ((System.getenv("FORCE_EVENTBUS_USE_API")!=null)&&(System.getenv("FORCE_EVENTBUS_USE_API").equalsIgnoreCase("TRUE"))) {
+		if (GennySettings.forceEventBusApi) {
 			try {
-				QwandaUtils.apiPostEntity(bridgeApi, json, event.getString("token"));
+				QwandaUtils.apiPostEntity(GennySettings.bridgeServiceUrl, json, event.getString("token"));
 			} catch (Exception e) {
 				log.error("Error in posting message to bridge eventbus:" + event);
 			}
