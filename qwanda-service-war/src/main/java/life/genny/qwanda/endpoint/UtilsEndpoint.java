@@ -265,7 +265,7 @@ public class UtilsEndpoint {
     @Path("/baseentitycode/{username}")
     @Produces("application/json")
     public Response getUserCodeFromUserName(@PathParam("username") final String username) {
-      System.out.println("Fetching base entity code for the user name " + username);
+      log.info("Fetching base entity code for the user name " + username);
       String baseEntityCode = QwandaUtils.getUserCodeFromUserName(username);
       String json = JsonUtils.toJson(baseEntityCode);
       return Response.status(200).entity(json).build();
