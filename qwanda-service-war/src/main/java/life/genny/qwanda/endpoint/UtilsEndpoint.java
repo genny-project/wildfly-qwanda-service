@@ -260,4 +260,15 @@ public class UtilsEndpoint {
 		return Response.status(200).entity(beString).build();
 	}
 	
+	@GET
+    @Consumes("application/json")
+    @Path("/baseentitycode/{username}")
+    @Produces("application/json")
+    public Response getUserCodeFromUserName(@PathParam("username") final String username) {
+      log.info("Fetching base entity code for the user name " + username);
+      String baseEntityCode = QwandaUtils.getUserCodeFromUserName(username);
+      String json = JsonUtils.toJson(baseEntityCode);
+      return Response.status(200).entity(json).build();
+    }
+	
 }
