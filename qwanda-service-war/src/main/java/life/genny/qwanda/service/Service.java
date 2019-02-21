@@ -283,6 +283,12 @@ public class Service extends BaseEntityService2 {
 		return null;
 	}
 
+	protected String getRealm() {
+		
+		return securityService.getRealm();
+	//	return "genny"; // TODO HACK
+	}
+
 	@Override
 	@Transactional
 	public Long update(final BaseEntity baseEntity) {

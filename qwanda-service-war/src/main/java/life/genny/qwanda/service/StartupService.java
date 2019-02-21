@@ -124,7 +124,7 @@ public class StartupService {
 
 		// Test cache
 		final String projectCode = "PRJ_"+GennySettings.mainrealm.toUpperCase();
-		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"'";
+		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"' and be.realm='"+GennySettings.mainrealm+"'";
 		log.info("sql code = "+sqlCode);
 		final BaseEntity projectBe = (BaseEntity)em
 				.createQuery(sqlCode).getSingleResult();
