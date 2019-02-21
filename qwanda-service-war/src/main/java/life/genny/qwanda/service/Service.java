@@ -38,6 +38,27 @@ import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 import life.genny.utils.VertxUtils;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.apache.commons.lang3.StringUtils;
+
+
 @RequestScoped
 
 public class Service extends BaseEntityService2 {
@@ -76,21 +97,23 @@ public class Service extends BaseEntityService2 {
 
 	@PostConstruct
 	public void init() {
-		
+	
+		initServiceToken();
 	}
 	
 	public void initServiceToken() {
 		
 
-		log.info("Initialising realm - "+GennySettings.mainrealm);
+	//	log.info("Initialising realm - "+GennySettings.mainrealm);
 		token = getServiceToken(GennySettings.mainrealm);
+	//	log.info("Service token = "+token);
 	}
 	
 	@Override
 	public String getToken()
 	{
 		if ("DUMMY".equals(token)) {
-			init();
+			token = generateServiceToken(GennySettings.mainrealm);
 		}
 		return token;
 	}
@@ -99,14 +122,15 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		// Send a vertx message broadcasting an attribute value Change
-		System.out.println("!!ATTRIBUTE CHANGE EVENT ->" + event);
+		log.info("!!ATTRIBUTE CHANGE EVENT ->" + event.getBe().getCode());
 
-		try {
-			String json = JsonUtils.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
-		} catch (Exception e) {
-			log.error("Error in posting attribute changeto JMS:" + event);
-		}
+//		try {
+			VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
+//		//	String json = JsonUtils.toJson(event);
+//		//	QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+//		} catch (Exception e) {
+//			log.error("Error in posting attribute changeto JMS:" + event);
+//		}
 
 	}
 
@@ -114,7 +138,7 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event) {
 		// Send a vertx message broadcasting an link Change
-		System.out.println("!!LINK CHANGE EVENT ->" + event);
+		log.info("!!LINK CHANGE EVENT ->" + event);
 
 		BaseEntity originalParent  = null;
 		BaseEntity targetParent = null;
@@ -143,10 +167,11 @@ public class Service extends BaseEntityService2 {
 			}
 			
 			
-			String json = JsonUtils.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+//			String json = JsonUtils.toJson(event);
+//			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
+			VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
 		} catch (Exception e) {
-			log.error("Error in posting link Change to JMS:" + event);
+			log.error("Error in posting link Change to JMS:" + e.getLocalizedMessage());
 		}
 
 	}
@@ -178,16 +203,17 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
 		// Send a vertx message broadcasting an link Change
-		System.out.println("!!System EVENT ->" + systemCode);
+		log.info("!!System EVENT ->" + systemCode);
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
-		try {
-			String json = JsonUtils.toJson(event);
-			QwandaUtils.apiPostEntity(bridgeApi, json, token);
-		} catch (Exception e) {
-			log.error("Error in posting link Change to JMS:" + event);
-		}
+		VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
+//		try {
+//			String json = JsonUtils.toJson(event);
+//			QwandaUtils.apiPostEntity(bridgeApi, json, token);
+//		} catch (Exception e) {
+//			log.error("Error in posting System Event to JMS:" + e.getLocalizedMessage());
+//		}
 
 	}
 
@@ -274,99 +300,56 @@ public class Service extends BaseEntityService2 {
 	public void writeToDDT(final List<BaseEntity> bes) {
 
 
-		if (GennySettings.devMode) {
-			this.initServiceToken();
-			int pageSize = 100;
-			int pages = bes.size()/pageSize;
-			for (int page=0;page<=pages;page++) {
-			try {
-				int arrSize = pageSize;
-				if (page==pages) {
-					arrSize = bes.size()-page*pageSize;
-				}
-			
-				
-				BaseEntity[] arr = new BaseEntity[arrSize];
-				for (int index=0;index<arrSize;index++) {
-					int offset = page*pageSize+index;
-					arr[index] = bes.get(offset);
-				}
-				System.out.println("Sending "+page+" to cache api");
-				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
-						token);
-				String jsonMsg = JsonUtils.toJson(msg);
-				JsonObject json = new JsonObject();
-				json.put("json", jsonMsg);
-				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
-				
-			} catch (IOException e) {
-				log.error("Could not write to cache");
-			}
-			}
-		} else {
+//		if (GennySettings.devMode) {
+//			this.initServiceToken();
+//			int pageSize = 100;
+//			int pages = bes.size()/pageSize;
+//			for (int page=0;page<=pages;page++) {
+//			try {
+//				int arrSize = pageSize;
+//				if (page==pages) {
+//					arrSize = bes.size()-page*pageSize;
+//				}
+//			
+//				
+//				BaseEntity[] arr = new BaseEntity[arrSize];
+//				for (int index=0;index<arrSize;index++) {
+//					int offset = page*pageSize+index;
+//					arr[index] = bes.get(offset);
+//				}
+//				log.info("Sending "+page+" to cache api");
+//				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
+//						token);
+//				String jsonMsg = JsonUtils.toJson(msg);
+//				JsonObject json = new JsonObject();
+//				json.put("json", jsonMsg);
+//				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
+//				
+//			} catch (IOException e) {
+//				log.error("Could not write to cache");
+//			}
+//			}
+//		} else {
 			for (BaseEntity be : bes) {
+			//	be = super.findBaseEntityByCode(be.getCode(),true); // ugly
 				writeToDDT(be);
 			}
-		}
+//		}
 
 	}
 
 	@Override
 	public void writeToDDT(final BaseEntity be) {
 		String json = JsonUtils.toJson(be);
-		writeToDDT(be.getCode(), json);
-
+		VertxUtils.writeCachedJson(be.getRealm(),be.getCode(), json, getToken());
 	}
 
 	@Override
 	@javax.ejb.Asynchronous
-	public void writeToDDT(final String key, final String jsonValue) {
-		JsonObject json = new JsonObject();
-//		json.put("key", key);
-//		json.put("json", jsonValue);
+	public void writeToDDT(final String key,String jsonValue) {
 		
-		VertxUtils.writeCachedJson(key, jsonValue, token);
-	//	VertxUtils.writeCachedJson(key, json.toString(), token);
-//		if (!GennySettings.isDdtHost) {
-//			if (!securityService.importMode) {
-//				try {
-//					
-//					JsonObject json = new JsonObject();
-//					json.put("key", key);
-//					json.put("json", jsonValue);
-//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-//
-//				} catch (IOException e) {
-//					log.error("Could not write to cache");
-//				}
-//			}
-//		} else { // production or docker
-//			if (GennySettings.devMode) {
-//			try {
-//					
-//					JsonObject json = new JsonObject();
-//					json.put("key", key);
-//					json.put("json", jsonValue);
-//					QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/write", json.toString(), token);
-//
-//				} catch (IOException e) {
-//					log.error("Could not write to cache");
-//				}
-//			
-//			} else {
-//				String dDTrealm = "genny";
-//				if ("genny".equalsIgnoreCase(securityService.getRealm())) {
-//					dDTrealm = GennySettings.mainrealm;
-//				}
-//			if (jsonValue == null) {
-//				
-//				inDB.getMapBaseEntitys(dDTrealm).remove(key);
-//			} else {
-//				inDB.getMapBaseEntitys(dDTrealm).put(key, jsonValue);
-//			}
-//			}
-//		}
-		log.debug("Written to cache :" + key + ":" + jsonValue);
+			VertxUtils.writeCachedJson(this.getRealm(),key, jsonValue, getToken());
+
 	}
 
 	@Override
@@ -377,10 +360,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	public String readFromDDT(final String key) {
-		final String realmKey = securityService.getRealm() + "_" + key;
-		String json = (String) inDB.getMapBaseEntitys(GennySettings.mainrealm).get(realmKey);
-
-		return json; // TODO make resteasy @Provider exception
+		return VertxUtils.readCachedJson(this.getRealm(),key,getToken()).toString();
 	}
 
 	@Override
@@ -404,6 +384,51 @@ public class Service extends BaseEntityService2 {
 	}
 	
 	public  String getServiceToken(String realm) {
+		/* we get the service token currently stored in the cache */
+		
+		String serviceToken = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN", String.class); 
+
+//		if (!"DUMMY".equals(token)) {
+//			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",getToken());
+//			if ("ok".equals(jsonServiceToken.getString("status"))) {
+//				serviceToken = jsonServiceToken.getString("value");
+//			}
+//		}
+		/* if we have got a service token cached */
+		if (serviceToken != null) {
+
+			/* we decode it */
+			JSONObject decodedServiceToken = KeycloakUtils.getDecodedToken(serviceToken);
+
+			/* we get the expiry timestamp */
+			long expiryTime = decodedServiceToken.getLong("exp");
+
+			/* we get the current time */
+			long nowTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()).toEpochSecond();
+
+			/* we calculate the differencr */ 
+			long duration = expiryTime - nowTime;
+
+			/* if the difference is negative it means the expiry time is less than the nowTime 
+				 if the difference < ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS, it means the token will expire in 3 hours
+			*/
+			if(duration >= GennySettings.ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS) {
+
+				log.info("======= USING CACHED ACCESS TOKEN ========");
+
+				/* if the token is NOTn about to expire (> 3 hours), we reuse it */
+				return serviceToken;
+			}
+		}
+
+		return generateServiceToken(realm);
+	}
+	
+	public  String generateServiceToken(String realm) {
+
+
+
+
 		log.info("Generating Service Token for "+realm);
 		
 		realm = GennySettings.dynamicRealm(realm);
@@ -455,9 +480,23 @@ public class Service extends BaseEntityService2 {
 					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
 					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
-			String token = KeycloakUtils.getToken(keycloakurl, realm, realm, secret, "service", password);
-			log.info("token = " + token);
-			return token;
+			/* we get the refresh token from the cache */
+			String cached_refresh_token = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", String.class); 
+
+			/* we get a secure token payload containing a refresh token and an access token */
+			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakurl, realm, realm, secret, "service", password, cached_refresh_token);
+
+			/* we get the access token and the refresh token */
+			String access_token = secureTokenPayload.getString("access_token");
+			String refresh_token = secureTokenPayload.getString("refresh_token");
+
+			/* if we have an access token */
+			if (access_token != null) {
+
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", access_token); // TODO
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", refresh_token); // TODO
+				return access_token;
+			}
 
 		} catch (Exception e) {
 			log.info(e);

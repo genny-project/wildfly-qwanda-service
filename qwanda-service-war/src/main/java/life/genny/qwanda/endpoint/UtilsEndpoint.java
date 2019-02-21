@@ -161,7 +161,7 @@ public class UtilsEndpoint {
 				JsonObject keycloakJson  = new JsonObject(keycloakJsonText);
 				String keycloakUrl = keycloakJson.getString("auth-server-url");
 				String secret = keycloakJson.getJsonObject("credentials").getString("secret");
-				String token = KeycloakUtils.getToken(keycloakUrl, realm, realm,
+				String token = KeycloakUtils.getAccessToken(keycloakUrl, realm, realm,
 						secret, "service", service_password);
 				log.info("token = "+token);
 				QwandaUtils.apiPostEntity(GennySettings.vertxUrl, json.toString(), token);
@@ -261,5 +261,16 @@ public class UtilsEndpoint {
 		
 		return Response.status(200).entity(beString).build();
 	}
+	
+	@GET
+    @Consumes("application/json")
+    @Path("/baseentitycode/{username}")
+    @Produces("application/json")
+    public Response getUserCodeFromUserName(@PathParam("username") final String username) {
+      log.info("Fetching base entity code for the user name " + username);
+      String baseEntityCode = QwandaUtils.getUserCodeFromUserName(username);
+      String json = JsonUtils.toJson(baseEntityCode);
+      return Response.status(200).entity(json).build();
+    }
 	
 }

@@ -100,7 +100,7 @@ public class KeycloakService {
         formParams.add(new BasicNameValuePair(OAuth2Constants.CLIENT_SECRET, secret));
       }
       final UrlEncodedFormEntity form = new UrlEncodedFormEntity(formParams, "UTF-8");
-
+      
       post.setEntity(form);
 
       final HttpResponse response = httpClient.execute(post);

@@ -9,6 +9,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import org.jboss.ejb3.annotation.TransactionTimeout;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.attribute.Attribute;
@@ -22,6 +24,7 @@ import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import javax.inject.Inject;
 import life.genny.utils.VertxUtils;
+import life.genny.qwandautils.GennySettings;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -31,6 +34,8 @@ import life.genny.utils.VertxUtils;
 @Singleton
 @Startup
 @Transactional
+
+@TransactionTimeout(value=3000, unit=TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
@@ -61,7 +66,7 @@ public class StartupService {
 
 
 	@PostConstruct
-	@Transactional
+//	@Transactional
 	public void init() {
 
 		cacheInterface = new WildflyCache(inDb);
@@ -72,47 +77,69 @@ public class StartupService {
 
 		// em = emf.createEntityManager();
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
-			System.out.println("Starting Transaction for loading");
+			log.info("Starting Transaction for loading");
 			BatchLoading bl = new BatchLoading(service);
 			bl.persistProject(false, null, false);
-			System.out.println("*********************** Finished Google Doc Import ***********************************");
+			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
-			System.out.println("Skipping Google doc loading");
+			log.info("Skipping Google doc loading");
 		}
-		securityService.setImportMode(false);
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP")!=null) {
 			pushToDTT();
 		}
 
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", "NO_TOKEN");
-		// em.close();
-		// emf.close();
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
+		log.info("---------------- Completed Startup ----------------");
+		securityService.setImportMode(false);
+
 	}
 
-	// @javax.ejb.Asynchronous
+
 	public void pushToDTT() {
-		// BaseEntitys
-		List<BaseEntity> results = em
-				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.realm=:realm")
-				.setParameter("realm", BatchLoading.REALM).getResultList();
-	
-		
-		// Collect all the baseentitys
-		System.out.println("Pushing "+results.size()+" Basentitys to Cache");
-		service.writeToDDT(results);
-		
-	
 		// Attributes
-		System.out.println("Pushing Attributes to Cache");
+		log.info("Pushing Attributes to Cache");
 		final List<Attribute> entitys = service.findAttributes();
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
 		String json = JsonUtils.toJson(msg);
 		service.writeToDDT("attributes", json);
-		System.out.println("---------------- Completed Startup ----------------");
+		log.info("Pushed "+entitys.size()+" attributes to cache");
+		
+		// BaseEntitys
+		List<BaseEntity> results = em
+				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
+
+//		List<BaseEntity> results = em
+//				.createQuery("SELECT be FROM BaseEntity be  JOIN  be.baseEntityAttributes ea ").getResultList();
+
+		
+		// Collect all the baseentitys
+		log.info("Pushing "+results.size()+" Basentitys to Cache");
+		service.writeToDDT(results);
+		log.info("Pushed "+results.size()+" Basentitys to Cache");		
+	
+
+		// Test cache
+		final String projectCode = "PRJ_"+GennySettings.mainrealm.toUpperCase();
+		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"'";
+		log.info("sql code = "+sqlCode);
+		final BaseEntity projectBe = (BaseEntity)em
+				.createQuery(sqlCode).getSingleResult();
+		log.info("DB project = ["+projectBe+"]");
+		//
+		service.writeToDDT(projectBe);
+		final String key = projectBe.getCode();
+		final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value"); ;
+		//service.readFromDTT(key);
+		log.info("json from cache=["+prjJsonString+"]");
+		BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
+		log.info("Cached Project = ["+cachedProject+"]");
+						
+		
+
 	}
 
 }

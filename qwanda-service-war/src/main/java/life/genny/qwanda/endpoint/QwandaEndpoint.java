@@ -309,10 +309,18 @@ public class QwandaEndpoint {
 
 	public Response create(final Answer entity) {
 		QDataAnswerMessage answerMsg = new QDataAnswerMessage(entity);
-		service.insert(answerMsg.getItems());
-		return Response
-				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
-				.build();
+
+		
+		try {
+			service.insert(answerMsg.getItems());
+				return Response.status(200).build();
+			} catch (javax.persistence.NoResultException e) {
+				return Response.status(404).build();
+			}
+			catch (IllegalArgumentException e) {
+				return Response.status(422).entity(e.getMessage()).build();
+			}
+
 	}
 
 	@POST

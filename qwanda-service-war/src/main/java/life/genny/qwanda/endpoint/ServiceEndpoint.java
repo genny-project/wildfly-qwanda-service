@@ -15,6 +15,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import org.jboss.ejb3.annotation.TransactionTimeout;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -146,6 +148,7 @@ public class ServiceEndpoint {
 	@Path("/baseentitys/uploadcsv")
 	@Consumes("multipart/form-data")
 	@Transactional
+	@TransactionTimeout(value=500, unit=TimeUnit.SECONDS)
 	public Response uploadFile(final MultipartFormDataInput input) throws IOException {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -200,6 +203,7 @@ public class ServiceEndpoint {
 	@Path("/synchronize/cache/attributes")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
+	@TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
 	public Response synchronizeCache() {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -215,6 +219,7 @@ public class ServiceEndpoint {
 	@ApiOperation(value = "baseentitys", notes = "Sync all BaseEntitys")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
+	@TransactionTimeout(value=1500, unit=TimeUnit.SECONDS)
 	public Response synchronizeCacheBEs() {
 
 		List<BaseEntity> results = new ArrayList<BaseEntity>();
@@ -239,9 +244,14 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response cacheRead(@PathParam("key") final String key) {
 		String results = null;
+		log.info("Cache Fetch for key="+key);
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-
+			log.info("Reading from cache : key = ["+key+"]");
+			log.info("realm=["+securityService.getRealm()+"]");
+			log.info("token=["+service.getToken()+"]");
 			results = service.readFromDDT(key);
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
 		}
 		return Response.status(200).entity(results).build();
 	}

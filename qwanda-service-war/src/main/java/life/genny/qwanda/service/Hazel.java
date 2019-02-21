@@ -38,25 +38,25 @@ public class Hazel {
 
     HazelcastInstance instance;
 
-    private IMap mapBaseEntitys;
+//    private IMap mapBaseEntitys;
 
-    /**
-     * @return the mapBaseEntitys
-     */
-    public IMap getMapBaseEntitys() {
-        return mapBaseEntitys;
-    }
+//    /**
+//     * @return the mapBaseEntitys
+//     */
+//    public IMap getMapBaseEntitys() {
+//        return mapBaseEntitys;
+//    }
 
     public IMap getMapBaseEntitys(final String realm) {
         return  instance.getMap(realm);
     }
 
-    /**
-     * @param mapBaseEntitys the mapBaseEntitys to set
-     */
-    public void setMapBaseEntitys(final IMap mapBaseEntitys) {
-        this.mapBaseEntitys = mapBaseEntitys;
-    }
+//    /**
+//     * @param mapBaseEntitys the mapBaseEntitys to set
+//     */
+//    public void setMapBaseEntitys(final IMap mapBaseEntitys) {
+//        this.mapBaseEntitys = mapBaseEntitys;
+//    }
 
     public static HazelcastInstance getHazelcastClientInstance(){
         ClientConfig cfg = new ClientConfig();
@@ -85,7 +85,7 @@ public class Hazel {
             instance = getHazelcastClientInstance();
         }
 
-        mapBaseEntitys = instance.getMap(GennySettings.mainrealm); // To fix
+ //       mapBaseEntitys = instance.getMap(GennySettings.mainrealm); // To fix
     }
 
 }
