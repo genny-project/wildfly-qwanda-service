@@ -425,7 +425,7 @@ public class ServiceEndpoint {
 			} catch (IOException e) {
 
 			}
-			System.out.println("Sending rulegroup - " + rulegroup + " from "
+			log.info("Sending rulegroup - " + rulegroup + " from "
 					+ securityService.getUserMap().get("prefered_username"));
 			QEventSystemMessage event = new QEventSystemMessage("FOCUS_RULE_GROUP", properties, token);
 			event.getData().setValue(rulegroup);
@@ -513,7 +513,7 @@ public class ServiceEndpoint {
 										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
 												securityService.getRealm(), newUsername, newFirstname, newLastname,
 												newEmail);
-										System.out.println("KEYCLOAK USER ID: " + keycloakUserId);
+										log.info("KEYCLOAK USER ID: " + keycloakUserId);
 										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(), "PRI_KEYCLOAK_UUID", keycloakUserId);
 										be.addAnswer(keycloakIdAnswer);
 										service.updateWithAttributes(be);
