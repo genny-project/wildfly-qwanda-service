@@ -404,7 +404,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE3(final String hql) {
 
-		Log.info("Search " + hql);
+		log.info("Search " + hql);
 		if (securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -427,7 +427,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE4(final String hql) {
 
-		Log.info("Search " + hql);
+		log.info("Search " + hql);
 		if (securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -446,7 +446,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE2(@PathParam("hql") final String hql) {
 
-		Log.info("Search " + hql);
+		log.info("Search " + hql);
 		if (securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -541,7 +541,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(final QSearchEntityMessage searchBE) {
 
-		Log.info("Search " + searchBE);
+		log.info("Search " + searchBE);
 		
 
 		// Force any user that is not admin to have to use their own code
@@ -1291,7 +1291,7 @@ public class QwandaEndpoint {
 
 	public Response updateLink(final Link link) {
 
-		Log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
+		log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
 				+ ":" + link.getLinkValue() + ":" + link.getWeight());
 
 		Integer result = null;
@@ -1312,7 +1312,7 @@ public class QwandaEndpoint {
 
 	public Response updateEntityEntity(final Link link) {
 
-		Log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
+		log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
 				+ ":" + link.getLinkValue() + ":" + link.getWeight() + ":" + link.getParentColor() + ":"
 				+ link.getChildColor() + ":" + link.getRule());
 
@@ -1333,7 +1333,7 @@ public class QwandaEndpoint {
 
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
-		Log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
+		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
 		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
 		be.setName(baseEntity.getName());
 		be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
@@ -1355,7 +1355,7 @@ public class QwandaEndpoint {
 		if (securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| userCode.equalsIgnoreCase(baseEntity.getCode())) { // TODO Remove the true!
 
-			Log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
+			log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
 			BaseEntity be = null;
 			try {
 			be = service.findBaseEntityByCode(baseEntity.getCode());
@@ -1430,7 +1430,7 @@ public class QwandaEndpoint {
 
 	public Response addLink(final Link ee) {
 
-		Log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
+		log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
 				+ ":" + ee.getLinkValue() + ":" + ee.getWeight());
 
 		EntityEntity newEntityEntity = null;
@@ -1454,7 +1454,7 @@ public class QwandaEndpoint {
 
 	public Response removeLink(final Link ee) {
 
-		Log.info("Removing Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
+		log.info("Removing Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
 
 		service.removeLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode());
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
@@ -1477,12 +1477,12 @@ public class QwandaEndpoint {
 	        }
 	      }
 	    }
-	    Log.info("Removing User " + code);
+	    log.info("Removing User " + code);
 
         service.removeBaseEntity(code);
-        Log.info("Successfully removed the user from database");
+        log.info("Successfully removed the user from database");
         
-        Log.info("Keycloak User ID: " + keycloakUserId);
+        log.info("Keycloak User ID: " + keycloakUserId);
         try {
           if(keycloakUserId != null) {
             KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), keycloakUserId);
@@ -1493,7 +1493,7 @@ public class QwandaEndpoint {
         } catch (Exception e) {
           e.printStackTrace();
         }
-        Log.info("Successfully removed the user from keycloak");
+        log.info("Successfully removed the user from keycloak");
         return Response.status(200).build();
 	  } else {
 	    return Response.status(503).build();
@@ -1510,7 +1510,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response moveLink(@PathParam("targetCode") final String targetCode, final Link ee) {
 
-		Log.info("moving Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
+		log.info("moving Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
 				+ " to new Parent " + targetCode);
 		Link newEntityEntity = service.moveLink(ee.getSourceCode(), ee.getTargetCode(), ee.getAttributeCode(),
 				targetCode);
@@ -1640,85 +1640,6 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
-	@GET
-	@Path("/realms/sync")
-	@ApiOperation(value = "syncrealms", notes = "Links")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response syncrealms() {
-		log.debug("Sync Keycloak Realms");
-		String keycloakRealms = SecureResources.reload();
-		return Response.status(200).entity(keycloakRealms).build();
-	}
-
-	@GET
-	@Path("/realms")
-	@ApiOperation(value = "syncrealms", notes = "Links")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response fetchrealms() {
-		log.debug("Fetch Keycloak Realms");
-		String keycloakRealms = SecureResources.fetchRealms();
-		return Response.status(200).entity(keycloakRealms).build();
-	}
-
-	@POST
-	@Consumes("application/json")
-	@Path("/realms")
-	@Transactional
-	public Response createRealm(final String entity) {
-		log.debug("Add Keycloak Realm");
-
-		JSONObject json = new JSONObject(entity);
-		String key = json.getString("clientId");
-		key = key + ".json";
-
-		SecureResources.addRealm(key, entity);
-
-		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
-	}
-
-	@DELETE
-	@Consumes("application/json")
-	@Path("/realms")
-	@Produces("application/json")
-	@Transactional
-	public Response removeRealm(final String key) {
-
-		Log.info("Removing Realm " + key);
-
-		SecureResources.removeRealm(key);
-		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
-	}
-
-	Controller ctl = new Controller();
-
-    @GET
-    @Path("/synchronize/{table}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response synchronize(@PathParam("table") final String table) {
-     
-      String response = "Failed";
-      
-      try {
-        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      
-      return Response.status(200).entity(response).build();
-    }
-    /**
-     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
-     * @param table
-     * @return response of the synchronization
-     */
-    @GET
-    @Path("/synchronizesheet/{table}")
-    public String startSynchronization(@PathParam("table") final String table) {
-       ctl.synchronizeSheetsToDataBase(service, table);
-       return "Success";
-    }
 
 	@GET
 	@Path("/templates/{templateCode}")

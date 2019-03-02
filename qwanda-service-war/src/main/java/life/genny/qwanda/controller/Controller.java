@@ -263,9 +263,10 @@ public class Controller {
   }
 
   @Transactional
-  public void synchronizeSheetsToDataBase(final Service bes, final String table) {
+  public void synchronizeSheetsToDataBase(final Service bes, String table) {
     final BatchLoading bl = new BatchLoading(bes);
     Map<String, Map<String, Object>> superMerge;
+    table = table.toLowerCase();
     switch(table) {
       case "baseentity":
         superMerge = retrieveDeletionRecords(bes, table, "baseEntitys");

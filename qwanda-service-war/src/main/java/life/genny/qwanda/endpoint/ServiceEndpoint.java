@@ -21,6 +21,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -28,6 +29,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+
+import org.json.JSONObject;
 
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
@@ -59,6 +64,9 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
+
+import life.genny.qwanda.controller.Controller;
+import life.genny.security.SecureResources;
 
 /**
  * JAX-RS endpoint
@@ -539,6 +547,84 @@ public class ServiceEndpoint {
 		return Response.status(200).entity(ret).build();
 	}
 
-	
+	@GET
+	@Path("/realms/sync")
+	@ApiOperation(value = "syncrealms", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response syncrealms() {
+		log.debug("Sync Keycloak Realms");
+		String keycloakRealms = SecureResources.reload();
+		return Response.status(200).entity(keycloakRealms).build();
+	}
+
+	@GET
+	@Path("/realms")
+	@ApiOperation(value = "syncrealms", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchrealms() {
+		log.debug("Fetch Keycloak Realms");
+		String keycloakRealms = SecureResources.fetchRealms();
+		return Response.status(200).entity(keycloakRealms).build();
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/realms")
+	@Transactional
+	public Response createRealm(final String entity) {
+		log.debug("Add Keycloak Realm");
+
+		JSONObject json = new JSONObject(entity);
+		String key = json.getString("clientId");
+		key = key + ".json";
+
+		SecureResources.addRealm(key, entity);
+
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
+
+	@DELETE
+	@Consumes("application/json")
+	@Path("/realms")
+	@Produces("application/json")
+	@Transactional
+	public Response removeRealm(final String key) {
+
+		log.info("Removing Realm " + key);
+
+		SecureResources.removeRealm(key);
+		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
+	}
+
+
+//    @GET
+//    @Path("/synchronize/{table}")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public Response synchronize(@PathParam("table") final String table) {
+//     
+//      String response = "Failed";
+//      
+//      try {
+//        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//      
+//      return Response.status(200).entity(response).build();
+//    }
+    /**
+     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+    @GET
+    @Path("/synchronizesheet/{table}")
+    public String startSynchronization(@PathParam("table") final String table) {
+       ctl.synchronizeSheetsToDataBase(service, table);
+       return "Success";
+    }
+
 	
 }
