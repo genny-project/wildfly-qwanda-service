@@ -599,21 +599,23 @@ public class ServiceEndpoint {
 	}
 
 
-//    @GET
-//    @Path("/synchronize/{table}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public Response synchronize(@PathParam("table") final String table) {
-//     
-//      String response = "Failed";
-//      
-//      try {
-//        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
-//      } catch (Exception e) {
-//        e.printStackTrace();
-//      }
-//      
-//      return Response.status(200).entity(response).build();
-//    }
+	// cheap way of getting clean transaction
+    @GET
+    @Path("/synchronize/{table}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronize(@PathParam("table") final String table) {
+     
+      String response = "Failed";
+      
+      try {
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      
+      return Response.status(200).entity(response).build();
+    }
+    
     /**
      * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
      * @param table

@@ -113,6 +113,7 @@ public class Service extends BaseEntityService2 {
 	public String getToken()
 	{
 		if ("DUMMY".equals(token)) {
+			log.warn("DUMMY TOKEN");
 			token = generateServiceToken(GennySettings.mainrealm);
 		}
 		return token;
@@ -400,6 +401,7 @@ public class Service extends BaseEntityService2 {
 			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",getToken());
 			if ("ok".equals(jsonServiceToken.getString("status"))) {
 				serviceToken = jsonServiceToken.getString("value");
+				token = serviceToken;
 			}
 		}
 		/* if we have got a service token cached */
@@ -433,9 +435,6 @@ public class Service extends BaseEntityService2 {
 	}
 	
 	public  String generateServiceToken(String realm) {
-
-
-
 
 		log.info("Generating Service Token for "+realm);
 		
@@ -484,7 +483,7 @@ public class Service extends BaseEntityService2 {
 		log.info(keycloakurl);
 
 		try {
-			log.info("realm() : " + realm + "\n" + "realm : " + realm + "\n" + "secret : " + secret + "\n"
+			log.info("realm()! : " + realm + "\n" + "realm! : " + realm + "\n" + "secret : " + secret + "\n"
 					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
 					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 

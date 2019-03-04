@@ -132,11 +132,11 @@ public class StartupService {
 		//
 		service.writeToDDT(projectBe);
 		final String key = projectBe.getCode();
-		final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value"); ;
+	//	final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value"); ;
 		//service.readFromDTT(key);
-		log.info("json from cache=["+prjJsonString+"]");
-		BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
-		log.info("Cached Project = ["+cachedProject+"]");
+	//	log.info("json from cache=["+prjJsonString+"]");
+	//	BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
+	//	log.info("Cached Project = ["+cachedProject+"]");
 						
 		
 
