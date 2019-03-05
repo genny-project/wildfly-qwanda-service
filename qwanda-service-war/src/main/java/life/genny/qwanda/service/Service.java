@@ -398,11 +398,11 @@ public class Service extends BaseEntityService2 {
 		String serviceToken = null; //VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN", String.class); 
 
 		if (!"DUMMY".equals(token)) {
-			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",token);
-			if ("ok".equals(jsonServiceToken.getString("status"))) {
-				serviceToken = jsonServiceToken.getString("value");
-				token = serviceToken;
-			}
+//			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",token);
+//			if ("ok".equals(jsonServiceToken.getString("status"))) {
+//				serviceToken = jsonServiceToken.getString("value");
+//				token = serviceToken;
+//			}
 		}
 		/* if we have got a service token cached */
 		if (serviceToken != null) {
