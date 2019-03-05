@@ -113,6 +113,7 @@ public class Service extends BaseEntityService2 {
 	public String getToken()
 	{
 		if ("DUMMY".equals(token)) {
+			log.warn("DUMMY TOKEN");
 			token = generateServiceToken(GennySettings.mainrealm);
 		}
 		return token;
@@ -394,14 +395,15 @@ public class Service extends BaseEntityService2 {
 	public  String getServiceToken(String realm) {
 		/* we get the service token currently stored in the cache */
 		
-		String serviceToken = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN", String.class); 
+		String serviceToken = null; //VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN", String.class); 
 
-//		if (!"DUMMY".equals(token)) {
-//			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",getToken());
-//			if ("ok".equals(jsonServiceToken.getString("status"))) {
-//				serviceToken = jsonServiceToken.getString("value");
-//			}
-//		}
+		if (!"DUMMY".equals(token)) {
+			JsonObject jsonServiceToken = VertxUtils.readCachedJson(this.getRealm(),"CACHE:SERVICE_TOKEN",getToken());
+			if ("ok".equals(jsonServiceToken.getString("status"))) {
+				serviceToken = jsonServiceToken.getString("value");
+				token = serviceToken;
+			}
+		}
 		/* if we have got a service token cached */
 		if (serviceToken != null) {
 
@@ -433,9 +435,6 @@ public class Service extends BaseEntityService2 {
 	}
 	
 	public  String generateServiceToken(String realm) {
-
-
-
 
 		log.info("Generating Service Token for "+realm);
 		
@@ -484,13 +483,15 @@ public class Service extends BaseEntityService2 {
 		log.info(keycloakurl);
 
 		try {
-			log.info("realm() : " + realm + "\n" + "realm : " + realm + "\n" + "secret : " + secret + "\n"
+			log.info("realm()! : " + realm + "\n" + "realm! : " + realm + "\n" + "secret : " + secret + "\n"
 					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
 					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
 			/* we get the refresh token from the cache */
-			String cached_refresh_token = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", String.class); 
-
+			String cached_refresh_token = null;
+			if (!"DUMMY".equals(token)) {
+				cached_refresh_token = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", String.class,getToken()); 
+			}
 			/* we get a secure token payload containing a refresh token and an access token */
 			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakurl, realm, realm, secret, "service", password, cached_refresh_token);
 
@@ -503,9 +504,9 @@ public class Service extends BaseEntityService2 {
 
 			/* if we have an access token */
 			if (access_token != null) {
-
-				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", access_token); // TODO
-				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", refresh_token); // TODO
+				
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", access_token, access_token); // TODO
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", refresh_token,access_token); // TODO
 				return access_token;
 			}
 

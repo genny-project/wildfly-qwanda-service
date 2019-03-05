@@ -120,6 +120,9 @@
 		<web-resource-name>Qwanda Service</web-resource-name>
 			<url-pattern>/keycloak/*</url-pattern>
 		</web-resource-collection>
+		<auth-constraint>
+        <role-name>admin</role-name>
+    </auth-constraint>
 	
 	</security-constraint>	
 	<login-config>

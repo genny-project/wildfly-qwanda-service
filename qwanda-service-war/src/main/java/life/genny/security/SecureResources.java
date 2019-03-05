@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,10 +13,14 @@ import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 
+import org.apache.logging.log4j.Logger;
+
 import life.genny.qwandautils.GennySettings;
 
 @ApplicationScoped
 public class SecureResources {
+	  protected static final Logger log = org.apache.logging.log4j.LogManager
+		      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	/**
 	 * @return the keycloakJsonMap
@@ -39,13 +44,13 @@ public class SecureResources {
 	public static void addRealm(final String key, String keycloakJsonText) {
 
 		keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
-		System.out.println("Adding keycloak key:" + key + "," + keycloakJsonText);
+		log.info("Adding keycloak key:" + key + "," + keycloakJsonText);
 
 		keycloakJsonMap.put(key, keycloakJsonText);
 	}
 
 	public static void removeRealm(final String key) {
-		System.out.println("Removing keycloak key:" + key);
+		log.info("Removing keycloak key:" + key);
 
 		keycloakJsonMap.remove(key);
 	}
@@ -68,11 +73,11 @@ public class SecureResources {
 		final File folder = new File(rootFilePath);
 		final File[] listOfFiles = folder.listFiles();
 
-		System.out.println("Loading Files! with HOSTIP=" + GennySettings.hostIP);
+		log.info("Loading Files! with HOSTIP=" + GennySettings.hostIP);
 
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile()) {
-				System.out.println("Importing Keycloak Realm File " + listOfFiles[i].getName());
+				log.info("Importing Keycloak Realm File " + listOfFiles[i].getName());
 				try {
 					String keycloakJsonText = getFileAsText(listOfFiles[i]);
 					// Handle case where dev is in place with localhost
@@ -82,7 +87,7 @@ public class SecureResources {
 
 					// }
 					final String key = listOfFiles[i].getName(); // .replaceAll(".json", "");
-					System.out.println("keycloak key:" + key + "," + keycloakJsonText);
+					log.info("keycloak key:" + key + "," + keycloakJsonText);
 
 					keycloakJsonMap.put(key, keycloakJsonText);
 					keycloakJsonMap.put(key+".json", keycloakJsonText);
@@ -93,7 +98,7 @@ public class SecureResources {
 				}
 
 			} else if (listOfFiles[i].isDirectory()) {
-				System.out.println("Directory " + listOfFiles[i].getName());
+				log.info("Directory " + listOfFiles[i].getName());
 				readFilenamesFromDirectory(listOfFiles[i].getName());
 			}
 		}

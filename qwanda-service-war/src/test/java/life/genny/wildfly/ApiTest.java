@@ -85,7 +85,7 @@ public class ApiTest {
 			JSONObject json = new JSONObject(accessTokenResponse);
 			String token = json.getString("access_token");
 
-			System.out.println("Token =" + token);
+			log.info("Token =" + token);
 			BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");
 			try {
 				// searchBE.setValue(new AttributeText("SCH_STAKEHOLDER_CODE",
@@ -119,7 +119,7 @@ public class ApiTest {
 
 				String results = QwandaUtils.apiPostEntity(qwandaurl + "/qwanda/baseentitys/search",
 						JsonUtils.toJson(searchBE), token);
-				System.out.println("Results=" + results);
+				log.info("Results=" + results);
 
 			} catch (BadDataException e) {
 				log.error("Bad Data Exception");
@@ -167,7 +167,7 @@ public class ApiTest {
 			try {
 				String ret = QwandaUtils.apiGet(
 						qwandaurl + "/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/PER_USER1", token);
-				System.out.println(ret);
+				log.info(ret);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -186,7 +186,7 @@ public class ApiTest {
 		try {
 			HttpPost post = new HttpPost(KeycloakUriBuilder.fromUri(keycloakUrl + "/auth")
 					.path(ServiceUrlConstants.TOKEN_PATH).build(realm));
-			// System.out.println("url token post=" + keycloakUrl + "/auth" + ",tokenpath="
+			// log.info("url token post=" + keycloakUrl + "/auth" + ",tokenpath="
 			// + ServiceUrlConstants.TOKEN_PATH + ":realm=" + realm + ":clientid=" +
 			// clientId + ":secret" + secret
 			// + ":un:" + username + "pw:" + password);

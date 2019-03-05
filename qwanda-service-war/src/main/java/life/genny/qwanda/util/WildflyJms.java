@@ -1,5 +1,6 @@
 package life.genny.qwanda.util;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -14,9 +15,15 @@ import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.apache.logging.log4j.Logger;
+
 @ApplicationScoped
 @ManagedBean(name = "wildflyJms2", eager = true)
 public class WildflyJms {
+	
+	  protected static final Logger log = org.apache.logging.log4j.LogManager
+		      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
 
 	// Set the JNDI context factory for a JBOSS/ WildFly Server.
 	public final static String JNDI_FACTORY = "org.jboss.ejb.client.naming";
@@ -58,7 +65,7 @@ public class WildflyJms {
 
 		// 6) send message
 		sender.send(msg);
-		System.out.println("Message successfully sent to a WildFly Queue.");
+		log.info("Message successfully sent to a WildFly Queue.");
 
 		// 7) connection close
 		con.close();
