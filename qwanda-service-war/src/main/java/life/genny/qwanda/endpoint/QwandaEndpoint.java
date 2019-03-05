@@ -1466,7 +1466,7 @@ public class QwandaEndpoint {
     @Produces("application/json")
 
     public Response removeUser(@PathParam("code") final String code) {
-	  if ((securityService.inRole("superadmin")
+	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
           || securityService.inRole("dev")) || GennySettings.devMode) {
 	    String keycloakUserId = null;
 	    if(code.startsWith("PER_")) {
