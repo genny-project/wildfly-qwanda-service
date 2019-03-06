@@ -499,9 +499,6 @@ public class Service extends BaseEntityService2 {
 			String access_token = secureTokenPayload.getString("access_token");
 			String refresh_token = secureTokenPayload.getString("refresh_token");
 			
-			log.info("ACCESS_TOKEN: " + access_token);
-			log.info("REFRESH TOKEN: " + refresh_token);
-
 			/* if we have an access token */
 			if (access_token != null) {
 				
