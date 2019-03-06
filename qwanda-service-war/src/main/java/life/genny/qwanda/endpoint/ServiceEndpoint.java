@@ -1,13 +1,20 @@
 package life.genny.qwanda.endpoint;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -33,12 +40,31 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.json.JSONObject;
+import life.genny.utils.VertxUtils;
 
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
+import org.eclipse.jgit.internal.storage.dfs.DfsRepositoryDescription;
+import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
+import org.eclipse.jgit.lib.FileMode;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.AndTreeFilter;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -56,6 +82,7 @@ import life.genny.qwanda.GPSLocation;
 import life.genny.qwanda.GPSRoute;
 import life.genny.qwanda.GPSRouteStatus;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
@@ -72,6 +99,13 @@ import life.genny.qwandautils.QwandaUtils;
 
 import life.genny.qwanda.controller.Controller;
 import life.genny.security.SecureResources;
+
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
  * JAX-RS endpoint
@@ -641,12 +675,12 @@ public class ServiceEndpoint {
 	@GET
 	@Consumes("application/json")
 	@Path("/synchronizelayouts")
-	public Response synchronizeLayouts(
+	public Response synchronizeLayouts (
 			@DefaultValue("https://github.com") @QueryParam("giturl") final String gitserverUrl, 
 			@DefaultValue("genny-project") @QueryParam("accountname") final String accountname,
 			@DefaultValue("layouts.git") @QueryParam("project") final String project,	
 			@DefaultValue("genny") @QueryParam("realm") final String realm,
-			@DefaultValue("master") @QueryParam("branch") final String branch) {
+			@DefaultValue("master") @QueryParam("branch") final String branch) throws BadDataException, InvalidRemoteException, TransportException, GitAPIException, RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException{
 
 		String ret = "Synced";
 
@@ -661,17 +695,76 @@ public class ServiceEndpoint {
 
 			log.info("Branch = "+branch);
 			
-			  List<BaseEntity> layouts = null;
-			  try {
-			  layouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch,realm);
-			  log.info("Layouts = "+layouts.size());
-			  } catch ( Exception e) {
-				  return Response.status(400).build();
-			  }
+			List<BaseEntity> layouts = GitUtils.getLayoutBaseEntitys(gitUrl,branch,realm);
+			  
+			for (BaseEntity layout : layouts) {
+				log.info("Loaded Layout "+layout.getCode());
+			}
 
-		//	ctl.synchlayouts(service,layouts);
-
+			synchLayouts(layouts);
+			
 		}
 		return Response.status(200).entity(ret).build();
 	}
+	
+	 public void synchLayouts  (
+			    final List<BaseEntity> layouts)  {
+			    for (BaseEntity layout : layouts) {
+			          final String code =  layout.getCode();
+			          BaseEntity existingLayout = null;
+
+			          try {
+			        	  try {
+			            existingLayout = service.findBaseEntityByCode(code);
+			           // log.info("Existing layout = "+existingLayout.getCode()+"   fresh one is "+layout.getCode());
+			           // log.info("This has been updated: " + existingLayout);
+			            Attribute layoutDataAttribute = service.findAttributeByCode("PRI_LAYOUT_DATA");
+			            String data = layout.getValue("PRI_LAYOUT_DATA").get().toString();
+			            String olddata = existingLayout.getValue("PRI_LAYOUT_DATA").get().toString();
+			            int newHashcode = data.hashCode();
+			            int oldHashcode = olddata.hashCode();
+			            if (data.contains("REGENERATE_AGREEMENT")) {
+			            	log.info("egen fiound");
+			            }
+			            if (newHashcode != oldHashcode) {
+			            	existingLayout.addAnswer(new Answer(existingLayout,existingLayout,layoutDataAttribute,layout.getValue("PRI_LAYOUT_DATA").get().toString()));
+			            	service.upsert(existingLayout);
+			        		String json = JsonUtils.toJson(existingLayout);
+			        		VertxUtils.writeCachedJson(existingLayout.getRealm(),existingLayout.getCode(), json, service.getToken());
+
+			            	log.info(existingLayout.getCode()+" Updated!");
+			            } else {
+			            	log.info("Layout "+existingLayout.getCode()+" already in db");
+			            }
+			        	  } catch (BadDataException e2) {
+			        		  
+			        	  }
+			           // service.updateRealm(be);
+			          } catch (final NoResultException e) {
+			        	  try {
+			            // so save the layout
+			              BaseEntity newLayout = new BaseEntity(layout.getCode(),layout.getName());
+			              service.insert(newLayout);
+			              Attribute layoutDataAttribute = service.findAttributeByCode("PRI_LAYOUT_DATA");
+			              Attribute layoutURLAttribute = service.findAttributeByCode("PRI_LAYOUT_URL");
+			              Attribute layoutNameAttribute = service.findAttributeByCode("PRI_LAYOUT_NAME");
+			              Attribute layoutModifiedDateAttribute = service.findAttributeByCode("PRI_LAYOUT_MODIFIED_DATE");
+			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutDataAttribute,layout.getValue("PRI_LAYOUT_DATA").get().toString()));
+			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutURLAttribute,layout.getValue("PRI_LAYOUT_URL").get().toString()));   
+			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutNameAttribute,layout.getValue("PRI_LAYOUT_NAME").get().toString()));
+			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutModifiedDateAttribute,layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString())); // if new
+			              newLayout.setRealm(layout.getRealm());
+			              newLayout.setUpdated(layout.getUpdated());
+			              service.upsert(newLayout);
+			              log.info("This has been created: " + newLayout);
+			      		String json = JsonUtils.toJson(newLayout);
+			    		VertxUtils.writeCachedJson(newLayout.getRealm(),newLayout.getCode(), json, service.getToken());
+			        	  } catch (BadDataException e2) {
+			        		  
+			        	  }
+
+			          }
+			          
+			    }
+			  }
 }

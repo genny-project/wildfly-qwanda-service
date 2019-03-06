@@ -1,24 +1,34 @@
 package life.genny.qwanda.controller;
 
 import java.lang.invoke.MethodHandles;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
 import org.apache.logging.log4j.Logger;
+import life.genny.qwandautils.JsonUtils;
 
+import life.genny.qwanda.Answer;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.service.Service;
 import life.genny.qwanda.validation.Validation;
 import life.genny.services.BatchLoading;
+import life.genny.qwanda.service.Service;
+
+import life.genny.qwanda.exception.BadDataException;
 
 public class Controller {
 	  protected static final Logger log = org.apache.logging.log4j.LogManager
@@ -338,22 +348,5 @@ public class Controller {
     bl.persistProject(true, table.toLowerCase(), false);
     }
   
-  public void synchLayouts(
-	      final Service service, final List<BaseEntity> layouts) {
-	    layouts
-	    .stream()
-	    .forEach(
-	        layout -> {
-	          final String code = (String) layout.getCode();
-	          BaseEntity existingLayout = null;
-
-	          try {
-	            existingLayout = service.findBaseEntityByCode(code);
-	           // service.updateRealm(be);
-	          } catch (final NoResultException e) {
-	            e.printStackTrace();
-	          }
-	          log.info("This has been updated: " + existingLayout);
-	        });
-	  }
+ 
 }
