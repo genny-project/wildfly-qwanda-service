@@ -35,6 +35,10 @@ import javax.ws.rs.core.UriInfo;
 import org.json.JSONObject;
 
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -61,6 +65,7 @@ import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.GennySettings;
+import life.genny.qwandautils.GitUtils;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
@@ -628,5 +633,45 @@ public class ServiceEndpoint {
        return "Success";
     }
 
-	
+    /**
+     * Calls the syncLayouts method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+	@GET
+	@Consumes("application/json")
+	@Path("/synchronizelayouts")
+	public Response synchronizeLayouts(
+			@DefaultValue("https://github.com") @QueryParam("giturl") final String gitserverUrl, 
+			@DefaultValue("genny-project") @QueryParam("accountname") final String accountname,
+			@DefaultValue("layouts.git") @QueryParam("project") final String project,	
+			@DefaultValue("genny") @QueryParam("realm") final String realm,
+			@DefaultValue("master") @QueryParam("branch") final String branch) {
+
+		String ret = "Synced";
+
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			
+			String gitUrl = gitserverUrl+"/"+accountname+"/"+project;
+			
+			BaseEntity be3 = null;
+			log.info("Synchronizing Layouts");
+			log.info("Realm = "+realm);
+			log.info("gitUrl = "+gitUrl);
+
+			log.info("Branch = "+branch);
+			
+			  List<BaseEntity> layouts = null;
+			  try {
+			  layouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch,realm);
+			  log.info("Layouts = "+layouts.size());
+			  } catch ( Exception e) {
+				  return Response.status(400).build();
+			  }
+
+		//	ctl.synchlayouts(service,layouts);
+
+		}
+		return Response.status(200).entity(ret).build();
+	}
 }

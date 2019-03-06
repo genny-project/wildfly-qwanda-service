@@ -175,6 +175,12 @@
 			<version>${qwanda-services.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda-utils</artifactId>
+			<version>${qwanda-services.version}</version>
+			<scope>compile</scope>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jsf -->
 		<dependency>
@@ -453,11 +459,13 @@
 			<scope>provided</scope>
 		</dependency>
 
-	<dependency>
-		<groupId>com.hazelcast</groupId>
-		<artifactId>hazelcast-client</artifactId>
-		<version>${hazelcast.version}</version>
-	</dependency>
+        <!-->
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-client</artifactId>
+            <version>${hazelcast.version}</version>
+        </dependency>
+        </!-->
 	
 			<dependency>
 			<groupId>life.genny</groupId>
