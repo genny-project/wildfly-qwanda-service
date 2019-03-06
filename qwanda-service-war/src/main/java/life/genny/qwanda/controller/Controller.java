@@ -4,6 +4,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
 import java.util.Map.Entry;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
@@ -336,4 +337,23 @@ public class Controller {
       }
     bl.persistProject(true, table.toLowerCase(), false);
     }
+  
+  public void synchLayouts(
+	      final Service service, final List<BaseEntity> layouts) {
+	    layouts
+	    .stream()
+	    .forEach(
+	        layout -> {
+	          final String code = (String) layout.getCode();
+	          BaseEntity existingLayout = null;
+
+	          try {
+	            existingLayout = service.findBaseEntityByCode(code);
+	           // service.updateRealm(be);
+	          } catch (final NoResultException e) {
+	            e.printStackTrace();
+	          }
+	          log.info("This has been updated: " + existingLayout);
+	        });
+	  }
 }
