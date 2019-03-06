@@ -90,7 +90,9 @@ public class StartupService {
 			pushToDTT();
 		}
 
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
+		String accessToken = service.getServiceToken(GennySettings.mainrealm);
+		log.info("ACCESS_TOKEN: " + accessToken);
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
 		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
 

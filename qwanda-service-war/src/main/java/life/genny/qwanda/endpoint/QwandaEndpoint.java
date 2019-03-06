@@ -1462,7 +1462,7 @@ public class QwandaEndpoint {
 	
 	@DELETE
     @Consumes("application/json")
-    @Path("/baseentitys/{code}")
+	@Path("/baseentitys/{code}")
     @Produces("application/json")
 
     public Response removeUser(@PathParam("code") final String code) {
@@ -1484,19 +1484,19 @@ public class QwandaEndpoint {
         
         log.info("Keycloak User ID: " + keycloakUserId);
         try {
-          if(keycloakUserId != null) {
+          if(keycloakUserId != null && code.startsWith("PER_")) {
             KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), keycloakUserId);
+            Log.info("Successfully removed the user from keycloak");
           } else {
-            log.error("Keycloak User ID is null, can't delete it from Keycloak!!!");
-            return Response.status(400).build();
+            log.info("Either Keycloak User ID is null or given base entity is not an user");
           }
         } catch (Exception e) {
           e.printStackTrace();
         }
-        log.info("Successfully removed the user from keycloak");
         return Response.status(200).build();
 	  } else {
-	    return Response.status(503).build();
+		  Log.info("User does not have required access rights");
+		  return Response.status(503).build();
 	  }
         
     }

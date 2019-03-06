@@ -391,6 +391,7 @@ public class Service extends BaseEntityService2 {
 	
 
 
+
 	
 	public String getKeycloakUrl(String realm)
 	{
