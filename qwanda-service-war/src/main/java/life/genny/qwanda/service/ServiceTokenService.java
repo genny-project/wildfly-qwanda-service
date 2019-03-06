@@ -131,7 +131,7 @@ public class ServiceTokenService {
 			*/
 			if(duration >= GennySettings.ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS) {
 
-				log.info("======= USING CACHED ACCESS TOKEN ========");
+			//	log.info("======= USING CACHED ACCESS TOKEN ========");
 
 				/* if the token is NOTn about to expire (> 3 hours), we reuse it */
 				return serviceToken;
