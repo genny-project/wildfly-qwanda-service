@@ -30,7 +30,7 @@ public class EventBusBean implements EventBusInterface {
 
 	public void write(final String channel, final Object msg) throws NamingException 
 	{
-		String json = (String)msg;
+		String json = msg.toString();
 		JsonObject event = new JsonObject(json);
 		
 		if (GennySettings.forceEventBusApi) {

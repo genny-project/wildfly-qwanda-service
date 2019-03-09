@@ -736,12 +736,16 @@ public class ServiceEndpoint {
 			            } else {
 			            	log.info("Layout "+existingLayout.getCode()+" already in db");
 			            }
+			              // create link
+			              service.addLink("GRP_LAYOUTS",existingLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0);
+
 			        	  } catch (BadDataException e2) {
 			        		  
 			        	  }
 			           // service.updateRealm(be);
 			          } catch (final NoResultException e) {
 			        	  try {
+			        		  log.info(e.getLocalizedMessage());
 			            // so save the layout
 			              BaseEntity newLayout = new BaseEntity(layout.getCode(),layout.getName());
 			              service.insert(newLayout);
@@ -753,10 +757,16 @@ public class ServiceEndpoint {
 			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutURLAttribute,layout.getValue("PRI_LAYOUT_URL").get().toString()));   
 			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutNameAttribute,layout.getValue("PRI_LAYOUT_NAME").get().toString()));
 			              newLayout.addAnswer(new Answer(newLayout,newLayout,layoutModifiedDateAttribute,layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString())); // if new
-			              newLayout.setRealm(layout.getRealm());
+			              newLayout.setRealm(securityService.getRealm());
 			              newLayout.setUpdated(layout.getUpdated());
-			              service.upsert(newLayout);
+			              Long id = service.insert(newLayout);
+			              newLayout.setId(id);
 			              log.info("This has been created: " + newLayout);
+			              
+			              // create link
+			              service.addLink("GRP_LAYOUTS",newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0);
+			              
+			              
 			      		String json = JsonUtils.toJson(newLayout);
 			    		VertxUtils.writeCachedJson(newLayout.getRealm(),newLayout.getCode(), json, service.getToken());
 			        	  } catch (BadDataException e2) {
@@ -766,5 +776,6 @@ public class ServiceEndpoint {
 			          }
 			          
 			    }
+			    log.info("FInished loading "+layouts.size()+" layouts");
 			  }
 }
