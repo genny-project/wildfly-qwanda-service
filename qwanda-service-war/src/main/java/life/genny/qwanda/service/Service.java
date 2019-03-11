@@ -82,11 +82,11 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecureResources secureResources;
 	
-	@Inject
-	private WildFlyJmsQueueSender jms;
-
-	@Inject
-	private WildflyJms jms2;
+//	@Inject
+//	private WildFlyJmsQueueSender jms;
+//
+//	@Inject
+//	private WildflyJms jms2;
 
 	@Inject
 	private Hazel inDB;

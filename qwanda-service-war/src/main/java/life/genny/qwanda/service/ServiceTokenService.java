@@ -79,8 +79,6 @@ public class ServiceTokenService {
 	private HashMap<String,String> serviceTokens = new HashMap<String,String>();
 	private HashMap<String,String> refreshServiceTokens = new HashMap<String,String>();
 	
-	@Inject
-	private SecurityService securityService;
 
 	@Inject
 	private SecureResources secureResources;
@@ -109,8 +107,6 @@ public class ServiceTokenService {
 		
 		String serviceToken = serviceTokens.get(realm);
 
-		
-		
 		/* if we have got a service token cached */
 		if (serviceToken != null) {
 
