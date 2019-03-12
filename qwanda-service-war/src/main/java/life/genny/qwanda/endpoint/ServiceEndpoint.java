@@ -110,6 +110,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import life.genny.qwanda.AnswerLink;
+
 /**
  * JAX-RS endpoint
  *
@@ -681,7 +683,7 @@ public class ServiceEndpoint {
 	@GET
 	@Consumes("application/json")
 	@Path("/synchronizelayouts")
-	@TransactionTimeout(value = 1500, unit = TimeUnit.SECONDS)
+
 	public Response synchronizeLayouts(
 			@DefaultValue("https://github.com") @QueryParam("giturl") final String gitserverUrl,
 			@DefaultValue("genny-project") @QueryParam("accountname") final String accountname,
@@ -698,6 +700,8 @@ public class ServiceEndpoint {
 			String gitUrl = gitserverUrl + "/" + accountname + "/" + project;
 
 			BaseEntity be3 = null;
+			log.info("************* Generating V1 Layouts *************");
+
 			log.info("Synchronizing Layouts");
 			log.info("Realm = " + realm);
 			log.info("gitUrl = " + gitUrl);
@@ -708,33 +712,36 @@ public class ServiceEndpoint {
 			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,"genny/sublayouts",true); // get common layouts
 			
 			log.info("about to synch sublayouts for genny");
-			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts);
+			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts,false);
 			log.info("writing to cache GENNY-V1-LAYOUTS");
 			VertxUtils.writeCachedJson(securityService.getRealm(), "GENNY-V1-LAYOUTS", JsonUtils.toJson(v1messages),
 					service.getToken());
 			
 
 			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,realm+"/sublayouts",true);
-			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts);
+			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts,false);
 			log.info("writing to cache "+realm.toUpperCase()+"-V1-LAYOUTS");			
 			VertxUtils.writeCachedJson(securityService.getRealm(), realm.toUpperCase()+"-V1-LAYOUTS", JsonUtils.toJson(v1realmmessages),
 					service.getToken());
 			
+			// Do V2
+			
+			log.info("************* Generating V2 Layouts *************");
+			
 			gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,"genny",false); // get common layouts
 			realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,realm+"-new",true);
-//
-//			List<BaseEntity> gennyNewLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,"genny-new");
-//			List<BaseEntity> realmNewLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,realm+"-new");
-//			 
-//			
+		
 			List<BaseEntity> layouts = new ArrayList<BaseEntity>();
+			log.info("genny "+gennyLayouts.size()+" layouts ");
 			layouts.addAll(gennyLayouts);
+			log.info(realm+" "+realmLayouts.size()+" layouts ");
 			layouts.addAll(realmLayouts);
 			
 			for (BaseEntity layout : layouts) {
-				log.info("Loaded Layout " + layout.getCode()+" "+layout.getName());
+				log.info("Loaded Layout " + layout.getCode()+" "+layout.getName()+":"+layout.getValue("PRI_LAYOUT_URI").get().toString());
 			}
 
+			synchLayouts(layouts,true);   // save the layouts to the database
 			
 			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(layouts.toArray(new BaseEntity[0]));
 			msg.setParentCode("GRP_LAYOUTS");
@@ -742,78 +749,98 @@ public class ServiceEndpoint {
 			VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg),
 					service.getToken());
 
-
+			log.info("Loaded in layouts for realm "+realm);
 			// genny/sublayouts ..
 			// [{"name":"DRIVER.json","download_url":"http://layout-cache:2223/genny/sublayouts/DRIVER.json","path":"/genny/sublayouts/DRIVER.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"LOAD-ITEM.json","download_url":"http://layout-cache:2223/genny/sublayouts/LOAD-ITEM.json","path":"/genny/sublayouts/LOAD-ITEM.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"LOAD.json","download_url":"http://layout-cache:2223/genny/sublayouts/LOAD.json","path":"/genny/sublayouts/LOAD.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"OFFER-ACCEPTED.json","download_url":"http://layout-cache:2223/genny/sublayouts/OFFER-ACCEPTED.json","path":"/genny/sublayouts/OFFER-ACCEPTED.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"OFFER.json","download_url":"http://layout-cache:2223/genny/sublayouts/OFFER.json","path":"/genny/sublayouts/OFFER.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"OWNER.json","download_url":"http://layout-cache:2223/genny/sublayouts/OWNER.json","path":"/genny/sublayouts/OWNER.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"STAFF.json","download_url":"http://layout-cache:2223/genny/sublayouts/STAFF.json","path":"/genny/sublayouts/STAFF.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"address-dropoff-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/address-dropoff-display.json","path":"/genny/sublayouts/address-dropoff-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"address-pickup-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/address-pickup-display.json","path":"/genny/sublayouts/address-pickup-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"list-item-conversation.json","download_url":"http://layout-cache:2223/genny/sublayouts/list-item-conversation.json","path":"/genny/sublayouts/list-item-conversation.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"list-item-website.json","download_url":"http://layout-cache:2223/genny/sublayouts/list-item-website.json","path":"/genny/sublayouts/list-item-website.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"load-action-buttons.json","download_url":"http://layout-cache:2223/genny/sublayouts/load-action-buttons.json","path":"/genny/sublayouts/load-action-buttons.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"map-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/map-display.json","path":"/genny/sublayouts/map-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"price-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/price-display.json","path":"/genny/sublayouts/price-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"quote-received.json","download_url":"http://layout-cache:2223/genny/sublayouts/quote-received.json","path":"/genny/sublayouts/quote-received.json","modified_date":"2019-03-08T03:33:37.341Z"}]
 		}
 		return Response.status(200).entity(ret).build();
 	}
 
-	public QDataSubLayoutMessage synchLayouts(final List<BaseEntity> layouts) {
+
+	public QDataSubLayoutMessage synchLayouts(final List<BaseEntity> layouts, final boolean saveToDatabase) {
 
 		Layout[] layoutArray = new Layout[layouts.size()];
+		
+		Attribute layoutDataAttribute = service.findAttributeByCode("PRI_LAYOUT_DATA");
+		Attribute layoutURLAttribute = service.findAttributeByCode("PRI_LAYOUT_URL");
+		Attribute layoutURIAttribute = service.findAttributeByCode("PRI_LAYOUT_URI");
+		Attribute layoutNameAttribute = service.findAttributeByCode("PRI_LAYOUT_NAME");
+		Attribute layoutModifiedDateAttribute = service.findAttributeByCode("PRI_LAYOUT_MODIFIED_DATE");
+
 
 		int index = 0;
 		for (BaseEntity layout : layouts) {
 			final String code = layout.getCode();
 			BaseEntity existingLayout = null;
 
-//			          try {
-//			        	  try {
-//			            existingLayout = service.findBaseEntityByCode(code);
-//			           // log.info("Existing layout = "+existingLayout.getCode()+"   fresh one is "+layout.getCode());
-//			           // log.info("This has been updated: " + existingLayout);
-//			            Attribute layoutDataAttribute = service.findAttributeByCode("PRI_LAYOUT_DATA");
-//			            String data = layout.getValue("PRI_LAYOUT_DATA").get().toString();
-//			            String olddata = existingLayout.getValue("PRI_LAYOUT_DATA").get().toString();
-//			            int newHashcode = data.hashCode();
-//			            int oldHashcode = olddata.hashCode();
-//			            if (data.contains("REGENERATE_AGREEMENT")) {
-//			            	log.info("egen fiound");
-//			            }
-//			            if (newHashcode != oldHashcode) {
-//			            	existingLayout.addAnswer(new Answer(existingLayout,existingLayout,layoutDataAttribute,layout.getValue("PRI_LAYOUT_DATA").get().toString()));
-//			            	service.upsert(existingLayout);
-//			        		String json = JsonUtils.toJson(existingLayout);
-//			        		VertxUtils.writeCachedJson(existingLayout.getRealm(),existingLayout.getCode(), json, service.getToken());
-//
-//			            	log.info(existingLayout.getCode()+" Updated!");
-//			            } else {
-//			            	log.info("Layout "+existingLayout.getCode()+" already in db");
-//			            }
-//			              // create link
-//			              service.addLink("GRP_LAYOUTS",existingLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0);
-//
-//			        	  } catch (BadDataException e2) {
-//			        		  
-//			        	  }
-//			           // service.updateRealm(be);
-//			          } catch (final NoResultException e) {
-			try {
+
+		
 				// log.info(e.getLocalizedMessage());
 				// so save the layout
-				BaseEntity newLayout = new BaseEntity(layout.getCode(), layout.getName());
-		//		service.insert(newLayout);
-				Attribute layoutDataAttribute = service.findAttributeByCode("PRI_LAYOUT_DATA");
-				Attribute layoutURLAttribute = service.findAttributeByCode("PRI_LAYOUT_URL");
-				Attribute layoutNameAttribute = service.findAttributeByCode("PRI_LAYOUT_NAME");
-				Attribute layoutModifiedDateAttribute = service.findAttributeByCode("PRI_LAYOUT_MODIFIED_DATE");
-				newLayout.addAnswer(new Answer(newLayout, newLayout, layoutDataAttribute,
-						layout.getValue("PRI_LAYOUT_DATA").get().toString()));
-				newLayout.addAnswer(new Answer(newLayout, newLayout, layoutURLAttribute,
-						layout.getValue("PRI_LAYOUT_URL").get().toString()));
-				newLayout.addAnswer(new Answer(newLayout, newLayout, layoutNameAttribute,
-						layout.getValue("PRI_LAYOUT_NAME").get().toString()+".json"));   // V1 layouts needed .json
-				newLayout.addAnswer(new Answer(newLayout, newLayout, layoutModifiedDateAttribute,
-						layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString())); // if new
+				BaseEntity newLayout = null;
+				try {
+					newLayout = service.findBaseEntityByCode(layout.getCode());
+				} catch (NoResultException e) {
+					log.info("New Layout detected");
+				}
+				if (newLayout == null) {
+					newLayout = new BaseEntity(layout.getCode(), layout.getName());
+				} else {
+					int newData = layout.getValue("PRI_LAYOUT_DATA").get().toString().hashCode();
+					int oldData = newLayout.findEntityAttribute(layoutDataAttribute).getAsString().hashCode();
+					if (newData == oldData) {
+						continue;
+					}
+				}
 				newLayout.setRealm(securityService.getRealm());
 				newLayout.setUpdated(layout.getUpdated());
-			//	Long id = service.insert(newLayout);
-			//	newLayout.setId(id);
-				log.info("This has been created: " + newLayout);
 
-				// create link
-			//	service.addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0);
+				if (saveToDatabase) {
+					service.upsert(newLayout);
+				}
+				
+				 try {
+		              EntityAttribute ea = newLayout.addAttribute(layoutDataAttribute, 0.0, layout.getValue("PRI_LAYOUT_DATA").get().toString());
+		              EntityAttribute ea2 = newLayout.addAttribute(layoutURLAttribute, 0.0, layout.getValue("PRI_LAYOUT_URL").get().toString());
+		              EntityAttribute ea3 = newLayout.addAttribute(layoutURIAttribute, 0.0, layout.getValue("PRI_LAYOUT_URI").get().toString());
+		              EntityAttribute ea4 = newLayout.addAttribute(layoutNameAttribute, 0.0, layout.getValue("PRI_LAYOUT_NAME").get().toString());
+		              EntityAttribute ea5 = newLayout.addAttribute(layoutModifiedDateAttribute, 0.0, layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString());
+		            } catch (final BadDataException e) {
+		              e.printStackTrace();
+		            }
+		            
+//				Answer dataAnswer = new Answer(newLayout, newLayout, layoutDataAttribute,
+//						layout.getValue("PRI_LAYOUT_DATA").get().toString());
+//				Answer urlAnswer = new Answer(newLayout, newLayout, layoutURLAttribute,
+//						layout.getValue("PRI_LAYOUT_URL").get().toString());
+//				Answer uriAnswer = new Answer(newLayout, newLayout, layoutURIAttribute,
+//						layout.getValue("PRI_LAYOUT_URI").get().toString());
+//				Answer nameAnswer = new Answer(newLayout, newLayout, layoutNameAttribute,
+//						layout.getValue("PRI_LAYOUT_NAME").get().toString()+".json");   // V1 layouts needed .json
+//				Answer modifiedAnswer = new Answer(newLayout, newLayout, layoutModifiedDateAttribute,
+//						layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString()); // if new
+				if (saveToDatabase) {
+//				
+//					// create link	
+//					Answer[] answers = new Answer[5];
+//					answers[0] = (dataAnswer);
+//					answers[1] = (urlAnswer);
+//					answers[2] = (uriAnswer);
+//					answers[3] = (nameAnswer);
+//					answers[4] = (modifiedAnswer);
+//					for (int index2=0;index2<answers.length;index2++) {
+//						answers[index2].setChangeEvent(false); // do not send attribute change evnt
+//					}
+					try {
+						service.updateWithAttributes(newLayout);
+				//	service.insert(answers);
+						service.addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0,false);   // don't send change event
+					} catch (IllegalArgumentException | BadDataException e) {
+						log.error("Could not write layout - "+e.getLocalizedMessage());
+					}
+					
+				}
+			
 
 				// create layout array
 				try {
@@ -824,13 +851,8 @@ public class ServiceEndpoint {
 
 				String json = JsonUtils.toJson(newLayout);
 				VertxUtils.writeCachedJson(newLayout.getRealm(), newLayout.getCode(), json, service.getToken());
-				
+				index++;
 
-			} catch (BadDataException e2) {
-
-			}
-
-			// }
 
 		}
 		QDataSubLayoutMessage v1messages = new QDataSubLayoutMessage(layoutArray, service.getToken());
