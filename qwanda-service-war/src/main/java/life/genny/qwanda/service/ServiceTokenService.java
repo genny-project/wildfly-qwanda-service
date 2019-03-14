@@ -166,7 +166,7 @@ public class ServiceTokenService {
 		
 		log.info("key:"+key+":"+initVector+":"+encryptedPassword);
 		password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
-		if (GennySettings.devMode) {
+		if (GennySettings.devMode || (GennySettings.defaultLocalIP.equals(GennySettings.hostIP))) {
 			password = GennySettings.defaultServicePassword;
 		}
 

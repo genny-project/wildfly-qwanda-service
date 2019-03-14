@@ -599,8 +599,8 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response syncrealms() {
 		log.debug("Sync Keycloak Realms");
-		String keycloakRealms = SecureResources.reload();
-		return Response.status(200).entity(keycloakRealms).build();
+		SecureResources.reload();
+		return Response.status(200).build();
 	}
 
 	@GET
