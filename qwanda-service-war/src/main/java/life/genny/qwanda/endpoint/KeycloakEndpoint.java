@@ -81,61 +81,61 @@ public class KeycloakEndpoint {
 	@Inject
 	private SecureResources secureResources;
 
-	@POST
-	@Path("/register")
-	@Consumes("application/json")
-	@Produces("application/json")
-	public Response register(final QDataRegisterMessage registration) {
-
-		String realm = GennySettings.dynamicRealm(registration.getRealm());
-		String jsonFile = realm + ".json";
-		String userToken = null;
-
-		String userId = null;
-		String token = service.getServiceToken(realm);
-		log.info("Service token  = "+token+"\n");
-		if (token != null) {
-
-			try {
-				userId = KeycloakUtils.register(token, registration);
-				log.info("AccessToken for "+registration+" = "+userId);
-				
-				if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-					secureResources.init(null);
-				}
-				String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
-				if (keycloakJson == null) {
-					log.info("No keycloakMap for " + realm+" ... fixing");
-					String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
-					if (GennySettings.devMode) {
-						SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
-						keycloakJson = gennyKeycloakJson;
-					} else {
-						log.info("Error - No keycloak Json file available for realm - "+realm);
-						return null;
-					}
-				} else {
-					log.info("keycloakMap for " + realm+" ."+keycloakJson);
-				}
-				JsonObject realmJson = new JsonObject(keycloakJson);
-				JsonObject secretJson = realmJson.getJsonObject("credentials");
-				String secret = secretJson.getString("secret");
-				log.info("secret " + secret);
-				userToken = KeycloakUtils.getAccessToken(registration.getKeycloakUrl(), realm, realm, secret, registration.getUsername(), registration.getPassword());
-				log.info("User token = "+userToken);
-			} catch (IOException e) {
-				return Response.status(400).entity("could not obtain access token").build();
-			}
-
-			class TokenClass  {
-					public String token;
-			}
-			TokenClass tokenObj = new TokenClass();
-			tokenObj.token = userToken;
-			return Response.status(200).entity(tokenObj).build();
-		} else {
-			return Response.status(400).entity("could not obtain token").build();
-		}
-	}
+//	@POST
+//	@Path("/register")
+//	@Consumes("application/json")
+//	@Produces("application/json")
+//	public Response register(final QDataRegisterMessage registration) {
+//
+//		String realm = GennySettings.dynamicRealm(registration.getRealm());
+//		String jsonFile = realm + ".json";
+//		String userToken = null;
+//
+//		String userId = null;
+//		String token = service.getServiceToken(realm);
+//		log.info("Service token  = "+token+"\n");
+//		if (token != null) {
+//
+//			try {
+//				userId = KeycloakUtils.register(token, registration);
+//				log.info("AccessToken for "+registration+" = "+userId);
+//				
+//				if (SecureResources.getKeycloakJsonMap().isEmpty()) {
+//					secureResources.init(null);
+//				}
+//				String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
+//				if (keycloakJson == null) {
+//					log.info("No keycloakMap for " + realm+" ... fixing");
+//					String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
+//					if (GennySettings.devMode) {
+//						SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
+//						keycloakJson = gennyKeycloakJson;
+//					} else {
+//						log.info("Error - No keycloak Json file available for realm - "+realm);
+//						return null;
+//					}
+//				} else {
+//					log.info("keycloakMap for " + realm+" ."+keycloakJson);
+//				}
+//				JsonObject realmJson = new JsonObject(keycloakJson);
+//				JsonObject secretJson = realmJson.getJsonObject("credentials");
+//				String secret = secretJson.getString("secret");
+//				log.info("secret " + secret);
+//				userToken = KeycloakUtils.getAccessToken(registration.getKeycloakUrl(), realm, realm, secret, registration.getUsername(), registration.getPassword());
+//				log.info("User token = "+userToken);
+//			} catch (IOException e) {
+//				return Response.status(400).entity("could not obtain access token").build();
+//			}
+//
+//			class TokenClass  {
+//					public String token;
+//			}
+//			TokenClass tokenObj = new TokenClass();
+//			tokenObj.token = userToken;
+//			return Response.status(200).entity(tokenObj).build();
+//		} else {
+//			return Response.status(400).entity("could not obtain token").build();
+//		}
+//	}
 
 }

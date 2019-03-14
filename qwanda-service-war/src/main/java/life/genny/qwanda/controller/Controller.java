@@ -1,21 +1,39 @@
 package life.genny.qwanda.controller;
 
+import java.lang.invoke.MethodHandles;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
+import java.util.List;
 import java.util.Map.Entry;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
+
+import org.apache.logging.log4j.Logger;
+import life.genny.qwandautils.JsonUtils;
+
+import life.genny.qwanda.Answer;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.service.Service;
 import life.genny.qwanda.validation.Validation;
 import life.genny.services.BatchLoading;
+import life.genny.qwanda.service.Service;
+
+import life.genny.qwanda.exception.BadDataException;
 
 public class Controller {
+	  protected static final Logger log = org.apache.logging.log4j.LogManager
+		      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
   public static final String REALM_HIDDEN = "hidden";
 
   public void updateBaseEntity(
@@ -39,7 +57,7 @@ public class Controller {
           } catch (final NoResultException e) {
             e.printStackTrace();
           }
-          System.out.println("This has been updated: " + be);
+          log.info("This has been updated: " + be);
         });
   }
 
@@ -62,7 +80,7 @@ public class Controller {
             attr.setCode(code);
             attr.setRealm(REALM_HIDDEN);
             service.updateRealm(attr);
-            System.out.println("This has been updated: " + attr);
+            log.info("This has been updated: " + attr);
           } catch (final NoResultException e) {
             e.printStackTrace();
           }
@@ -86,7 +104,7 @@ public class Controller {
             attrLink.setCode(code);
             attrLink.setRealm(REALM_HIDDEN);
             service.updateRealm(attrLink);
-            System.out.println("This has been updated: " + attrLink);
+            log.info("This has been updated: " + attrLink);
           } catch (final NoResultException e) {
             e.printStackTrace();
           }
@@ -107,7 +125,7 @@ public class Controller {
           final String baseEntityCode = (String) item.get("baseEntityCode");
           try {
             service.removeEntityAttribute(baseEntityCode, attributeCode);
-            System.out.println("Successfully removed entity attributes");
+            log.info("Successfully removed entity attributes");
           } catch (final NoResultException e) {
             e.printStackTrace();
           }
@@ -129,7 +147,7 @@ public class Controller {
           final String targetCode = (String) item.get("targetCode");
           try {
             service.removeLink(parentCode, targetCode, linkCode);
-            System.out.println("Successfully removed entity entities");
+            log.info("Successfully removed entity entities");
           } catch (final Exception e) {
             e.printStackTrace();
           }
@@ -200,7 +218,7 @@ public class Controller {
 
           try {
             service.removeQuestionQuestion(parentCode, targetCode);
-            System.out.println("Successfully removed question questions");
+            log.info("Successfully removed question questions");
           } catch (final NoResultException e) {
             e.printStackTrace();
           }
@@ -245,20 +263,21 @@ public class Controller {
       final String key = (String) entry.getKey();
       final HashMap<String, HashMap> newMap = (HashMap<String, HashMap>) sheetMap.get(projectKey);
       if (newMap != null && !newMap.containsKey(key)) {
-        System.out.println("key == " + entry.getKey() + " value == " + entry.getValue());
+        log.info("key == " + entry.getKey() + " value == " + entry.getValue());
         merge.put(entry.getKey().toString(), entry.getValue());
       }
     }
     superMerge.put(projectKey, merge);
-    System.out.println("Things to delete: " + merge);
+    log.info("Things to delete: " + merge);
     saveProjectData.put(projectKey, sheetMap.get(projectKey));
     return superMerge;
   }
 
   @Transactional
-  public void synchronizeSheetsToDataBase(final Service bes, final String table) {
+  public void synchronizeSheetsToDataBase(final Service bes, String table) {
     final BatchLoading bl = new BatchLoading(bes);
     Map<String, Map<String, Object>> superMerge;
+    table = table.toLowerCase();
     switch(table) {
       case "baseentity":
         superMerge = retrieveDeletionRecords(bes, table, "baseEntitys");
@@ -324,8 +343,10 @@ public class Controller {
         break;
         
       default:
-        System.out.println("Incorrect table name");
+        log.info("Incorrect table name");
       }
     bl.persistProject(true, table.toLowerCase(), false);
     }
+  
+ 
 }

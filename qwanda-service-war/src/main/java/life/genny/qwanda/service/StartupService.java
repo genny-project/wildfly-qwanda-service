@@ -90,7 +90,9 @@ public class StartupService {
 			pushToDTT();
 		}
 
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", service.getServiceToken(GennySettings.mainrealm));
+		String accessToken = service.getServiceToken(GennySettings.mainrealm);
+		log.info("ACCESS_TOKEN: " + accessToken);
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
 		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
 
@@ -132,11 +134,11 @@ public class StartupService {
 		//
 		service.writeToDDT(projectBe);
 		final String key = projectBe.getCode();
-		final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value"); ;
+	//	final String prjJsonString = VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value"); ;
 		//service.readFromDTT(key);
-		log.info("json from cache=["+prjJsonString+"]");
-		BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
-		log.info("Cached Project = ["+cachedProject+"]");
+	//	log.info("json from cache=["+prjJsonString+"]");
+	//	BaseEntity cachedProject = JsonUtils.fromJson(prjJsonString,BaseEntity.class);
+	//	log.info("Cached Project = ["+cachedProject+"]");
 						
 		
 
