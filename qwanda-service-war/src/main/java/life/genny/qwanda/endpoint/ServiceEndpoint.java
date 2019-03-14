@@ -535,7 +535,6 @@ public class ServiceEndpoint {
 
 			}
 
-
 		}
 		return Response.status(200).entity(ret).build();
 	}

@@ -23,13 +23,28 @@ public class SecureResources {
 	public static Map<String, String> getKeycloakJsonMap() {
 		return keycloakJsonMap;
 	}
+	
+	public static void setKeycloakJsonMap() {
+		String keycloakJson = "{\n" + 
+      	  		"  \"realm\": \"genny\",\n" + 
+      	  		"  \"auth-server-url\": \"http://keycloak.genny.life:8180/auth\",\n" + 
+      	  		"  \"ssl-required\": \"none\",\n" + 
+      	  		"  \"resource\": \"genny\",\n" + 
+      	  		"  \"credentials\": {\n" + 
+      	  		"    \"secret\": \"056b73c1-7078-411d-80ec-87d41c55c3b4\"\n" + 
+      	  		"  },\n" + 
+      	  		"  \"policy-enforcer\": {}\n" + 
+      	  		"}";
+            
+      	  keycloakJsonMap.put("keycloak.json", keycloakJson);
+	}
 
 	private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
 
 
 
 	public void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
-		readFilenamesFromDirectory(GennySettings.realmDir);
+		setKeycloakJsonMap();
 	}
 
 	public void destroy(@Observes @Destroyed(ApplicationScoped.class) final Object init) {
@@ -50,9 +65,9 @@ public class SecureResources {
 		keycloakJsonMap.remove(key);
 	}
 
-	public static String reload() {
+	public static void reload() {
 		keycloakJsonMap.clear();
-		return readFilenamesFromDirectory(GennySettings.realmDir);
+		setKeycloakJsonMap();
 	}
 
 	public static String fetchRealms() {
@@ -63,7 +78,7 @@ public class SecureResources {
 		return ret;
 	}
 
-	public static String readFilenamesFromDirectory(final String rootFilePath) {
+	/*public static String readFilenamesFromDirectory(final String rootFilePath) {
 		String ret = "";
 		final File folder = new File(rootFilePath);
 		final File[] listOfFiles = folder.listFiles();
@@ -110,5 +125,5 @@ public class SecureResources {
 		in.close();
 
 		return ret;
-	}
+	}*/
 }

@@ -79,7 +79,6 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecurityService securityService;
 
-	@Inject
 	private SecureResources secureResources;
 	
 	@Inject
@@ -519,10 +518,8 @@ public class Service extends BaseEntityService2 {
 		if (GennySettings.devMode) {  // UGLY!!!
 			realm = "genny";
 		} 
-		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-			SecureResources.reload();
-		} 
-		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
+		
+		String keycloakJson =  SecureResources.getKeycloakJsonMap().get("keycloak.json");
 		if (keycloakJson!=null) {
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");

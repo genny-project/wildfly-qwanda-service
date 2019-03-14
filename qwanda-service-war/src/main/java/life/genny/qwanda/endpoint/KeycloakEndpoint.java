@@ -78,7 +78,6 @@ public class KeycloakEndpoint {
 	@Inject
 	private Service service;
 	
-	@Inject
 	private SecureResources secureResources;
 
 	@POST
