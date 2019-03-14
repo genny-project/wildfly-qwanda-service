@@ -1,10 +1,10 @@
 #!/bin/bash
 echo "Setting up Realms ****"
 
-KEYCLOAK_JSON_DIR=/opt/jboss/wildfly/realm
-KEYCLOAK_ORIGINAL_JSON_DIR=/opt/realm
+#KEYCLOAK_JSON_DIR=/opt/jboss/wildfly/realm
+#KEYCLOAK_ORIGINAL_JSON_DIR=/opt/realm
 # copy all the keycloak files so they may be modified
-cp -rf ${KEYCLOAK_ORIGINAL_JSON_DIR}/* ${KEYCLOAK_JSON_DIR}/
+#cp -rf ${KEYCLOAK_ORIGINAL_JSON_DIR}/* ${KEYCLOAK_JSON_DIR}/
 
 # change the package.json file
 function escape_slashes {
@@ -21,15 +21,15 @@ function change_line {
 }
 
 
-for i in `ls ${KEYCLOAK_JSON_DIR}` ; do
-if grep -r localhost ${KEYCLOAK_JSON_DIR}/${i}
-then
-   OLD_LINE_KEY="auth-server-url"
-   NEW_LINE="\"auth-server-url\": \"${KEYCLOAKURL}/auth\","
-   change_line "\${OLD_LINE_KEY}" "\${NEW_LINE}" "\${KEYCLOAK_JSON_DIR}\/\${i}"
-fi
+#for i in `ls ${KEYCLOAK_JSON_DIR}` ; do
+#if grep -r localhost ${KEYCLOAK_JSON_DIR}/${i}
+#then
+#   OLD_LINE_KEY="auth-server-url"
+#   NEW_LINE="\"auth-server-url\": \"${KEYCLOAKURL}/auth\","
+#   change_line "\${OLD_LINE_KEY}" "\${NEW_LINE}" "\${KEYCLOAK_JSON_DIR}\/\${i}"
+#fi
 
-done
+#done
 myip=
 while IFS=$': \t' read -a line ;do
     [ -z "${line%inet}" ] && ip=${line[${#line[1]}>4?1:2]} &&

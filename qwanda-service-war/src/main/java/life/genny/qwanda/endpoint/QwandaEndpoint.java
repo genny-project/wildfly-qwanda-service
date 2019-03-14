@@ -1641,6 +1641,35 @@ public class QwandaEndpoint {
 	}
 
 
+	Controller ctl = new Controller();
+
+    @GET
+    @Path("/synchronize/{table}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronize(@PathParam("table") final String table) {
+     
+      String response = "Failed";
+      
+      try {
+        response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table, securityService.getToken(), 240);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      
+      return Response.status(200).entity(response).build();
+    }
+    /**
+     * Calls the synchronizeSheetsToDataBase method in the Service and returns the response.
+     * @param table
+     * @return response of the synchronization
+     */
+    @GET
+    @Path("/synchronizesheet/{table}")
+    public String startSynchronization(@PathParam("table") final String table) {
+       ctl.synchronizeSheetsToDataBase(service, table);
+       return "Success";
+    }
+
 	@GET
 	@Path("/templates/{templateCode}")
 	@Produces("application/json")

@@ -143,22 +143,15 @@ public class ServiceTokenService {
 		
 		realm = GennySettings.dynamicRealm(realm);
 
-		String jsonFile = realm + ".json";
+		String jsonFile = "keycloak.json";
 
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-			secureResources.init(null);
+			SecureResources.setKeycloakJsonMap();
 		}
 		String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
 		if (keycloakJson == null) {
-			log.info("No keycloakMap for " + realm+" ... fixing");
-			String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
-			if (GennySettings.devMode) {
-				SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
-				keycloakJson = gennyKeycloakJson;
-			} else {
-				log.info("Error - No keycloak Json file available for realm - "+realm);
-				return null;
-			}
+			log.error("No keycloakMap for " + realm);
+			return null;
 		}
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");

@@ -63,6 +63,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 						username = (String) jsonObj.get("preferred_username");
 						realm = (String) jsonObj.get("aud");
 						key = realm + ".json";
+						SecureResources.getKeycloakJsonMap().put(realm + ".json",SecureResources.getKeycloakJsonMap().get("keycloak.json"));
 					} catch (final JSONException e1) {
 						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
 					} catch (final NullPointerException e2) {
@@ -73,14 +74,15 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
-					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
+					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get("keycloak.json");
 					if (keycloakJsonText==null) {
-						log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
+						log.error("keycloak.json is NOT in qwanda-service Keycloak Map!");
 					} else {
 					// extract realm
 					final JSONObject json = new JSONObject(keycloakJsonText);
 					realm = json.getString("realm");
 					key = realm + ".json";
+					SecureResources.getKeycloakJsonMap().put(realm + ".json",SecureResources.getKeycloakJsonMap().get("keycloak.json"));
 					}
 				}
 
