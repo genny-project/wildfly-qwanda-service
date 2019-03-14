@@ -26,6 +26,13 @@ import javax.inject.Inject;
 import life.genny.utils.VertxUtils;
 import life.genny.qwandautils.GennySettings;
 
+import life.genny.qwanda.message.QDataSubLayoutMessage;
+import life.genny.qwanda.message.QDataBaseEntityMessage;
+
+
+
+import life.genny.qwandautils.GitUtils;
+
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
  *
@@ -93,6 +100,24 @@ public class StartupService {
 		String accessToken = service.getServiceToken(GennySettings.mainrealm);
 		log.info("ACCESS_TOKEN: " + accessToken);
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+		
+		log.info("Loading V1 Genny Sublayouts");
+		QDataSubLayoutMessage sublayoutsMsg = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, "genny/sublayouts", "master");
+		VertxUtils.writeCachedJson(GennySettings.mainrealm,"GENNY-V1-LAYOUTS",JsonUtils.toJson(sublayoutsMsg), service.getToken());
+
+		log.info("Loading V1 Realm Sublayouts");
+		sublayoutsMsg = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, GennySettings.mainrealm+"/sublayouts", "master");
+		VertxUtils.writeCachedJson(GennySettings.mainrealm,GennySettings.mainrealm.toUpperCase()+"-V1-LAYOUTS",JsonUtils.toJson(sublayoutsMsg), service.getToken());
+
+//		List<BaseEntity> v2layouts = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, GennySettings.mainrealm+"-new", "master");
+//		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
+//		msg.setParentCode("GRP_LAYOUTS");
+//		msg.setLinkCode("LNK_CORE");
+//		VertxUtils.writeCachedJson(GennySettings.mainrealm, "V2-LAYOUTS", JsonUtils.toJson(msg),
+//				service.getToken());
+//		
+		
+		
 		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
 
