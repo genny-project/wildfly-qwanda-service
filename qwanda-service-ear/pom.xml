@@ -12,7 +12,7 @@
 	<properties>
 		<vertx.version>3.5.1</vertx.version>
 		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
-		<version.org.wildfly>16.0.0.Final</version.org.wildfly>		
+		<version.org.wildfly>15.0.1.Final</version.org.wildfly>		
 	</properties>
 	<dependencies>
 		<dependency>
