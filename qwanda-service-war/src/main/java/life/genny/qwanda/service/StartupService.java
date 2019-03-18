@@ -1,6 +1,7 @@
 package life.genny.qwanda.service;
 
 import java.lang.invoke.MethodHandles;
+import java.time.LocalDate;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
@@ -14,7 +15,12 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeDate;
+import life.genny.qwanda.attribute.AttributeInteger;
+import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.SearchEntity;
+import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.services.BatchLoading;
@@ -101,21 +107,58 @@ public class StartupService {
 		log.info("ACCESS_TOKEN: " + accessToken);
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
 		
+		log.info("skipGithubInStartup is "+(GennySettings.skipGithubInStartup?"TRUE":"FALSE"));
+		String branch = "master";
+		if (!GennySettings.skipGithubInStartup) {
+			
+			
+			log.info("************* Generating V1 Layouts *************");			
+			try {
+			List<BaseEntity> v1GennyLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch, GennySettings.mainrealm,"genny/sublayouts",true); // get common layouts
+			List<BaseEntity> v1RealmLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch, GennySettings.mainrealm,GennySettings.mainrealm+"/sublayouts",true);
+			
+			log.info("************* Generating V2 Layouts *************");			
+			List<BaseEntity> v2GennyLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch, GennySettings.mainrealm,"genny",false); // get common layouts
+			List<BaseEntity> v2RealmLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch, GennySettings.mainrealm,GennySettings.mainrealm+"-new",true);
+			} catch (Exception e) {
+				log.error("Bad Data Exception");
+			}
+		} else {
+			log.info("Skipped Github Layout loading ....");
+		}
+		
 		log.info("Loading V1 Genny Sublayouts");
 		QDataSubLayoutMessage sublayoutsMsg = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, "genny/sublayouts", "master");
+		log.info("Loaded "+sublayoutsMsg.getItems().length+" V1 "+GennySettings.mainrealm+" Realm Sublayouts");
+
 		VertxUtils.writeCachedJson(GennySettings.mainrealm,"GENNY-V1-LAYOUTS",JsonUtils.toJson(sublayoutsMsg), service.getToken());
 
-		log.info("Loading V1 Realm Sublayouts");
+		log.info("Loading V1 "+GennySettings.mainrealm+" Realm Sublayouts");
 		sublayoutsMsg = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, GennySettings.mainrealm+"/sublayouts", "master");
+		log.info("Loaded "+sublayoutsMsg.getItems().length+" V1 "+GennySettings.mainrealm+" Realm Sublayouts");
 		VertxUtils.writeCachedJson(GennySettings.mainrealm,GennySettings.mainrealm.toUpperCase()+"-V1-LAYOUTS",JsonUtils.toJson(sublayoutsMsg), service.getToken());
 
-//		List<BaseEntity> v2layouts = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, GennySettings.mainrealm+"-new", "master");
-//		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
-//		msg.setParentCode("GRP_LAYOUTS");
-//		msg.setLinkCode("LNK_CORE");
-//		VertxUtils.writeCachedJson(GennySettings.mainrealm, "V2-LAYOUTS", JsonUtils.toJson(msg),
-//				service.getToken());
-//		
+	//	List<BaseEntity> v2layouts = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, GennySettings.mainrealm+"-new", "master");
+		SearchEntity searchBE = new SearchEntity("SER_V2_LAYOUTS", "V2 Layout Search");
+		try {
+			searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+			searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
+		       searchBE.addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE, "LAY_%");
+		 //      searchBE.addFilter("PRI_BRANCH",SearchEntity.StringFilter.LIKE, branch);
+		       
+		} catch (BadDataException e) {
+			log.error("Bad Data Exception");
+		}
+
+		List<BaseEntity> v2layouts = service.findBySearchBE(searchBE);
+
+		log.info("Loaded "+v2layouts.size()+" V2 "+GennySettings.mainrealm+"-new Realm Sublayouts");
+
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
+		msg.setParentCode("GRP_LAYOUTS");
+		msg.setLinkCode("LNK_CORE");
+		VertxUtils.writeCachedJson(GennySettings.mainrealm, "V2-LAYOUTS", JsonUtils.toJson(msg),
+				service.getToken());
 		
 		
 		log.info("---------------- Completed Startup ----------------");
