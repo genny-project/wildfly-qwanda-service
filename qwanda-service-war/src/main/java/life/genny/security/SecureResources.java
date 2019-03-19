@@ -32,7 +32,7 @@ public class SecureResources {
 	public static void setKeycloakJsonMap() {
 		String keycloakJson = "{\n" + 
       	  		"  \"realm\": \"" + System.getenv("PROJECT_REALM") + "\",\n" + 
-      	  		"  \"auth-server-url\": \"" + System.getenv("KEYCLOAKURL") + "\",\n" + 
+      	  		"  \"auth-server-url\": \"" + System.getenv("KEYCLOAKAUTHURL") + "\",\n" + 
       	  		"  \"ssl-required\": \"none\",\n" + 
       	  		"  \"resource\": \"" + System.getenv("PROJECT_REALM") + "\",\n" + 
       	  		"  \"credentials\": {\n" + 
@@ -42,17 +42,18 @@ public class SecureResources {
       	  		"}";
             
       	  keycloakJsonMap.put("keycloak.json", keycloakJson);
+      	  log.info("Loaded keycloak.json... " + keycloakJson);
 	}
 
 	private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
 
 
 
-	public void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
+	public static void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
 		setKeycloakJsonMap();
 	}
 
-	public void destroy(@Observes @Destroyed(ApplicationScoped.class) final Object init) {
+	public static void destroy(@Observes @Destroyed(ApplicationScoped.class) final Object init) {
 		keycloakJsonMap.clear();
 	}
 

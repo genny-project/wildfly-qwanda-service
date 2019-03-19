@@ -146,7 +146,7 @@ public class ServiceTokenService {
 		String jsonFile = "keycloak.json";
 
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-			SecureResources.setKeycloakJsonMap();
+			SecureResources.init(null);
 		}
 		String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
 		if (keycloakJson == null) {
