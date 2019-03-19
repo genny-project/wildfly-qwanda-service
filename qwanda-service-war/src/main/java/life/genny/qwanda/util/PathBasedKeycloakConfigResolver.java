@@ -35,13 +35,17 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		URL aURL = null;
 		String realm = "genny";
 		String username = null;
-		String key = "genny.json";
+		String key = "keycloak.json";
+		
+		log.info("REQUEST: " + request);
 
 		if (request != null) {
 			try {
 				// Now check for a token
+				log.info("REQUEST HEADER: " + request.getHeader("Authorization"));
 
 				if (request.getHeader("Authorization") != null) {
+					log.info("INSIDE AUTH BLOCK");
 
 					// extract the token
 					final String authTokenHeader = request.getHeader("Authorization");
@@ -71,7 +75,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					}
 
 				} else {
-
+					log.info("INSIDE AUTH ELSE BLOCK");
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
 					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get("keycloak.json");
@@ -102,19 +106,25 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		}
 
 		KeycloakDeployment deployment = cache.get(realm);
+		log.info("DEPLOYMENT: " + deployment);
 
 		if (null == deployment) {
 			InputStream is;
 			try {
 				is = new ByteArrayInputStream(
 						SecureResources.getKeycloakJsonMap().get(key).getBytes(StandardCharsets.UTF_8.name()));
+				log.info("KEY: " + key);
+				log.info("GOING TO CALL IMPORTANT STUFF...");
 				deployment = KeycloakDeploymentBuilder.build(is);
+				log.info("DEPLOYMENT IN IF BLOCK: " + deployment);
 				cache.put(realm, deployment);
 				
 			} catch (final java.lang.RuntimeException ce) {
 				log.debug("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
 				+ ":" + request.getRemoteAddr()+" ->"+ce.getMessage());
 			} catch (final UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 
