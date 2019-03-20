@@ -7,50 +7,83 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 
 import org.apache.logging.log4j.Logger;
 
+import life.genny.qwanda.attribute.EntityAttribute;
+import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.service.SecurityService;
+import life.genny.qwanda.service.Service;
 import life.genny.qwandautils.GennySettings;
+import life.genny.utils.VertxUtils;
 
 @ApplicationScoped
 public class SecureResources {
 	  protected static final Logger log = org.apache.logging.log4j.LogManager
 		      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	/**
-	 * @return the keycloakJsonMap
-	 */
-	public static Map<String, String> getKeycloakJsonMap() {
-		return keycloakJsonMap;
-	}
+	  
+	  @Inject
+	  private static SecurityService securityService;
 	
-	public static void setKeycloakJsonMap() {
+	  public static String setKeycloakJsonMap() {
+		final String REALM =  System.getenv("PROJECT_REALM");
+		final String PROJECT_CODE = "PRJ_" + REALM.toUpperCase();
+		String keycloakUrl = null;
+		String keycloakSecret = null;
+		
+		BaseEntity project = VertxUtils.readFromDDT(REALM, PROJECT_CODE, securityService.getToken());
+		if (project == null) {
+			log.error("Error: no Project Setting for " + PROJECT_CODE);
+		}
+		Optional<EntityAttribute> entityAttribute1 = project.findEntityAttribute("ENV_KEYCLOAK_AUTHURL");
+		if (entityAttribute1.isPresent()) {
+
+			keycloakUrl = entityAttribute1.get().getValueString();
+
+		} else {
+			log.error("Error: no Project Setting for ENV_KEYCLOAK_AUTHURL ensure PRJ_" + REALM.toUpperCase()
+					+ " has entityAttribute value for ENV_KEYCLOAK_AUTHURL");
+			return null;
+		}
+		
+		Optional<EntityAttribute> entityAttribute2 = project.findEntityAttribute("ENV_KEYCLOAK_SECRET");
+		if (entityAttribute2.isPresent()) {
+
+			keycloakSecret = entityAttribute2.get().getValueString();
+
+		} else {
+			log.error("Error: no Project Setting for ENV_KEYCLOAK_SECRET ensure PRJ_" + REALM.toUpperCase()
+					+ " has entityAttribute value for ENV_KEYCLOAK_SECRET");
+			return null;
+		}
+		
 		String keycloakJson = "{\n" + 
-      	  		"  \"realm\": \"" + System.getenv("PROJECT_REALM") + "\",\n" + 
-      	  		"  \"auth-server-url\": \"" + System.getenv("KEYCLOAKAUTHURL") + "\",\n" + 
+      	  		"  \"realm\": \"" + GennySettings.mainrealm + "\",\n" + 
+      	  		"  \"auth-server-url\": \"" + keycloakUrl + "\",\n" + 
       	  		"  \"ssl-required\": \"none\",\n" + 
-      	  		"  \"resource\": \"" + System.getenv("PROJECT_REALM") + "\",\n" + 
+      	  		"  \"resource\": \"" + GennySettings.mainrealm + "\",\n" + 
       	  		"  \"credentials\": {\n" + 
-      	  		"    \"secret\": \"" + System.getenv("KEYCLOAK_SECRET") + "\" \n" + 
+      	  		"    \"secret\": \"" + keycloakSecret + "\" \n" + 
       	  		"  },\n" + 
       	  		"  \"policy-enforcer\": {}\n" + 
       	  		"}";
             
-      	  keycloakJsonMap.put("keycloak.json", keycloakJson);
       	  log.info("Loaded keycloak.json... " + keycloakJson);
+      	  return keycloakJson;
 	}
 
-	private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
 
 
 
-	public static void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
-		setKeycloakJsonMap();
+	  /*public static void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
 	}
 
 	public static void destroy(@Observes @Destroyed(ApplicationScoped.class) final Object init) {
@@ -73,7 +106,7 @@ public class SecureResources {
 
 	public static void reload() {
 		keycloakJsonMap.clear();
-		setKeycloakJsonMap();
+		SecureResources.setKeycloakJsonMap();
 	}
 
 	public static String fetchRealms() {
@@ -82,54 +115,7 @@ public class SecureResources {
 			ret += keycloakRealmKey + ":" + keycloakJsonMap.get(keycloakRealmKey) + "\n";
 		}
 		return ret;
-	}
-
-	/*public static String readFilenamesFromDirectory(final String rootFilePath) {
-		String ret = "";
-		final File folder = new File(rootFilePath);
-		final File[] listOfFiles = folder.listFiles();
-
-		log.info("Loading Files! with HOSTIP=" + GennySettings.hostIP);
-
-		for (int i = 0; i < listOfFiles.length; i++) {
-			if (listOfFiles[i].isFile()) {
-				log.info("Importing Keycloak Realm File " + listOfFiles[i].getName());
-				try {
-					String keycloakJsonText = getFileAsText(listOfFiles[i]);
-					// Handle case where dev is in place with localhost
-
-					// if (!"localhost.json".equalsIgnoreCase(listOfFiles[i].getName())) {
-					keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
-
-					// }
-					final String key = listOfFiles[i].getName(); // .replaceAll(".json", "");
-					log.info("keycloak key:" + key + "," + keycloakJsonText);
-
-					keycloakJsonMap.put(key, keycloakJsonText);
-					keycloakJsonMap.put(key+".json", keycloakJsonText);
-					ret += keycloakJsonText + "\n";
-				} catch (final IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-			} else if (listOfFiles[i].isDirectory()) {
-				log.info("Directory " + listOfFiles[i].getName());
-				readFilenamesFromDirectory(listOfFiles[i].getName());
-			}
-		}
-		return ret;
-	}
-
-	private static String getFileAsText(final File file) throws IOException {
-		final BufferedReader in = new BufferedReader(new FileReader(file));
-		String ret = "";
-		String line = null;
-		while ((line = in.readLine()) != null) {
-			ret += line;
-		}
-		in.close();
-
-		return ret;
 	}*/
+
+	
 }

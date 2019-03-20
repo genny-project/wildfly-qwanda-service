@@ -559,9 +559,6 @@ public class ServiceEndpoint {
 
 									String serviceToken = service.getServiceToken(securityService.getRealm());
 
-									// Now check if it exists in keycloak
-									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
-
 									try {
 										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
 												securityService.getRealm(), newUsername, newFirstname, newLastname,
@@ -592,14 +589,14 @@ public class ServiceEndpoint {
 		return Response.status(200).entity(ret).build();
 	}
 
-	@GET
+	/*@GET
 	@Path("/realms/sync")
 	@ApiOperation(value = "syncrealms", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response syncrealms() {
 		log.debug("Sync Keycloak Realms");
-		SecureResources.reload();
+		InitResources.reload();
 		return Response.status(200).build();
 	}
 
@@ -610,7 +607,7 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response fetchrealms() {
 		log.debug("Fetch Keycloak Realms");
-		String keycloakRealms = SecureResources.fetchRealms();
+		String keycloakRealms = InitResources.fetchRealms();
 		return Response.status(200).entity(keycloakRealms).build();
 	}
 
@@ -625,7 +622,7 @@ public class ServiceEndpoint {
 		String key = json.getString("clientId");
 		key = key + ".json";
 
-		SecureResources.addRealm(key, entity);
+		InitResources.addRealm(key, entity);
 
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
@@ -639,9 +636,9 @@ public class ServiceEndpoint {
 
 		log.info("Removing Realm " + key);
 
-		SecureResources.removeRealm(key);
+		InitResources.removeRealm(key);
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
-	}
+	}*/
 
 	// cheap way of getting clean transaction
 	@GET
@@ -684,7 +681,8 @@ public class ServiceEndpoint {
 	@GET
 	@Consumes("application/json")
 	@Path("/synchronizelayouts")
-
+	@Transactional
+//	@TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
 	public Response synchronizeLayouts(
 			@DefaultValue("https://github.com") @QueryParam("giturl") final String gitserverUrl,
 			@DefaultValue("genny-project") @QueryParam("accountname") final String accountname,
@@ -730,19 +728,24 @@ public class ServiceEndpoint {
 			log.info("************* Generating V2 Layouts *************");
 			
 			gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,"genny",false); // get common layouts
+		//	service.saveLayouts( gennyLayouts, "genny-new", "V2", branch);
+			synchLayouts( gennyLayouts,true);
 			realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,realm+"-new",true);
+			synchLayouts( realmLayouts,true);
+		//	service.saveLayouts( realmLayouts, realm+"-new", "V2", branch);
 		
 			List<BaseEntity> layouts = new ArrayList<BaseEntity>();
-			log.info("genny "+gennyLayouts.size()+" layouts ");
+//			log.info("genny "+gennyLayouts.size()+" layouts ");
 			layouts.addAll(gennyLayouts);
-			log.info(realm+" "+realmLayouts.size()+" layouts ");
+//			log.info(realm+" "+realmLayouts.size()+" layouts ");
 			layouts.addAll(realmLayouts);
-			
-			for (BaseEntity layout : layouts) {
-				log.info("Loaded Layout " + layout.getCode()+" "+layout.getName()+":"+layout.getValue("PRI_LAYOUT_URI").get().toString());
-			}
-
-			synchLayouts(layouts,true);   // save the layouts to the database
+//			
+//			for (BaseEntity layout : layouts) {
+//				log.info("Loaded Layout " + layout.getCode()+" "+layout.getName()+":"+layout.getValue("PRI_LAYOUT_URI").get().toString());
+//			}
+//
+//			
+//			synchLayouts(layouts,true);   // save the layouts to the database
 			
 			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(layouts.toArray(new BaseEntity[0]));
 			msg.setParentCode("GRP_LAYOUTS");
@@ -788,9 +791,12 @@ public class ServiceEndpoint {
 					newLayout = new BaseEntity(layout.getCode(), layout.getName());
 				} else {
 					int newData = layout.getValue("PRI_LAYOUT_DATA").get().toString().hashCode();
-					int oldData = newLayout.findEntityAttribute(layoutDataAttribute).getAsString().hashCode();
-					if (newData == oldData) {
-						continue;
+					Optional<EntityAttribute> oldDataEA = newLayout.findEntityAttribute("PRI_LAYOUT_DATA");
+					if (oldDataEA.isPresent()) {
+						int oldData = oldDataEA.get().getAsString().hashCode();
+						if (newData == oldData) {
+							continue;
+						}
 					}
 				}
 				newLayout.setRealm(securityService.getRealm());
@@ -810,31 +816,20 @@ public class ServiceEndpoint {
 		              e.printStackTrace();
 		            }
 		            
-//				Answer dataAnswer = new Answer(newLayout, newLayout, layoutDataAttribute,
-//						layout.getValue("PRI_LAYOUT_DATA").get().toString());
-//				Answer urlAnswer = new Answer(newLayout, newLayout, layoutURLAttribute,
-//						layout.getValue("PRI_LAYOUT_URL").get().toString());
-//				Answer uriAnswer = new Answer(newLayout, newLayout, layoutURIAttribute,
-//						layout.getValue("PRI_LAYOUT_URI").get().toString());
-//				Answer nameAnswer = new Answer(newLayout, newLayout, layoutNameAttribute,
-//						layout.getValue("PRI_LAYOUT_NAME").get().toString()+".json");   // V1 layouts needed .json
-//				Answer modifiedAnswer = new Answer(newLayout, newLayout, layoutModifiedDateAttribute,
-//						layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString()); // if new
+
 				if (saveToDatabase) {
-//				
-//					// create link	
-//					Answer[] answers = new Answer[5];
-//					answers[0] = (dataAnswer);
-//					answers[1] = (urlAnswer);
-//					answers[2] = (uriAnswer);
-//					answers[3] = (nameAnswer);
-//					answers[4] = (modifiedAnswer);
-//					for (int index2=0;index2<answers.length;index2++) {
-//						answers[index2].setChangeEvent(false); // do not send attribute change evnt
-//					}
 					try {
-						service.updateWithAttributes(newLayout);
-				//	service.insert(answers);
+				
+						//service.updateWithAttributes(newLayout);
+						try {
+							// merge in entityAttributes
+							newLayout = service.getEntityManager().merge(newLayout);
+				 		} catch (final Exception  e) {
+							// so persist otherwise
+							service.getEntityManager().persist(newLayout);
+						}
+						String json = JsonUtils.toJson(newLayout);
+						service.writeToDDT(newLayout.getCode(), json);
 						service.addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0,false);   // don't send change event
 					} catch (IllegalArgumentException | BadDataException e) {
 						log.error("Could not write layout - "+e.getLocalizedMessage());

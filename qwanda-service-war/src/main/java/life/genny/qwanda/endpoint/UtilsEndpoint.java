@@ -53,7 +53,9 @@ import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
+import life.genny.security.SecureResources;
 import life.genny.services.BatchLoading;
+import life.genny.utils.VertxUtils;
 
 /**
  * JAX-RS endpoint
@@ -157,8 +159,7 @@ public class UtilsEndpoint {
 				
 				String service_password = SecurityUtils.decrypt(env_security_key, initVector, encryptedPassword);
 				// Now determine for the keycloak to use from the realm
-				final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(realm + ".json");
-				JsonObject keycloakJson  = new JsonObject(keycloakJsonText);
+				JsonObject keycloakJson = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
 				String keycloakUrl = keycloakJson.getString("auth-server-url");
 				String secret = keycloakJson.getJsonObject("credentials").getString("secret");
 				String token = KeycloakUtils.getAccessToken(keycloakUrl, realm, realm,

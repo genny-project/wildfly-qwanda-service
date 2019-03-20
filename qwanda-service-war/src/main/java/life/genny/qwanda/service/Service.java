@@ -35,6 +35,7 @@ import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
+import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 import life.genny.utils.VertxUtils;
@@ -385,32 +386,5 @@ public class Service extends BaseEntityService2 {
 	
 	public  String getServiceToken(String realm) {
 		return serviceTokens.getServiceToken(realm);
-	}
-	
-
-
-
-
-	
-	public String getKeycloakUrl(String realm)
-	{
-		String keycloakurl = null;
-		
-		if (GennySettings.devMode) {  // UGLY!!!
-			realm = "genny";
-		} 
-		
-		String keycloakJson =  SecureResources.getKeycloakJsonMap().get("keycloak.json");
-		if (keycloakJson!=null) {
-		JsonObject realmJson = new JsonObject(keycloakJson);
-		JsonObject secretJson = realmJson.getJsonObject("credentials");
-		String secret = secretJson.getString("secret");
-		log.info("secret:"+secret);
-
-		keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - "/auth".length());
-		}
-
-		return keycloakurl;
 	}
 }
