@@ -54,7 +54,6 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
-import life.genny.security.SecureResources;
 
 /**
  * JAX-RS endpoint
@@ -78,7 +77,6 @@ public class KeycloakEndpoint {
 	@Inject
 	private Service service;
 	
-	private SecureResources secureResources;
 
 //	@POST
 //	@Path("/register")

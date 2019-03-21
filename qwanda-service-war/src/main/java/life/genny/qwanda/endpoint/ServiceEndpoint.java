@@ -102,7 +102,6 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.services.BatchLoading;
 
 import life.genny.qwanda.controller.Controller;
-import life.genny.security.SecureResources;
 
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;

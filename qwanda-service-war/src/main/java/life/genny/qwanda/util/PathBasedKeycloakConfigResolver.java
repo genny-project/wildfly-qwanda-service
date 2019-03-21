@@ -20,9 +20,7 @@ import org.keycloak.adapters.OIDCHttpFacade;
 
 import io.vertx.core.json.JsonObject;
 import life.genny.qwandautils.GennySettings;
-import life.genny.security.SecureResources;
 import life.genny.utils.VertxUtils;
-import life.genny.security.SecureResources;
 
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 	/**
@@ -37,11 +35,10 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 	@Override
 	public KeycloakDeployment resolve(final OIDCHttpFacade.Request request) {
 		URL aURL = null;
-		String realm = "genny";
+		String realm = GennySettings.mainrealm;
 		String username = null;
 
 		if (request != null) {
-			try {
 				// Now check for a token
 
 				if (request.getHeader("Authorization") != null) {
@@ -72,21 +69,15 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					}
 
 				} else {
-					aURL = new URL(request.getURI());
-					final String url = aURL.getHost();
 					JsonObject keycloakJson = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
-					if (keycloakJson==null) {
+					if (keycloakJson==null || "error".equals(keycloakJson.getString("status"))) {
 						log.error("KEYCLOAK JSON NOT FOUND");
 						return null;
 					} else {
 					// extract realm
-					realm = keycloakJson.getString("realm");
+					realm = (new JsonObject(keycloakJson.getString("value")).getString("realm"));
 					}
 				}
-
-			} catch (final Exception e) {
-				log.error("Error in accessing request.getURI , spi issue?");
-			}
 		}
 
 		// don't bother showing Docker health checks
@@ -99,16 +90,20 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			}
 		}
 
-		KeycloakDeployment deployment = cache.get(realm);
+		KeycloakDeployment deployment = null;
+		if(cache != null) {
+			deployment = cache.get(realm);
+		}
 
 		if (null == deployment) {
 			InputStream is;
 			try {
-				JsonObject keycloakJson = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
-				if (keycloakJson==null) {
+				JsonObject json = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
+				if (json==null || "error".equals(json.getString("status"))) {
 					log.error("KEYCLOAK JSON NOT FOUND");
 					return null;
 				} else {
+					JsonObject keycloakJson = new JsonObject(json.getString("value"));
 					is = new ByteArrayInputStream(
 							keycloakJson.toString().getBytes(StandardCharsets.UTF_8.name()));
 					deployment = KeycloakDeploymentBuilder.build(is);

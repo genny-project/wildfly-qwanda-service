@@ -34,8 +34,6 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
-import life.genny.security.SecureResources;
-import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
 import life.genny.utils.VertxUtils;
@@ -81,7 +79,6 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecurityService securityService;
 
-	private SecureResources secureResources;
 	
 //	@Inject
 //	private WildFlyJmsQueueSender jms;
@@ -280,7 +277,7 @@ public class Service extends BaseEntityService2 {
 
 	protected String getRealm() {
 		
-		return securityService.getRealm();
+		return GennySettings.mainrealm;
 	//	return "genny"; // TODO HACK
 	}
 

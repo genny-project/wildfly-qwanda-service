@@ -23,7 +23,6 @@ import life.genny.qwanda.entity.SearchEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
-import life.genny.security.SecureResources;
 import life.genny.services.BatchLoading;
 
 import life.genny.eventbus.EventBusInterface;
@@ -88,20 +87,26 @@ public class StartupService {
 		VertxUtils.init(eventBus,cacheInterface);
 
 		securityService.setImportMode(true); // ugly way of getting past security
-
+		BatchLoading bl = new BatchLoading(service);
 		// em = emf.createEntityManager();
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
 			log.info("Starting Transaction for loading");
-			BatchLoading bl = new BatchLoading(service);
 			bl.persistProject(false, null, false);
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
 		
+		String accessToken = service.getServiceToken(GennySettings.mainrealm);
+		log.info("ACCESS_TOKEN: " + accessToken);
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+		
 		log.info("Pushing Keycloak Json to Cache");
-		String keycloakJson = SecureResources.setKeycloakJsonMap();
+		String keycloakJson = bl.constructKeycloakJson();
 		service.writeToDDT(GennySettings.KEYCLOAK_JSON, keycloakJson);
+		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
+			bl.upsertKeycloakJson(keycloakJson);
+		}
 		log.info("Pushed Keycloak Json to Cache");	
 
 		// Push BEs to cache
@@ -109,9 +114,7 @@ public class StartupService {
 			pushToDTT();
 		}
 		
-		String accessToken = service.getServiceToken(GennySettings.mainrealm);
-		log.info("ACCESS_TOKEN: " + accessToken);
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+		
 		
 		log.info("skipGithubInStartup is "+(GennySettings.skipGithubInStartup?"TRUE":"FALSE"));
 		String branch = "master";

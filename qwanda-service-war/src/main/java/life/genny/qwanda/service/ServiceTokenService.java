@@ -35,9 +35,8 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
-import life.genny.security.SecureResources;
-import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.services.BatchLoading;
 import life.genny.utils.VertxUtils;
 
 import javax.annotation.PostConstruct;
@@ -82,8 +81,6 @@ public class ServiceTokenService {
 	private HashMap<String,String> refreshServiceTokens = new HashMap<String,String>();
 	
 
-	@Inject
-	private SecureResources secureResources;
 	
 	@Inject
 	private Service service;
@@ -142,7 +139,7 @@ public class ServiceTokenService {
 		return generateServiceToken(realm);
 	}
 	
-	public  String generateServiceToken(String realm) {
+	public String generateServiceToken(String realm) {
 
 		log.info("Generating Service Token for "+realm);
 		
@@ -152,8 +149,9 @@ public class ServiceTokenService {
 		log.info("Keycloak JSON in generateServiceToken : " + keycloakJson);
 		if (keycloakJson == null || "error".equals(keycloakJson.getString("status"))) {
 			log.error("KEYCLOAK JSON NOT FOUND FOR " + realm);
-			String keycloakJsonText = SecureResources.setKeycloakJsonMap();
-			keycloakJson = new JsonObject(JsonUtils.toJson(keycloakJsonText));
+			BatchLoading bl = new BatchLoading(service);
+			String keycloakJsonText = bl.constructKeycloakJson();
+			keycloakJson = new JsonObject(keycloakJsonText);
 			
 		}
 		JsonObject secretJson = keycloakJson.getJsonObject("credentials");
