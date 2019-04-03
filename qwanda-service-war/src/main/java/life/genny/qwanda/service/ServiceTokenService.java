@@ -99,13 +99,15 @@ public class ServiceTokenService {
 	public  String getServiceToken(String realm) {
 		/* we get the service token currently stored in the cache */
 		
-		if (GennySettings.devMode) {
+		realm = GennySettings.mainrealm;
+		
+		/*if (GennySettings.devMode) {
 			realm = "genny";
 		} else {
 			if ("genny".equals(realm)) {
 				realm = GennySettings.mainrealm;
 			}
-		}
+		}*/
 		
 		String serviceToken = serviceTokens.get(realm);
 
@@ -147,14 +149,22 @@ public class ServiceTokenService {
 
 		JsonObject keycloakJson = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
 		log.info("Keycloak JSON in generateServiceToken : " + keycloakJson);
+		JsonObject secretJson;
 		if (keycloakJson == null || "error".equals(keycloakJson.getString("status"))) {
 			log.error("KEYCLOAK JSON NOT FOUND FOR " + realm);
 			BatchLoading bl = new BatchLoading(service);
 			String keycloakJsonText = bl.constructKeycloakJson();
+			log.info("Keycloak JSON after construction: " + keycloakJsonText);
 			keycloakJson = new JsonObject(keycloakJsonText);
+			secretJson = keycloakJson.getJsonObject("credentials");
 			
+		} else {
+			JsonObject keycloakValueJson = new JsonObject(keycloakJson.getString("value"));
+			secretJson = keycloakValueJson.getJsonObject("credentials");
+			keycloakJson = keycloakValueJson;
 		}
-		JsonObject secretJson = keycloakJson.getJsonObject("credentials");
+		
+		log.info("Secret JSON: " + secretJson);
 		String secret = secretJson.getString("secret");
 		String jsonRealm = keycloakJson.getString("realm");
 		
@@ -166,7 +176,7 @@ public class ServiceTokenService {
 		
 		log.info("key:"+key+":"+initVector+":"+encryptedPassword);
 		password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
-		if (GennySettings.devMode || (GennySettings.defaultLocalIP.equals(GennySettings.hostIP))) {
+		if (GennySettings.devMode || GennySettings.miniKubeMode || (GennySettings.defaultLocalIP.equals(GennySettings.hostIP))) {
 			password = GennySettings.defaultServicePassword;
 		}
 
@@ -195,6 +205,7 @@ public class ServiceTokenService {
 			/* we get the access token and the refresh token */
 			String access_token = secureTokenPayload.getString("access_token");
 			String refresh_token = secureTokenPayload.getString("refresh_token");
+			log.info("REFRESH TOKEN: " + refresh_token);
 
 			/* if we have an access token */
 			if (access_token != null) {
