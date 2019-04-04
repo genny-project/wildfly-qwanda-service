@@ -53,6 +53,8 @@
 		<class>life.genny.qwanda.message.QBaseMSGMessageTemplate</class>
 
 		<validation-mode>CALLBACK</validation-mode>
+		
+		<shared-cache-mode>ALL</shared-cache-mode>
 		<properties>
 			<property name="hibernate.dialect"
 				value="life.genny.qwanda.util.MySQLDialect2" />
@@ -60,7 +62,7 @@
 			<property
 				name="hibernate.discriminator.ignore_explicit_for_joined"
 				value="true" />
-			<!-- <property name="hibernate.generate_statistics" value="true" /> -->
+			<property name="hibernate.generate_statistics" value="false" />
 			<property name="hibernate.show_sql" value="false" />
 			<!-- <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.MySQLSpatial56Dialect" 
 				/> -->
@@ -69,22 +71,25 @@
 				value="false" />
 			<property name="hibernate.cache.use_structured_entries"
 				value="true" />
+            <property name="javax.persistence.lock.timeout" value="100"/>
+            <property name="javax.persistence.query.timeout" value="100"/>
 
 			<!-- 2LC -->
 			<property name="hibernate.cache.use_second_level_cache"
 				value="true" />
 			<property name="hibernate.cache.use_query_cache"
 				value="true" />
+				
 		<!-- 	<property name="cache.provider_class" value="org.hibernate.cache.NoCacheProvider" />  -->
 		<!--  <property name="hibernate.cache.region.factory_class"
 				value="com.hazelcast.hibernate.HazelcastCacheRegionFactory" /> -->
-			<property name="hibernate.connection.pool_size" value="50" />
-			<property name="hibernate.c3p0.min_size" value="5" />
-			<property name="hibernate.c3p0.max_size" value="50" />
-			<property name="hibernate.c3p0.timeout" value="300" />
-			<property name="hibernate.c3p0.max_statements" value="50" />
+			<property name="hibernate.connection.pool_size" value="100" />
+			<property name="hibernate.c3p0.min_size" value="15" />
+			<property name="hibernate.c3p0.max_size" value="75" />
+			<property name="hibernate.c3p0.timeout" value="600" />
+			<property name="hibernate.c3p0.max_statements" value="75" />
 			<property name="hibernate.c3p0.idle_test_period"
-				value="3000" />
+				value="5000" />
 		</properties>
 	</persistence-unit>
 </persistence>

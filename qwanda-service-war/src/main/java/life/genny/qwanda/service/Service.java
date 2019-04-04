@@ -82,39 +82,34 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecureResources secureResources;
 	
-	@Inject
-	private WildFlyJmsQueueSender jms;
-
-	@Inject
-	private WildflyJms jms2;
+//	@Inject
+//	private WildFlyJmsQueueSender jms;
+//
+//	@Inject
+//	private WildflyJms jms2;
 
 	@Inject
 	private Hazel inDB;
+	
+	@Inject
+	private ServiceTokenService serviceTokens;
 
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 	
-	String token="DUMMY";
+	String token;
 
 	@PostConstruct
 	public void init() {
-		initServiceToken();
+	
+		
 	}
 	
-	public void initServiceToken() {
-		
 
-		log.info("Initialising realm - "+GennySettings.mainrealm);
-		token = getServiceToken(GennySettings.mainrealm);
-		log.info("Service token = "+token);
-	}
 	
 	@Override
 	public String getToken()
 	{
-		if ("DUMMY".equals(token)) {
-			init();
-		}
-		return token;
+		return serviceTokens.getServiceToken(getRealm());
 	}
 
 	@Override
@@ -285,6 +280,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	protected String getRealm() {
+		
 		return securityService.getRealm();
 	//	return "genny"; // TODO HACK
 	}
@@ -347,14 +343,14 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public void writeToDDT(final BaseEntity be) {
 		String json = JsonUtils.toJson(be);
-		writeToDDT(be.getCode(), json);
-
+		VertxUtils.writeCachedJson(be.getRealm(),be.getCode(), json, getToken());
 	}
 
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final String key,String jsonValue) {
-			VertxUtils.writeCachedJson(key, jsonValue, getToken());
+		
+			VertxUtils.writeCachedJson(this.getRealm(),key, jsonValue, getToken());
 
 	}
 
@@ -366,10 +362,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	public String readFromDDT(final String key) {
-		final String realmKey = this.getRealm() + "_" + key;
-		String json = (String) inDB.getMapBaseEntitys(GennySettings.mainrealm).get(realmKey);
-
-		return json; // TODO make resteasy @Provider exception
+		return VertxUtils.readCachedJson(this.getRealm(),key,getToken()).toString();
 	}
 
 	@Override
@@ -393,113 +386,11 @@ public class Service extends BaseEntityService2 {
 	}
 	
 	public  String getServiceToken(String realm) {
-
-		/* we get the service token currently stored in the cache */
-		String serviceToken = this.readFromDDT("CACHE:SERVICE_TOKEN");
-
-		/* if we have got a service token cached */
-		if (serviceToken != null) {
-
-			/* we decode it */
-			JSONObject decodedServiceToken = KeycloakUtils.getDecodedToken(serviceToken);
-
-			/* we get the expiry timestamp */
-			long expiryTime = decodedServiceToken.getLong("exp");
-
-			/* we get the current time */
-			long nowTime = LocalDateTime.now().atZone(TimeZone.getDefault().toZoneId()).toEpochSecond();
-
-			/* we calculate the differencr */ 
-			long duration = expiryTime - nowTime;
-
-			/* if the difference is negative it means the expiry time is less than the nowTime 
-				 if the difference < ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS, it means the token will expire in 3 hours
-			*/
-			if(duration >= GennySettings.ACCESS_TOKEN_EXPIRY_LIMIT_SECONDS) {
-
-				log.info("======= USING CACHED ACCESS TOKEN ========");
-
-				/* if the token is NOTn about to expire (> 3 hours), we reuse it */
-				return serviceToken;
-			}
-		}
-
-
-		log.info("Generating Service Token for "+realm);
-		
-		realm = GennySettings.dynamicRealm(realm);
-
-		String jsonFile = realm + ".json";
-
-		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-			secureResources.init(null);
-		}
-		String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
-		if (keycloakJson == null) {
-			log.info("No keycloakMap for " + realm+" ... fixing");
-			String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
-			if (GennySettings.devMode) {
-				SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
-				keycloakJson = gennyKeycloakJson;
-			} else {
-				log.info("Error - No keycloak Json file available for realm - "+realm);
-				return null;
-			}
-		}
-		JsonObject realmJson = new JsonObject(keycloakJson);
-		JsonObject secretJson = realmJson.getJsonObject("credentials");
-		String secret = secretJson.getString("secret");
-		String jsonRealm = realmJson.getString("realm");
-		
-		String key = GennySettings.dynamicKey(jsonRealm);
-		String initVector = GennySettings.dynamicInitVector(jsonRealm);
-		String encryptedPassword = GennySettings.dynamicEncryptedPassword(jsonRealm);
-		String password= null;
-		
-		
-		log.info("key:"+key+":"+initVector+":"+encryptedPassword);
-		password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
-		if (GennySettings.devMode) {
-			password = GennySettings.defaultServicePassword;
-		}
-
-		log.info("password="+password);
-
-		// Now ask the bridge for the keycloak to use
-		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - "/auth".length());
-
-		log.info(keycloakurl);
-
-		try {
-			log.info("realm() : " + realm + "\n" + "realm : " + realm + "\n" + "secret : " + secret + "\n"
-					+ "keycloakurl: " + keycloakurl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
-					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
-
-			/* we get the refresh token from the cache */
-			String cached_refresh_token = VertxUtils.getObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", String.class); 
-
-			/* we get a secure token payload containing a refresh token and an access token */
-			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakurl, realm, realm, secret, "service", password, cached_refresh_token);
-
-			/* we get the access token and the refresh token */
-			String access_token = secureTokenPayload.getString("access_token");
-			String refresh_token = secureTokenPayload.getString("refresh_token");
-
-			/* if we have an access token */
-			if (access_token != null) {
-
-				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", access_token); // TODO
-				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN_REFRESH", refresh_token); // TODO
-				return access_token;
-			}
-
-		} catch (Exception e) {
-			log.info(e);
-		}
-
-		return null;
+		return serviceTokens.getServiceToken(realm);
 	}
+	
+
+
 
 	
 	public String getKeycloakUrl(String realm)

@@ -1,6 +1,7 @@
 package life.genny.qwanda.util;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 
 import javax.annotation.PreDestroy;
@@ -19,9 +20,15 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.logging.log4j.Logger;
+
 @ApplicationScoped
 @ManagedBean(name = "wildflyJms", eager = true)
 public class WildFlyJmsQueueSender {
+	
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+	
 	public final static String JMS_CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
 	public final static String JMS_QUEUE_JNDI = "jms/queue/GennyQ";
 	public final static String JMS_USERNAME = "jmsuser"; // The role for this user is "guest" in ApplicationRealm
@@ -106,7 +113,7 @@ public class WildFlyJmsQueueSender {
 		String line = "Test Message Body with counter = ";
 		for (int i = 0; i < 10; i++) {
 			wildFlyJmsQueueSender.send(line + i);
-			System.out.println("JMS Message Sent: " + line + i + "\n");
+			log.info("JMS Message Sent: " + line + i + "\n");
 		}
 	}
 
@@ -120,7 +127,7 @@ public class WildFlyJmsQueueSender {
 			props.put(Context.SECURITY_CREDENTIALS, JMS_PASSWORD);
 			// props.put("jboss.naming.client.ejb.context", true);
 			context = new InitialContext(props);
-			System.out.println("\n\tGot initial Context: " + context);
+			log.info("\n\tGot initial Context: " + context);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
