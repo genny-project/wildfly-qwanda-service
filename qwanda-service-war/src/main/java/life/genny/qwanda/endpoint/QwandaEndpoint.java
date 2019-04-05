@@ -1665,7 +1665,7 @@ public class QwandaEndpoint {
 		} else {
 			log.info("User does not have access rights");
 			String json = JsonUtils.toJson("Unauthorized");
-			return Response.status(503).entity(json).build();
+			return Response.status(401).entity(json).build();
 		}
       
     }
