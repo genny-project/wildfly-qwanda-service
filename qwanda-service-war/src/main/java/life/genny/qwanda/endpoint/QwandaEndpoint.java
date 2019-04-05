@@ -1493,13 +1493,12 @@ public class QwandaEndpoint {
         } catch (Exception e) {
           e.printStackTrace();
         }
-        return Response.status(200).build();
+        return Response.status(200).entity("Success").build();
 	  } else {
 		  Log.info("User does not have required access rights");
-		  return Response.status(503).build();
+		  return Response.status(401).entity("Unauthorized").build();
 	  }
-        
-    }
+	}
 
 
 	
