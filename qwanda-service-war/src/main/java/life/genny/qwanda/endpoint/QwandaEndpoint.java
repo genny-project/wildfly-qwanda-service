@@ -1650,6 +1650,34 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
-
+	@GET
+    @Consumes("application/json")
+    @Path("/companycode/{abn}")
+    @Produces("application/json")
+    public Response getCompanyCodeFromABN(@PathParam("abn") final String abn) {
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
+		          || securityService.inRole("dev")) || GennySettings.devMode) {
+			log.info("Fetching company code for the user name " + abn);
+		      String companyCode = getCompanyCode(abn);
+		      String json = JsonUtils.toJson(companyCode);
+		      return Response.status(200).entity(json).build();
+		} else {
+			log.info("User does not have access rights");
+			String json = JsonUtils.toJson("Unauthorized");
+			return Response.status(401).entity(json).build();
+		}
+      
+    }
+	
+	public String getCompanyCode(String abn) {
+		final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
+		params.add("PRI_ABN", abn);
+		List<BaseEntity> baseEntityList = service.findBaseEntitysByAttributeValues(params, true, 0, 1);
+		if(baseEntityList != null && baseEntityList.get(0) != null) {
+			return baseEntityList.get(0).getCode();
+		} else {
+			return null;
+		}
+	}
 
 }
