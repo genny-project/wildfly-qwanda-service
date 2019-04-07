@@ -3,6 +3,8 @@ package life.genny.qwanda.service;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -113,7 +115,10 @@ public class StartupService {
 				|| (!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
 			log.info("Starting Transaction for loading");
 			BatchLoading bl = new BatchLoading(service);
-			bl.persistProject(false, null, false);
+			 List<Map<String, Object>> finalProjects = bl.getAllProjects();
+//			 for (List<Map<String, Object>> project : finalProjects) {
+//				 bl.persistProject(project,false, null, false);
+//			 }
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");

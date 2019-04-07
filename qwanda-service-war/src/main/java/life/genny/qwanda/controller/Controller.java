@@ -249,7 +249,7 @@ public class Controller {
 
   public Map<String, Map<String, Object>> retrieveDeletionRecords(final Service bes, final String table, final String projectKey ) {
     final BatchLoading bl = new BatchLoading(bes);
-    final Map<String, Object> saveProjectData = new HashMap(bl.savedProjectData);
+    final Map<String, Object> saveProjectData = new HashMap(bl.savedProjectDataMap.get(projectKey));
     Map<String, Object> sheetMap;
     Map<String, Object> merge = new HashMap<>();
     final Map<String, Map<String, Object>> superMerge = new HashMap<>();
@@ -270,6 +270,7 @@ public class Controller {
     superMerge.put(projectKey, merge);
     log.info("Things to delete: " + merge);
     saveProjectData.put(projectKey, sheetMap.get(projectKey));
+    
     return superMerge;
   }
 
