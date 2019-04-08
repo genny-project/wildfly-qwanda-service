@@ -24,6 +24,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.services.BatchLoading;
+import life.genny.services.ProjectsLoading;
 
 import life.genny.eventbus.EventBusInterface;
 import io.vertx.resourceadapter.examples.mdb.EventBusBean;
@@ -62,6 +63,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.util.Optional;
+
+import java.io.File;
+import java.util.Map;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -108,22 +112,64 @@ public class StartupService {
 
 		securityService.setImportMode(true); // ugly way of getting past security
 
-		// em = emf.createEntityManager();
-		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP") == null)
-				|| (!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
+		if (!GennySettings.skipGoogleDocInStartup) {
 			log.info("Starting Transaction for loading");
-			BatchLoading bl = new BatchLoading(service);
-			bl.persistProject(false, null, false);
+
+			String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+			String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+			File credentialPath = new File(System.getProperty("user.home"),
+					".genny/sheets.googleapis.com-java-quickstart");
+
+			Map<String,Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
+
+			for (String projectCode : projects.keySet()) {
+				log.info("Project: "+projects.get(projectCode));
+				Map<String,Map> project = projects.get(projectCode);
+				if ("FALSE".equals(project.get("disable"))) {
+					log.info("PROJECT "+project.get("code"));
+					// save urls to Keycloak maps
+					
+					BatchLoading bl = new BatchLoading(project,service);
+					bl.persistProject(false, null, false);
+				}
+			}
+			
+			// now load all keycloak jsons into the Keycloak Path Map
+			SearchEntity searchProjectsBE = new SearchEntity("SER_PROJECTS", "Projects");
+			try {
+				searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+				searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
+				searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "PRJ_%");
+
+			} catch (BadDataException e) {
+				log.error("Bad Data Exception");
+			}
+
+			List<BaseEntity> projectBEs = service.findBySearchBE(searchProjectsBE);
+
+			for (BaseEntity projectBE : projectBEs) {
+				String keycloakJson = projectBE.getValue("ENV_KEYCLOAK_JSON");
+				String realm = projectBE.getCode().subString(4).toLowerCase();
+				String urlList = projectBE.getValue("ENV_URL_LIST");
+				String[] urls = urlList.split(",");
+				SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
+				for (String url : urls) {
+					SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
+				}
+			}
+			
+////			 for (List<Map<String, Object>> project : finalProjects) {
+//				 bl.persistProject(project,false, null, false);
+//			 }
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
 
 		// Push BEs to cache
-		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
+		if (GennySettings.loadDdtInStartup) {
 			pushToDTT();
 		}
-
 		String accessToken = service.getServiceToken(GennySettings.mainrealm);
 		log.info("ACCESS_TOKEN: " + accessToken);
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);

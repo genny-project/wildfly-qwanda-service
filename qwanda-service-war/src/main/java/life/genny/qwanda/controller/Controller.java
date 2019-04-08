@@ -26,6 +26,8 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.service.Service;
 import life.genny.qwanda.validation.Validation;
 import life.genny.services.BatchLoading;
+import javax.inject.Inject;
+import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
 
 import life.genny.qwanda.exception.BadDataException;
@@ -35,6 +37,10 @@ public class Controller {
 		      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   public static final String REALM_HIDDEN = "hidden";
+  
+	@Inject
+	private SecurityService securityService;
+
 
   public void updateBaseEntity(
       final Service service, final Map<String, Map<String, Object>> merge) {
@@ -248,7 +254,16 @@ public class Controller {
   }
 
   public Map<String, Map<String, Object>> retrieveDeletionRecords(final Service bes, final String table, final String projectKey ) {
-    final BatchLoading bl = new BatchLoading(bes);
+	  
+	String realm = securityService.getRealm();
+	
+	String projectCode = "PRJ_"+realm.toUpperCase();
+	BaseEntity projectBE = bes.findBaseEntityByCode(projectCode);
+	Map projectMap = new HashMap<String,Object>();
+	projectMap.put("code",realm);
+	projectMap.put("name",projectBE.getValue("PRI_NAME"));
+	  
+    final BatchLoading bl = new BatchLoading(projectMap,bes);
     final Map<String, Object> saveProjectData = new HashMap(bl.savedProjectData);
     Map<String, Object> sheetMap;
     Map<String, Object> merge = new HashMap<>();
