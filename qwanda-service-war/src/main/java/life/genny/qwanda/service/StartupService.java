@@ -67,6 +67,8 @@ import java.util.Optional;
 import java.io.File;
 import java.util.Map;
 
+import life.genny.security.SecureResources;
+
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
  *
@@ -124,9 +126,9 @@ public class StartupService {
 
 			for (String projectCode : projects.keySet()) {
 				log.info("Project: "+projects.get(projectCode));
-				Map<String,Map> project = projects.get(projectCode);
-				if ("FALSE".equals(project.get("disable"))) {
-					log.info("PROJECT "+project.get("code"));
+				Map<String,Object> project = projects.get(projectCode);
+				if ("FALSE".equals((String)project.get("disable"))) {
+					log.info("PROJECT "+((String)project.get("code")));
 					// save urls to Keycloak maps
 					
 					BatchLoading bl = new BatchLoading(project,service);
@@ -134,16 +136,16 @@ public class StartupService {
 				
 	                String keycloakJson = bl.constructKeycloakJson();
 	                bl.upsertKeycloakJson(keycloakJson);
-	                bl.upsertProjectUrls(project.get("urlList"));
+	                bl.upsertProjectUrls((String)project.get("urlList"));
 				}
 			}
 			
 			// now load all keycloak jsons into the Keycloak Path Map
 			SearchEntity searchProjectsBE = new SearchEntity("SER_PROJECTS", "Projects");
 			try {
-				searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
-				searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
-				searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "PRJ_%");
+				searchProjectsBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+				searchProjectsBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
+				searchProjectsBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "PRJ_%");
 
 			} catch (BadDataException e) {
 				log.error("Bad Data Exception");
@@ -152,9 +154,9 @@ public class StartupService {
 			List<BaseEntity> projectBEs = service.findBySearchBE(searchProjectsBE);
 
 			for (BaseEntity projectBE : projectBEs) {
-				String keycloakJson = projectBE.getValue("ENV_KEYCLOAK_JSON");
-				String realm = projectBE.getCode().subString(4).toLowerCase();
-				String urlList = projectBE.getValue("ENV_URL_LIST");
+				String keycloakJson = projectBE.getValue("ENV_KEYCLOAK_JSON",null);
+				String realm = projectBE.getCode().substring(4).toLowerCase();
+				String urlList = projectBE.getValue("ENV_URL_LIST","http://alyson.genny.life");
 				String[] urls = urlList.split(",");
 				SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
 				for (String url : urls) {
