@@ -21,6 +21,8 @@ import org.keycloak.representations.AccessToken;
 import life.genny.qwanda.CoreEntity;
 import life.genny.qwandautils.QwandaUtils;
 
+import life.genny.qwandautils.GennySettings;
+
 /**
  * Transactional Security Service
  *
@@ -57,6 +59,8 @@ public class SecurityService implements Serializable {
 	Map<String, Object> user = new HashMap<String, Object>();
 
 	static boolean importMode = false;
+	
+	private String defaultRealm = GennySettings.dynamicRealm();
 
 	@PostConstruct
 	public void init() {
@@ -84,13 +88,22 @@ public class SecurityService implements Serializable {
 	}
 
 	public String getRealm() {
-		return CoreEntity.DEFAULT_REALM;
-//		 if (!importMode) {
-//			 return ((KeycloakPrincipal)
-//					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
-//		 } else {
-//			 return CoreEntity.DEFAULT_REALM;
-//		 }
+//		return CoreEntity.DEFAULT_REALM;
+		 if (!importMode) {
+			 return ((KeycloakPrincipal)
+					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+		 } else {
+			 return defaultRealm;
+		 }
+	}
+	
+	public String getRealm(final String realm) {
+		 if (!importMode) {
+			 return ((KeycloakPrincipal)
+					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+		 } else {
+			 return realm;
+		 }
 	}
 
 	public Map<String, Object> getUserMap() {
@@ -130,6 +143,20 @@ public class SecurityService implements Serializable {
 	public String getToken() {
 		return ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getTokenString();
 
+	}
+
+	/**
+	 * @return the defaultRealm
+	 */
+	public String getDefaultRealm() {
+		return defaultRealm;
+	}
+
+	/**
+	 * @param defaultRealm the defaultRealm to set
+	 */
+	public void setDefaultRealm(String defaultRealm) {
+		this.defaultRealm = defaultRealm;
 	}
 
 }

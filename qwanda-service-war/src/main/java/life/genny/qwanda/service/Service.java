@@ -97,6 +97,8 @@ public class Service extends BaseEntityService2 {
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 	
 	String token;
+	
+	String currentRealm = GennySettings.mainrealm; // permit temprorary override
 
 	@PostConstruct
 	public void init() {
@@ -281,7 +283,7 @@ public class Service extends BaseEntityService2 {
 	@Override
 	protected String getRealm() {
 		
-		return securityService.getRealm();
+		return securityService.getRealm(getCurrentRealm());
 	//	return "genny"; // TODO HACK
 	}
 
@@ -416,4 +418,24 @@ public class Service extends BaseEntityService2 {
 
 		return keycloakurl;
 	}
+
+
+
+	/**
+	 * @return the currentRealm
+	 */
+	public String getCurrentRealm() {
+		return currentRealm;
+	}
+
+
+
+	/**
+	 * @param currentRealm the currentRealm to set
+	 */
+	public void setCurrentRealm(String currentRealm) {
+		this.currentRealm = currentRealm;
+	}
+	
+	
 }

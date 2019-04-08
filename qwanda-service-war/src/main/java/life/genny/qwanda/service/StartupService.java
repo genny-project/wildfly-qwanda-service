@@ -31,7 +31,7 @@ import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import javax.inject.Inject;
 import life.genny.utils.VertxUtils;
-import src.main.java.life.genny.qwanda.service.ServiceTokenService;
+import life.genny.qwanda.service.ServiceTokenService;
 import life.genny.qwandautils.GennySettings;
 
 import life.genny.qwanda.message.QDataSubLayoutMessage;
@@ -136,7 +136,8 @@ public class StartupService {
 				if ("FALSE".equals((String)project.get("disable"))) {
 					log.info("PROJECT "+((String)project.get("code")));
 					// save urls to Keycloak maps
-					serviceTokenService.getServiceToken((String)project.get("code"));
+					service.setCurrentRealm(projectCode);   // provide overridden realm
+					serviceTokens.getServiceToken((String)project.get("code"));
 					
 					BatchLoading bl = new BatchLoading(project,service);
 					bl.persistProject(false, null, false);
@@ -178,7 +179,7 @@ public class StartupService {
 			}
 			
 			// Set up ServiceTokenService tokens
-			serviceTokenService.getServiceToken(realm);
+			serviceTokens.getServiceToken(realm);
 		}
 
 		
@@ -186,29 +187,32 @@ public class StartupService {
 		if (GennySettings.loadDdtInStartup) {
 			pushToDTT();
 		}
-		String accessToken = service.getServiceToken(GennySettings.mainrealm);
+		for (BaseEntity projectBE : projectBEs) {
+			String realm = projectBE.getRealm();
+
+		String accessToken = service.getServiceToken(realm);
 		log.info("ACCESS_TOKEN: " + accessToken);
 		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
 
 		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
 		String branch = "master";
 		if (!GennySettings.skipGithubInStartup) {
-
+			
 			log.info("************* Generating V1 Layouts *************");
 			try {
 				List<BaseEntity> v1GennyLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch,
-						GennySettings.mainrealm, "genny/sublayouts", true); // get common layouts
+						realm, "genny/sublayouts", true); // get common layouts
 				saveLayouts(v1GennyLayouts);
 				List<BaseEntity> v1RealmLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch,
-						GennySettings.mainrealm, GennySettings.mainrealm + "/sublayouts", true);
+						realm, realm + "/sublayouts", true);
 				saveLayouts(v1RealmLayouts);
 
 				log.info("************* Generating V2 Layouts *************");
 				List<BaseEntity> v2GennyLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch,
-						GennySettings.mainrealm, "genny", false); // get common layouts
+						realm, "genny", false); // get common layouts
 				saveLayouts(v2GennyLayouts);
 				List<BaseEntity> v2RealmLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl, branch,
-						GennySettings.mainrealm, GennySettings.mainrealm + "-new", true);
+						realm, realm + "-new", true);
 				saveLayouts(v2RealmLayouts);
 			} catch (Exception e) {
 				log.error("Bad Data Exception");
@@ -220,16 +224,16 @@ public class StartupService {
 		log.info("Loading V1 Genny Sublayouts");
 		QDataSubLayoutMessage sublayoutsMsg = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, "genny/sublayouts",
 				"master");
-		log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + GennySettings.mainrealm + " Realm Sublayouts");
+		log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
 
 		VertxUtils.writeCachedJson(GennySettings.mainrealm, "GENNY-V1-LAYOUTS", JsonUtils.toJson(sublayoutsMsg),
 				service.getToken());
 
-		log.info("Loading V1 " + GennySettings.mainrealm + " Realm Sublayouts");
-		sublayoutsMsg = service.fetchSubLayoutsFromDb(GennySettings.mainrealm, GennySettings.mainrealm + "/sublayouts",
+		log.info("Loading V1 " + realm + " Realm Sublayouts");
+		sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, realm + "/sublayouts",
 				"master");
-		log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + GennySettings.mainrealm + " Realm Sublayouts");
-		VertxUtils.writeCachedJson(GennySettings.mainrealm, GennySettings.mainrealm.toUpperCase() + "-V1-LAYOUTS",
+		log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
+		VertxUtils.writeCachedJson(realm, realm.toUpperCase() + "-V1-LAYOUTS",
 				JsonUtils.toJson(sublayoutsMsg), service.getToken());
 
 		SearchEntity searchBE = new SearchEntity("SER_V2_LAYOUTS", "V2 Layout Search");
@@ -245,13 +249,15 @@ public class StartupService {
 
 		List<BaseEntity> v2layouts = service.findBySearchBE(searchBE);
 
-		log.info("Loaded " + v2layouts.size() + " V2 " + GennySettings.mainrealm + "-new Realm Sublayouts");
+		log.info("Loaded " + v2layouts.size() + " V2 " +realm + "-new Realm Sublayouts");
 
 		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
 		msg.setParentCode("GRP_LAYOUTS");
 		msg.setLinkCode("LNK_CORE");
-		VertxUtils.writeCachedJson(GennySettings.mainrealm, "V2-LAYOUTS", JsonUtils.toJson(msg), service.getToken());
+		VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg), service.getToken());
 
+		}
+		
 		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
 
@@ -280,24 +286,6 @@ public class StartupService {
 		service.writeToDDT(results);
 		log.info("Pushed " + results.size() + " Basentitys to Cache");
 
-		// Test cache
-		final String projectCode = "PRJ_" + GennySettings.mainrealm.toUpperCase();
-		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"
-				+ projectCode + "'";
-		log.info("sql code = " + sqlCode);
-		final BaseEntity projectBe = (BaseEntity) em.createQuery(sqlCode).getSingleResult();
-		log.info("DB project = [" + projectBe + "]");
-		//
-		service.writeToDDT(projectBe);
-		final String key = projectBe.getCode();
-		// final String prjJsonString =
-		// VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value");
-		// ;
-		// service.readFromDTT(key);
-		// log.info("json from cache=["+prjJsonString+"]");
-		// BaseEntity cachedProject =
-		// JsonUtils.fromJson(prjJsonString,BaseEntity.class);
-		// log.info("Cached Project = ["+cachedProject+"]");
 
 	}
 
