@@ -31,6 +31,7 @@ import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import javax.inject.Inject;
 import life.genny.utils.VertxUtils;
+import src.main.java.life.genny.qwanda.service.ServiceTokenService;
 import life.genny.qwandautils.GennySettings;
 
 import life.genny.qwanda.message.QDataSubLayoutMessage;
@@ -98,6 +99,9 @@ public class StartupService {
 
 	@Inject
 	private SecurityService securityService;
+	
+	@Inject
+	private ServiceTokenService serviceTokens;
 
 	WildflyCache cacheInterface;
 
@@ -123,6 +127,8 @@ public class StartupService {
 					".genny/sheets.googleapis.com-java-quickstart");
 
 			Map<String,Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
+			
+			
 
 			for (String projectCode : projects.keySet()) {
 				log.info("Project: "+projects.get(projectCode));
@@ -130,6 +136,7 @@ public class StartupService {
 				if ("FALSE".equals((String)project.get("disable"))) {
 					log.info("PROJECT "+((String)project.get("code")));
 					// save urls to Keycloak maps
+					serviceTokenService.getServiceToken((String)project.get("code"));
 					
 					BatchLoading bl = new BatchLoading(project,service);
 					bl.persistProject(false, null, false);
@@ -140,38 +147,41 @@ public class StartupService {
 				}
 			}
 			
-			// now load all keycloak jsons into the Keycloak Path Map
-			SearchEntity searchProjectsBE = new SearchEntity("SER_PROJECTS", "Projects");
-			try {
-				searchProjectsBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
-				searchProjectsBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
-				searchProjectsBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "PRJ_%");
-
-			} catch (BadDataException e) {
-				log.error("Bad Data Exception");
-			}
-
-			List<BaseEntity> projectBEs = service.findBySearchBE(searchProjectsBE);
-
-			for (BaseEntity projectBE : projectBEs) {
-				String keycloakJson = projectBE.getValue("ENV_KEYCLOAK_JSON",null);
-				String realm = projectBE.getCode().substring(4).toLowerCase();
-				String urlList = projectBE.getValue("ENV_URL_LIST","http://alyson.genny.life");
-				String[] urls = urlList.split(",");
-				SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
-				for (String url : urls) {
-					SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
-				}
-			}
-			
-////			 for (List<Map<String, Object>> project : finalProjects) {
-//				 bl.persistProject(project,false, null, false);
-//			 }
+		
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
 
+		// now load all keycloak jsons into the Keycloak Path Map
+		SearchEntity searchProjectsBE = new SearchEntity("SER_PROJECTS", "Projects");
+		try {
+			searchProjectsBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+			searchProjectsBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
+			searchProjectsBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "PRJ_%");
+
+		} catch (BadDataException e) {
+			log.error("Bad Data Exception");
+		}
+
+		// Set up Keycloak Json Maps
+		List<BaseEntity> projectBEs = service.findBySearchBE(searchProjectsBE);
+
+		for (BaseEntity projectBE : projectBEs) {
+			String keycloakJson = projectBE.getValue("ENV_KEYCLOAK_JSON",null);
+			String realm = projectBE.getCode().substring(4).toLowerCase();
+			String urlList = projectBE.getValue("ENV_URL_LIST","http://alyson.genny.life");
+			String[] urls = urlList.split(",");
+			SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
+			for (String url : urls) {
+				SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
+			}
+			
+			// Set up ServiceTokenService tokens
+			serviceTokenService.getServiceToken(realm);
+		}
+
+		
 		// Push BEs to cache
 		if (GennySettings.loadDdtInStartup) {
 			pushToDTT();

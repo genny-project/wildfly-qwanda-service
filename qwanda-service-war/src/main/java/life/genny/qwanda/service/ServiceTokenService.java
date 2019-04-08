@@ -86,7 +86,7 @@ public class ServiceTokenService {
 
 	@PostConstruct
 	public void init() {
-		log.info("Initialising Service Token " + GennySettings.mainrealm);
+		log.info("Initialising Service Tokens " + GennySettings.mainrealm);
 	
 		String mainRealmToken = generateServiceToken(GennySettings.mainrealm);
 		
