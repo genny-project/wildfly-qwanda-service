@@ -131,6 +131,10 @@ public class StartupService {
 					
 					BatchLoading bl = new BatchLoading(project,service);
 					bl.persistProject(false, null, false);
+				
+	                String keycloakJson = bl.constructKeycloakJson();
+	                bl.upsertKeycloakJson(keycloakJson);
+	                bl.upsertProjectUrls(project.get("urlList"));
 				}
 			}
 			
