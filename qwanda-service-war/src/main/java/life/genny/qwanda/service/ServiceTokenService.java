@@ -79,6 +79,8 @@ public class ServiceTokenService {
 	private HashMap<String,String> serviceTokens = new HashMap<String,String>();
 	private HashMap<String,String> refreshServiceTokens = new HashMap<String,String>();
 	
+	private Map<Map> projects = new ConcurrentHashMap<String,Map>();
+	
 
 	@Inject
 	private SecureResources secureResources;
@@ -165,9 +167,11 @@ public class ServiceTokenService {
 		String secret = secretJson.getString("secret");
 		String jsonRealm = realmJson.getString("realm");
 		
-		String key = GennySettings.dynamicKey(jsonRealm);
+		Map project = getProjects().get(jsonRealm);
+		
+		String key = (String)project.get("ENV_SECURITY_KEY"); //GennySettings.dynamicKey(jsonRealm);
 		String initVector = GennySettings.dynamicInitVector(jsonRealm);
-		String encryptedPassword = GennySettings.dynamicEncryptedPassword(jsonRealm);
+		String encryptedPassword = (String)project.get("ENV_SERVICE_PASSWORD"); //GennySettings.dynamicEncryptedPassword(jsonRealm);
 		String password= null;
 		
 		
@@ -216,5 +220,10 @@ public class ServiceTokenService {
 		}
 
 		return null;
+	}
+	
+	public Map<Map> getProjects()
+	{
+		return projects;
 	}
 }

@@ -109,7 +109,7 @@ public class StartupService {
 	private EntityManager em;
 
 	@PostConstruct
-//	@Transactional
+	@Transactional
 	public void init() {
 
 		cacheInterface = new WildflyCache(inDb);
@@ -134,15 +134,36 @@ public class StartupService {
 				log.info("Project: "+projects.get(projectCode));
 				Map<String,Object> project = projects.get(projectCode);
 				if ("FALSE".equals((String)project.get("disable"))) {
-					log.info("PROJECT "+((String)project.get("code")));
+					String realm = ((String)project.get("code"));
+					log.info("PROJECT "+realm);
+					BatchLoading bl = new BatchLoading(project,service);
+					
+
+					// Set up temp keycloak.json Maps
+	                String keycloakJson = bl.constructKeycloakJson(project);
+	                String urlList = ((String)project.get("urlList"));
+	    			String[] urls = urlList.split(",");
+	    			SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
+	    			SecureResources.getKeycloakJsonMap().put(realm+".json",keycloakJson);
+	    			// redundant
+	    			SecureResources.getKeycloakJsonMap().put("genny",keycloakJson);
+	    			SecureResources.getKeycloakJsonMap().put("genny.json",keycloakJson);
+	    			for (String url : urls) {
+	    			 mo	SecureResources.getKeycloakJsonMap().put(url+".json",keycloakJson);
+	    				SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
+	    				if ("http://alyson.genny.life".equalsIgnoreCase(url)) {
+	    					SecureResources.getKeycloakJsonMap().put("localhost.json",keycloakJson);
+	    					SecureResources.getKeycloakJsonMap().put("localhost",keycloakJson);
+	    				}
+	    			}
+
+					
 					// save urls to Keycloak maps
 					service.setCurrentRealm(projectCode);   // provide overridden realm
 					serviceTokens.getServiceToken((String)project.get("code"));
 					
-					BatchLoading bl = new BatchLoading(project,service);
 					bl.persistProject(false, null, false);
 				
-	                String keycloakJson = bl.constructKeycloakJson();
 	                bl.upsertKeycloakJson(keycloakJson);
 	                bl.upsertProjectUrls((String)project.get("urlList"));
 				}
@@ -175,7 +196,16 @@ public class StartupService {
 			String[] urls = urlList.split(",");
 			SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
 			for (String url : urls) {
+				SecureResources.getKeycloakJsonMap().put(url+".json",keycloakJson);
 				SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
+    			// redundant
+    			SecureResources.getKeycloakJsonMap().put("genny",keycloakJson);
+    			SecureResources.getKeycloakJsonMap().put("genny.json",keycloakJson);
+				if ("http://alyson.genny.life".equalsIgnoreCase(url)) {
+					SecureResources.getKeycloakJsonMap().put("localhost.json",keycloakJson);
+					SecureResources.getKeycloakJsonMap().put("localhost",keycloakJson);
+				}
+
 			}
 			
 			// Set up ServiceTokenService tokens
