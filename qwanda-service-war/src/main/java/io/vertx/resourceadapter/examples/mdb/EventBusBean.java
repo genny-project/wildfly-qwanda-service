@@ -51,10 +51,10 @@ public class EventBusBean implements EventBusInterface {
 		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
 		              .lookup("java:/eis/VertxConnectionFactory");
 		      conn = connFactory.getVertxConnection();
-		      log.info("Publishing Vertx Bus Message on channel "+channel+":");
+		    //  log.info("Publishing Vertx Bus Message on channel "+channel+":");
 
 		      conn.vertxEventBus().publish(channel, event);
-		      log.info("Published Vertx Bus Message on channel "+channel);
+		    //  log.info("Published Vertx Bus Message on channel "+channel);
 		    } catch (Exception e) {
 		      e.printStackTrace();
 		    } finally {
@@ -96,11 +96,11 @@ public class EventBusBean implements EventBusInterface {
 		      io.vertx.resourceadapter.VertxConnectionFactory connFactory =
 		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
 		              .lookup("java:/eis/VertxConnectionFactory");
-		      log.info("Sending Vertx Bus Message on channel "+channel+":");
+		     // log.info("Sending Vertx Bus Message on channel "+channel+":");
 		      conn = connFactory.getVertxConnection();
 
 		      conn.vertxEventBus().send(channel, event);
-		      log.info("Sent Vertx Bus Message on channel "+channel);
+		     // log.info("Sent Vertx Bus Message on channel "+channel);
 		    } catch (Exception e) {
 		      e.printStackTrace();
 		    } finally {
