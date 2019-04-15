@@ -18,7 +18,9 @@ import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
 
-import life.genny.security.SecureResources;
+import io.vertx.core.json.JsonObject;
+import life.genny.qwandautils.GennySettings;
+import life.genny.utils.VertxUtils;
 
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 	/**
@@ -33,12 +35,10 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 	@Override
 	public KeycloakDeployment resolve(final OIDCHttpFacade.Request request) {
 		URL aURL = null;
-		String realm = "genny";
+		String realm = GennySettings.mainrealm;
 		String username = null;
-		String key = "genny.json";
 
 		if (request != null) {
-			try {
 				// Now check for a token
 
 				if (request.getHeader("Authorization") != null) {
@@ -62,7 +62,6 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					try {
 						username = (String) jsonObj.get("preferred_username");
 						realm = (String) jsonObj.get("aud");
-						key = realm + ".json";
 					} catch (final JSONException e1) {
 						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
 					} catch (final NullPointerException e2) {
@@ -70,23 +69,15 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					}
 
 				} else {
-
-					aURL = new URL(request.getURI());
-					final String url = aURL.getHost();
-					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
-					if (keycloakJsonText==null) {
-						log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
+					JsonObject keycloakJson = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
+					if (keycloakJson==null || "error".equals(keycloakJson.getString("status"))) {
+						log.error("KEYCLOAK JSON NOT FOUND");
+						return null;
 					} else {
 					// extract realm
-					final JSONObject json = new JSONObject(keycloakJsonText);
-					realm = json.getString("realm");
-					key = realm + ".json";
+					realm = (new JsonObject(keycloakJson.getString("value")).getString("realm"));
 					}
 				}
-
-			} catch (final Exception e) {
-				log.error("Error in accessing request.getURI , spi issue?");
-			}
 		}
 
 		// don't bother showing Docker health checks
@@ -99,20 +90,32 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			}
 		}
 
-		KeycloakDeployment deployment = cache.get(realm);
+		KeycloakDeployment deployment = null;
+		if(cache != null) {
+			deployment = cache.get(realm);
+		}
 
 		if (null == deployment) {
 			InputStream is;
 			try {
-				is = new ByteArrayInputStream(
-						SecureResources.getKeycloakJsonMap().get(key).getBytes(StandardCharsets.UTF_8.name()));
-				deployment = KeycloakDeploymentBuilder.build(is);
-				cache.put(realm, deployment);
+				JsonObject json = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
+				if (json==null || "error".equals(json.getString("status"))) {
+					log.error("KEYCLOAK JSON NOT FOUND");
+					return null;
+				} else {
+					JsonObject keycloakJson = new JsonObject(json.getString("value"));
+					is = new ByteArrayInputStream(
+							keycloakJson.toString().getBytes(StandardCharsets.UTF_8.name()));
+					deployment = KeycloakDeploymentBuilder.build(is);
+					cache.put(realm, deployment);
+				}
 				
 			} catch (final java.lang.RuntimeException ce) {
 				log.debug("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
 				+ ":" + request.getRemoteAddr()+" ->"+ce.getMessage());
 			} catch (final UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 

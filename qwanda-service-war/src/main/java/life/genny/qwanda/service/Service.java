@@ -34,8 +34,8 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
-import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.services.BatchLoading;
 import life.genny.utils.VertxUtils;
 
 import java.io.IOException;
@@ -79,8 +79,6 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecurityService securityService;
 
-	@Inject
-	private SecureResources secureResources;
 	
 //	@Inject
 //	private WildFlyJmsQueueSender jms;
@@ -253,8 +251,7 @@ public class Service extends BaseEntityService2 {
 		return user;
 	}
 
-	@Override
-	@Transactional
+	/*@Transactional
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
 			String realm = securityService.getRealm();
@@ -263,7 +260,7 @@ public class Service extends BaseEntityService2 {
 		}
 
 		return null; // TODO throw Exception
-	}
+	}*/
 
 	@Override
 	@Transactional
@@ -278,10 +275,9 @@ public class Service extends BaseEntityService2 {
 		return null;
 	}
 
-	@Override
 	protected String getRealm() {
 		
-		return securityService.getRealm();
+		return GennySettings.mainrealm;
 	//	return "genny"; // TODO HACK
 	}
 
@@ -387,33 +383,5 @@ public class Service extends BaseEntityService2 {
 	
 	public  String getServiceToken(String realm) {
 		return serviceTokens.getServiceToken(realm);
-	}
-	
-
-
-
-	
-	public String getKeycloakUrl(String realm)
-	{
-		String keycloakurl = null;
-		
-		if (GennySettings.devMode) {  // UGLY!!!
-			realm = "genny";
-		} 
-		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
-			SecureResources.reload();
-		} 
-		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
-		if (keycloakJson!=null) {
-		JsonObject realmJson = new JsonObject(keycloakJson);
-		JsonObject secretJson = realmJson.getJsonObject("credentials");
-		String secret = secretJson.getString("secret");
-		log.info("secret:"+secret);
-
-		keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - "/auth".length());
-		}
-
-		return keycloakurl;
 	}
 }

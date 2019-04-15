@@ -107,28 +107,35 @@ public class StartupService {
 		VertxUtils.init(eventBus, cacheInterface);
 
 		securityService.setImportMode(true); // ugly way of getting past security
-
+		BatchLoading bl = new BatchLoading(service);
 		// em = emf.createEntityManager();
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP") == null)
 				|| (!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
 			log.info("Starting Transaction for loading");
-			BatchLoading bl = new BatchLoading(service);
 			bl.persistProject(false, null, false);
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
+		
+		String accessToken = service.getServiceToken(GennySettings.mainrealm);
+		log.info("ACCESS_TOKEN: " + accessToken);
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+		
+		log.info("Pushing Keycloak Json to Cache");
+		String keycloakJson = bl.constructKeycloakJson();
+		service.writeToDDT(GennySettings.KEYCLOAK_JSON, keycloakJson);
+		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
+			bl.upsertKeycloakJson(keycloakJson);
+		}
+		log.info("Pushed Keycloak Json to Cache");	
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
 			pushToDTT();
 		}
-
-		String accessToken = service.getServiceToken(GennySettings.mainrealm);
-		log.info("ACCESS_TOKEN: " + accessToken);
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
-
-		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+		
+		log.info("skipGithubInStartup is "+(GennySettings.skipGithubInStartup?"TRUE":"FALSE"));
 		String branch = "master";
 		if (!GennySettings.skipGithubInStartup) {
 
@@ -175,7 +182,6 @@ public class StartupService {
 			searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
 			searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
 			searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "LAY_%");
-			// searchBE.addFilter("PRI_BRANCH",SearchEntity.StringFilter.LIKE, branch);
 
 		} catch (BadDataException e) {
 			log.error("Bad Data Exception");
@@ -210,32 +216,21 @@ public class StartupService {
 		List<BaseEntity> results = em
 				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
 
-//		List<BaseEntity> results = em
-//				.createQuery("SELECT be FROM BaseEntity be  JOIN  be.baseEntityAttributes ea ").getResultList();
-
 		// Collect all the baseentitys
 		log.info("Pushing " + results.size() + " Basentitys to Cache");
 		service.writeToDDT(results);
-		log.info("Pushed " + results.size() + " Basentitys to Cache");
-
+		log.info("Pushed "+results.size()+" Basentitys to Cache");		
+		
+		
 		// Test cache
-		final String projectCode = "PRJ_" + GennySettings.mainrealm.toUpperCase();
-		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"
-				+ projectCode + "'";
-		log.info("sql code = " + sqlCode);
-		final BaseEntity projectBe = (BaseEntity) em.createQuery(sqlCode).getSingleResult();
-		log.info("DB project = [" + projectBe + "]");
-		//
+		final String projectCode = "PRJ_"+GennySettings.mainrealm.toUpperCase();
+		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"' and be.realm='"+GennySettings.mainrealm+"'";
+		log.info("sql code = "+sqlCode);
+		final BaseEntity projectBe = (BaseEntity)em
+				.createQuery(sqlCode).getSingleResult();
+		log.info("DB project = ["+projectBe+"]");
 		service.writeToDDT(projectBe);
 		final String key = projectBe.getCode();
-		// final String prjJsonString =
-		// VertxUtils.readCachedJson(projectBe.getRealm(),key,service.getToken()).getString("value");
-		// ;
-		// service.readFromDTT(key);
-		// log.info("json from cache=["+prjJsonString+"]");
-		// BaseEntity cachedProject =
-		// JsonUtils.fromJson(prjJsonString,BaseEntity.class);
-		// log.info("Cached Project = ["+cachedProject+"]");
 
 	}
 

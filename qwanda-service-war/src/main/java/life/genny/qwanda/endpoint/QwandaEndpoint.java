@@ -71,7 +71,6 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
-import life.genny.security.SecureResources;
 
 /**
  * JAX-RS endpoint
@@ -1493,10 +1492,10 @@ public class QwandaEndpoint {
         } catch (Exception e) {
           e.printStackTrace();
         }
-        return Response.status(200).build();
+        return Response.status(200).entity("Success").build();
 	  } else {
 		  Log.info("User does not have required access rights");
-		  return Response.status(503).build();
+		  return Response.status(401).entity("Unauthorized").build();
 	  }
         
     }
@@ -1639,7 +1638,6 @@ public class QwandaEndpoint {
 		String json = JsonUtils.toJson(array);
 		return Response.status(200).entity(json).build();
 	}
-
 
 	@GET
 	@Path("/templates/{templateCode}")
