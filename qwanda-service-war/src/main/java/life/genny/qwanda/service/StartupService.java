@@ -107,35 +107,28 @@ public class StartupService {
 		VertxUtils.init(eventBus, cacheInterface);
 
 		securityService.setImportMode(true); // ugly way of getting past security
-		BatchLoading bl = new BatchLoading(service);
+
 		// em = emf.createEntityManager();
 		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP") == null)
 				|| (!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
 			log.info("Starting Transaction for loading");
+			BatchLoading bl = new BatchLoading(service);
 			bl.persistProject(false, null, false);
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
-		
-		String accessToken = service.getServiceToken(GennySettings.mainrealm);
-		log.info("ACCESS_TOKEN: " + accessToken);
-		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
-		
-		log.info("Pushing Keycloak Json to Cache");
-		String keycloakJson = bl.constructKeycloakJson();
-		service.writeToDDT(GennySettings.KEYCLOAK_JSON, keycloakJson);
-		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP")==null)||(!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
-			bl.upsertKeycloakJson(keycloakJson);
-		}
-		log.info("Pushed Keycloak Json to Cache");	
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
 			pushToDTT();
 		}
-		
-		log.info("skipGithubInStartup is "+(GennySettings.skipGithubInStartup?"TRUE":"FALSE"));
+
+		String accessToken = service.getServiceToken(GennySettings.mainrealm);
+		log.info("ACCESS_TOKEN: " + accessToken);
+		service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+
+		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
 		String branch = "master";
 		if (!GennySettings.skipGithubInStartup) {
 
@@ -223,12 +216,13 @@ public class StartupService {
 		
 		
 		// Test cache
-		final String projectCode = "PRJ_"+GennySettings.mainrealm.toUpperCase();
-		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"+projectCode+"' and be.realm='"+GennySettings.mainrealm+"'";
-		log.info("sql code = "+sqlCode);
-		final BaseEntity projectBe = (BaseEntity)em
-				.createQuery(sqlCode).getSingleResult();
-		log.info("DB project = ["+projectBe+"]");
+		final String projectCode = "PRJ_" + GennySettings.mainrealm.toUpperCase();
+		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"
+				+ projectCode + "'";
+		log.info("sql code = " + sqlCode);
+		final BaseEntity projectBe = (BaseEntity) em.createQuery(sqlCode).getSingleResult();
+		log.info("DB project = [" + projectBe + "]");
+		//
 		service.writeToDDT(projectBe);
 		final String key = projectBe.getCode();
 

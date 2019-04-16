@@ -14,7 +14,6 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 import org.apache.logging.log4j.Logger;
-import org.glassfish.json.JsonUtil;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Link;
@@ -35,8 +34,8 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
+import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
-import life.genny.services.BatchLoading;
 import life.genny.utils.VertxUtils;
 
 import javax.annotation.PostConstruct;
@@ -81,9 +80,8 @@ public class ServiceTokenService {
 	private HashMap<String,String> refreshServiceTokens = new HashMap<String,String>();
 	
 
-	
 	@Inject
-	private Service service;
+	private SecureResources secureResources;
 
 
 	@PostConstruct
@@ -99,15 +97,13 @@ public class ServiceTokenService {
 	public  String getServiceToken(String realm) {
 		/* we get the service token currently stored in the cache */
 		
-		realm = GennySettings.mainrealm;
-		
-		/*if (GennySettings.devMode) {
+		if (GennySettings.devMode) {
 			realm = "genny";
 		} else {
 			if ("genny".equals(realm)) {
 				realm = GennySettings.mainrealm;
 			}
-		}*/
+		}
 		
 		String serviceToken = serviceTokens.get(realm);
 
@@ -141,32 +137,33 @@ public class ServiceTokenService {
 		return generateServiceToken(realm);
 	}
 	
-	public String generateServiceToken(String realm) {
+	public  String generateServiceToken(String realm) {
 
 		log.info("Generating Service Token for "+realm);
 		
 		realm = GennySettings.dynamicRealm(realm);
 
-		JsonObject keycloakJson = VertxUtils.readCachedJson(GennySettings.mainrealm, GennySettings.KEYCLOAK_JSON);
-		log.info("Keycloak JSON in generateServiceToken : " + keycloakJson);
-		JsonObject secretJson;
-		if (keycloakJson == null || "error".equals(keycloakJson.getString("status"))) {
-			log.error("KEYCLOAK JSON NOT FOUND FOR " + realm);
-			BatchLoading bl = new BatchLoading(service);
-			String keycloakJsonText = bl.constructKeycloakJson();
-			log.info("Keycloak JSON after construction: " + keycloakJsonText);
-			keycloakJson = new JsonObject(keycloakJsonText);
-			secretJson = keycloakJson.getJsonObject("credentials");
-			
-		} else {
-			JsonObject keycloakValueJson = new JsonObject(keycloakJson.getString("value"));
-			secretJson = keycloakValueJson.getJsonObject("credentials");
-			keycloakJson = keycloakValueJson;
+		String jsonFile = realm + ".json";
+
+		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
+			secureResources.init(null);
 		}
-		
-		log.info("Secret JSON: " + secretJson);
+		String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
+		if (keycloakJson == null) {
+			log.info("No keycloakMap for " + realm+" ... fixing");
+			String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
+			if (GennySettings.devMode) {
+				SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
+				keycloakJson = gennyKeycloakJson;
+			} else {
+				log.info("Error - No keycloak Json file available for realm - "+realm);
+				return null;
+			}
+		}
+		JsonObject realmJson = new JsonObject(keycloakJson);
+		JsonObject secretJson = realmJson.getJsonObject("credentials");
 		String secret = secretJson.getString("secret");
-		String jsonRealm = keycloakJson.getString("realm");
+		String jsonRealm = realmJson.getString("realm");
 		
 		String key = GennySettings.dynamicKey(jsonRealm);
 		String initVector = GennySettings.dynamicInitVector(jsonRealm);
@@ -176,15 +173,15 @@ public class ServiceTokenService {
 		
 		log.info("key:"+key+":"+initVector+":"+encryptedPassword);
 		password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
-		if (GennySettings.devMode || GennySettings.miniKubeMode || (GennySettings.defaultLocalIP.equals(GennySettings.hostIP))) {
+		if (GennySettings.devMode) {
 			password = GennySettings.defaultServicePassword;
 		}
 
 		log.info("password="+password);
 
 		// Now ask the bridge for the keycloak to use
-		String keycloakurl = keycloakJson.getString("auth-server-url").substring(0,
-				keycloakJson.getString("auth-server-url").length() - "/auth".length());
+		String keycloakurl = realmJson.getString("auth-server-url").substring(0,
+				realmJson.getString("auth-server-url").length() - "/auth".length());
 
 		log.info(keycloakurl);
 
