@@ -19,7 +19,6 @@ import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.representations.AccessToken;
 
 import life.genny.qwanda.CoreEntity;
-import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.QwandaUtils;
 
 /**
@@ -85,7 +84,7 @@ public class SecurityService implements Serializable {
 	}
 
 	public String getRealm() {
-		return GennySettings.mainrealm;
+		return CoreEntity.DEFAULT_REALM;
 //		 if (!importMode) {
 //			 return ((KeycloakPrincipal)
 //					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();

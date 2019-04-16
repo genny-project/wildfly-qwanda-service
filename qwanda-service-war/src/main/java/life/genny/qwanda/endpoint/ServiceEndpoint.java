@@ -99,9 +99,9 @@ import life.genny.qwandautils.GitUtils;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
-import life.genny.services.BatchLoading;
 
 import life.genny.qwanda.controller.Controller;
+import life.genny.security.SecureResources;
 
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -330,8 +330,8 @@ public class ServiceEndpoint {
 				service.insert(answerArray);
 				result = (BaseEntity) em
 						.createQuery(
-								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code and be.realm=:realm")
-						        .setParameter("realm", BatchLoading.REALM).setParameter("code", targetCode).getSingleResult();
+								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+						.setParameter("code", targetCode).getSingleResult();
 			}
 
 		}
@@ -348,8 +348,8 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
 			result = (BaseEntity) em
-					.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code and be.realm=:realm")
-					.setParameter("realm", BatchLoading.REALM).setParameter("code", code).getSingleResult();
+					.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+					.setParameter("code", code).getSingleResult();
 			service.writeToDDT(result);
 		}
 		return Response.status(200).entity(result).build();
@@ -558,6 +558,9 @@ public class ServiceEndpoint {
 
 									String serviceToken = service.getServiceToken(securityService.getRealm());
 
+									// Now check if it exists in keycloak
+									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
+
 									try {
 										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
 												securityService.getRealm(), newUsername, newFirstname, newLastname,
@@ -588,15 +591,15 @@ public class ServiceEndpoint {
 		return Response.status(200).entity(ret).build();
 	}
 
-	/*@GET
+	@GET
 	@Path("/realms/sync")
 	@ApiOperation(value = "syncrealms", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response syncrealms() {
 		log.debug("Sync Keycloak Realms");
-		InitResources.reload();
-		return Response.status(200).build();
+		String keycloakRealms = SecureResources.reload();
+		return Response.status(200).entity(keycloakRealms).build();
 	}
 
 	@GET
@@ -606,7 +609,7 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response fetchrealms() {
 		log.debug("Fetch Keycloak Realms");
-		String keycloakRealms = InitResources.fetchRealms();
+		String keycloakRealms = SecureResources.fetchRealms();
 		return Response.status(200).entity(keycloakRealms).build();
 	}
 
@@ -621,7 +624,7 @@ public class ServiceEndpoint {
 		String key = json.getString("clientId");
 		key = key + ".json";
 
-		InitResources.addRealm(key, entity);
+		SecureResources.addRealm(key, entity);
 
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
 	}
@@ -635,9 +638,9 @@ public class ServiceEndpoint {
 
 		log.info("Removing Realm " + key);
 
-		InitResources.removeRealm(key);
+		SecureResources.removeRealm(key);
 		return Response.created(UriBuilder.fromResource(QwandaEndpoint.class).build()).build();
-	}*/
+	}
 
 	// cheap way of getting clean transaction
 	@GET

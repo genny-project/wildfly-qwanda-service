@@ -1,20 +1,37 @@
 package io.vertx.resourceadapter.examples.mdb;
 
-import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import javax.inject.Inject;
+import java.lang.invoke.MethodHandles;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
-import javax.inject.Inject;
-
+import javax.naming.NamingException;
+import javax.resource.ResourceException;
 import org.apache.logging.log4j.Logger;
 
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.resourceadapter.inflow.VertxListener;
+import io.vertx.rxjava.core.Vertx;
 
+import life.genny.qwanda.entity.User;
+import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
+import life.genny.qwanda.message.QEventBtnClickMessage;
+import life.genny.qwanda.message.QEventLinkChangeMessage;
+import life.genny.qwanda.message.QEventMessage;
+
+import life.genny.qwandautils.GennySettings;
+import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.KeycloakUtils;
+
+
+import life.genny.eventbus.EventBusInterface;
 
 
 
@@ -37,6 +54,7 @@ EventBusBean eventBus;
   
 	static Map<String, Object> decodedToken = null;
 	static Set<String> userRoles = null;
+	private static Map<String, User> usersSession = new HashMap<String, User>();
 
 	
 
