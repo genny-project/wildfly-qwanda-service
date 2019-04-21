@@ -14,6 +14,7 @@ import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 
 import life.genny.qwandautils.GennySettings;
 
@@ -82,7 +83,10 @@ public class SecureResources {
 					String keycloakJsonText = getFileAsText(listOfFiles[i]);
 					// Handle case where dev is in place with localhost
 
-					// if (!"localhost.json".equalsIgnoreCase(listOfFiles[i].getName())) {
+					if ("localhost.json".equalsIgnoreCase(listOfFiles[i].getName())) {
+						keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
+						keycloakJsonMap.put(GennySettings.mainrealm+".json", keycloakJsonText);
+					}
 					keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
 
 					// }
@@ -90,7 +94,9 @@ public class SecureResources {
 					log.info("keycloak key:" + key + "," + keycloakJsonText);
 
 					keycloakJsonMap.put(key, keycloakJsonText);
-					keycloakJsonMap.put(key+".json", keycloakJsonText);
+					if (!StringUtils.endsWith(key,".json")) {
+						keycloakJsonMap.put(key+".json", keycloakJsonText);
+					}
 					ret += keycloakJsonText + "\n";
 				} catch (final IOException e) {
 					// TODO Auto-generated catch block

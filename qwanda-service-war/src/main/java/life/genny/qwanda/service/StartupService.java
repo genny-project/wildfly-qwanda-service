@@ -24,6 +24,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.services.BatchLoading;
+import life.genny.services.ProjectsLoading;
 
 import life.genny.eventbus.EventBusInterface;
 import io.vertx.resourceadapter.examples.mdb.EventBusBean;
@@ -45,6 +46,7 @@ import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.controller.Controller;
+import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
@@ -62,9 +64,22 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.util.Optional;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import java.io.File;
+import java.util.Map;
+
+import life.genny.security.SecureResources;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.criterion.Restrictions;
 
 /**
- * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
+ * This Service bean Starts up the main API service. Loading in the database/google bootstrap/github layouts
  *
  * @author Adam Crow
  */
@@ -72,7 +87,7 @@ import java.util.Optional;
 @Startup
 @Transactional
 
-@TransactionTimeout(value = 3000, unit = TimeUnit.SECONDS)
+@TransactionTimeout(value = 8000, unit = TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
@@ -92,6 +107,9 @@ public class StartupService {
 
 	@Inject
 	private SecurityService securityService;
+	
+	@Inject
+	private ServiceTokenService serviceTokens;
 
 	WildflyCache cacheInterface;
 
@@ -99,7 +117,7 @@ public class StartupService {
 	private EntityManager em;
 
 	@PostConstruct
-//	@Transactional
+	@Transactional
 	public void init() {
 
 		cacheInterface = new WildflyCache(inDb);
@@ -108,13 +126,62 @@ public class StartupService {
 
 		securityService.setImportMode(true); // ugly way of getting past security
 
-		// em = emf.createEntityManager();
-		if ((System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP") == null)
-				|| (!System.getenv("SKIP_GOOGLE_DOC_IN_STARTUP").equalsIgnoreCase("TRUE"))) {
+		String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+		String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+		File credentialPath = new File(System.getProperty("user.home"),
+				".genny/sheets.googleapis.com-java-quickstart");
+
+		Map<String,Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
+		
+		serviceTokens.init(projects);
+		
+		// Save projects
+		saveProjectBes(projects, service);
+		pushProjectsUrlsToDTT();
+
+		if (!GennySettings.skipGoogleDocInStartup) {
 			log.info("Starting Transaction for loading");
-			BatchLoading bl = new BatchLoading(service);
-			bl.persistProject(false, null, false);
-			log.info("*********************** Finished Google Doc Import ***********************************");
+			
+			
+			for (String projectCode : projects.keySet()) {
+				log.info("Project: "+projects.get(projectCode));
+				Map<String,Object> project = projects.get(projectCode);
+				if ("FALSE".equals((String)project.get("disable"))) {
+					String realm = ((String)project.get("code"));
+					service.setCurrentRealm(realm);
+					log.info("PROJECT "+realm);
+					BatchLoading bl = new BatchLoading(project,service);
+					
+
+					// Set up temp keycloak.json Maps
+	                String keycloakJson = bl.constructKeycloakJson(project);
+	                String urlList = ((String)project.get("urlList"));
+	    			String[] urls = urlList.split(",");
+	    			SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
+	    			SecureResources.getKeycloakJsonMap().put(realm+".json",keycloakJson);
+	    			// redundant
+	    			SecureResources.getKeycloakJsonMap().put("genny",keycloakJson);
+	    			SecureResources.getKeycloakJsonMap().put("genny.json",keycloakJson);
+	    			for (String url : urls) {
+	    			 	SecureResources.getKeycloakJsonMap().put(url+".json",keycloakJson);
+	    				SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
+	    				if ("http://alyson.genny.life".equalsIgnoreCase(url)) {
+	    					SecureResources.getKeycloakJsonMap().put("localhost.json",keycloakJson);
+	    					SecureResources.getKeycloakJsonMap().put("localhost",keycloakJson);
+	    				}
+	    			}
+
+					
+					// save urls to Keycloak maps
+					service.setCurrentRealm(projectCode);   // provide overridden realm
+					
+					bl.persistProject(false, null, false);
+				
+	                bl.upsertKeycloakJson(keycloakJson);
+	                bl.upsertProjectUrls((String)project.get("urlList"));
+				}
+			}
+						log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
 		}
@@ -123,6 +190,8 @@ public class StartupService {
 		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
 			pushToDTT();
 		}
+		
+		pushProjectsUrlsToDTT();
 
 		String accessToken = service.getServiceToken(GennySettings.mainrealm);
 		log.info("ACCESS_TOKEN: " + accessToken);
@@ -309,5 +378,136 @@ public class StartupService {
 			}
 
 		}
+	}
+	
+	@Transactional
+	private void saveProjectBes(Map<String,Map> projects, Service service) {
+		log.info("Updating Project BaseEntitys ");
+		
+		for (String realmCode : projects.keySet()) {
+			service.setCurrentRealm(realmCode);
+			Map<String,Object> project = projects.get(realmCode);
+			log.info("Project: "+projects.get(realmCode));
+
+			if ("FALSE".equals((String)project.get("disable"))) {
+				String realm = realmCode;
+				String keycloakUrl = (String)project.get("keycloakUrl");
+				String name = (String)project.get("name");
+				String sheetID = (String)project.get("sheetID");
+				String urlList = (String)project.get("urlList");
+				String code = (String)project.get("code");
+				String disable = (String)project.get("disable");
+				String secret = (String)project.get("clientSecret");
+				String key = (String)project.get("ENV_SECURITY_KEY");
+				String encryptedPassword = (String)project.get("ENV_SERVICE_PASSWORD");
+				String realmToken = serviceTokens.getServiceToken(realm);
+		
+				String projectCode = "PRJ_"+realm.toUpperCase();
+				BaseEntity projectBe = null;
+				try {
+				projectBe = service.findBaseEntityByCode(projectCode);
+				} catch (NoResultException e) {
+					projectBe = null;
+				}
+				if (projectBe == null) {
+					projectBe = new BaseEntity(projectCode,name);
+					service.insert(projectBe);
+				}
+				
+				
+				
+				projectBe = createAnswer(projectBe,"PRI_NAME",name,false);
+				projectBe = createAnswer(projectBe,"PRI_CODE",projectCode,false);
+				projectBe = createAnswer(projectBe,"ENV_SECURITY_KEY",key,true);
+				projectBe = createAnswer(projectBe,"ENV_SERVICE_PASSWORD",encryptedPassword,true);
+				projectBe = createAnswer(projectBe,"ENV_SERVICE_TOKEN",realmToken,true);
+				projectBe = createAnswer(projectBe,"ENV_SECRET",secret,true);
+				projectBe = createAnswer(projectBe,"ENV_SHEET_ID",sheetID,true);
+				projectBe = createAnswer(projectBe,"ENV_URL_LIST",urlList,true);
+				projectBe = createAnswer(projectBe,"ENV_DISABLE",disable,true);
+				projectBe = createAnswer(projectBe,"ENV_REALM",realm,true);
+				projectBe = createAnswer(projectBe,"ENV_KEYCLOAK_URL",keycloakUrl,true);
+				
+				BatchLoading bl = new BatchLoading(project,service);
+                String keycloakJson = bl.constructKeycloakJson(project);
+                projectBe = createAnswer(projectBe,"ENV_KEYCLOAK_JSON",keycloakJson,true);
+				
+				service.upsert(projectBe);
+			}
+		}
+		
+	}
+	
+	private BaseEntity createAnswer(BaseEntity be, final String attributeCode, final String answerValue, final Boolean privacy)
+	{
+		try {
+		Answer answer = null;
+		Attribute attribute = null;
+		try {
+		attribute = service.findAttributeByCode(attributeCode);
+		} catch (Exception ee) {
+			// Could not find Attribute, create it
+			attribute = new Attribute(attributeCode, attributeCode, new DataType("DTT_TEXT"));
+			service.insert(attribute);
+		}
+		if (attribute == null) {
+			attribute = new Attribute(attributeCode, attributeCode, new DataType("DTT_TEXT"));
+			service.insert(attribute);
+		}
+		answer = new Answer(be,be,attribute,answerValue);
+		answer.setChangeEvent(false);
+		be.addAnswer(answer);
+		EntityAttribute ea = be.findEntityAttribute(attribute);
+		ea.setPrivacyFlag(privacy);
+		ea.setRealm(be.getRealm());
+		} catch (Exception e) {
+			log.error("CANNOT UPDATE PROJECT "+be.getCode()+" "+e.getLocalizedMessage());
+		}
+		return be;
+
+	}
+	
+	private void pushProjectsUrlsToDTT()
+	{
+		
+		// fetch all projects from db
+		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code LIKE 'PRJ_%'";
+		final List<BaseEntity> projectBes = (List<BaseEntity>) em.createQuery(sqlCode).getResultList();
+
+		
+		for (BaseEntity projectBe : projectBes) {
+			if ("PRJ_GENNY".equals(projectBe.getCode())) {
+				continue;
+			}
+				// push the project to the urls as keys too
+				service.setCurrentRealm(projectBe.getRealm());
+
+			//	BaseEntity be = service.findBaseEntityByCode(projectBe.getCode(),true);
+				Session session = em.unwrap(org.hibernate.Session.class);
+				Criteria criteria = session.createCriteria(BaseEntity.class);
+				BaseEntity be = (BaseEntity)criteria
+						.add(Restrictions.eq("code", projectBe.getCode()))
+						.add(Restrictions.eq("realm", projectBe.getRealm()))
+				                             .uniqueResult();
+				String disabled = be.getValue("ENV_DISABLE","TRUE");
+				if ("FALSE".equals(disabled)) {
+
+				String urlList = be.getValue("ENV_URL_LIST","alyson.genny.life");
+				String token = be.getValue("ENV_SERVICE_TOKEN","DUMMY");
+				log.info(be.getRealm()+":"+be.getCode()+":token="+token);
+				String[] urls = urlList.split(",");
+				for (String url : urls) {
+				//	try {
+				//	URL aUrl = new URL(url);
+					String keyUrl = url; //aUrl.getHost();
+					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, keyUrl.toUpperCase(), JsonUtils.toJson(be));
+					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN"+keyUrl.toUpperCase(), token);
+//					} catch (MalformedURLException e) {
+//						log.error("Bad url for project "+projectBe.getRealm()+":"+url);
+//					}
+				}
+			}
+		}
+
 	}
 }
