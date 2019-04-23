@@ -130,6 +130,13 @@ public class StartupService {
 		String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
 		File credentialPath = new File(System.getProperty("user.home"),
 				".genny/sheets.googleapis.com-java-quickstart");
+		
+		service.setCurrentRealm("internmatch");
+		BaseEntity be = service.findBaseEntityByCode("PRJ_INTERNMATCH",true);
+		
+		List<BaseEntity> results2 = em
+				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
+		
 
 		Map<String,Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
 		
@@ -153,30 +160,13 @@ public class StartupService {
 					BatchLoading bl = new BatchLoading(project,service);
 					
 
-					// Set up temp keycloak.json Maps
-	                String keycloakJson = bl.constructKeycloakJson(project);
-	                String urlList = ((String)project.get("urlList"));
-	    			String[] urls = urlList.split(",");
-	    			SecureResources.getKeycloakJsonMap().put(realm,keycloakJson);
-	    			SecureResources.getKeycloakJsonMap().put(realm+".json",keycloakJson);
-	    			// redundant
-	    			SecureResources.getKeycloakJsonMap().put("genny",keycloakJson);
-	    			SecureResources.getKeycloakJsonMap().put("genny.json",keycloakJson);
-	    			for (String url : urls) {
-	    			 	SecureResources.getKeycloakJsonMap().put(url+".json",keycloakJson);
-	    				SecureResources.getKeycloakJsonMap().put(url,keycloakJson);
-	    				if ("http://alyson.genny.life".equalsIgnoreCase(url)) {
-	    					SecureResources.getKeycloakJsonMap().put("localhost.json",keycloakJson);
-	    					SecureResources.getKeycloakJsonMap().put("localhost",keycloakJson);
-	    				}
-	    			}
 
 					
 					// save urls to Keycloak maps
 					service.setCurrentRealm(projectCode);   // provide overridden realm
 					
 					bl.persistProject(false, null, false);
-				
+	                String keycloakJson = bl.constructKeycloakJson(project);				
 	                bl.upsertKeycloakJson(keycloakJson);
 	                bl.upsertProjectUrls((String)project.get("urlList"));
 				}
@@ -290,7 +280,7 @@ public class StartupService {
 		// Test cache
 		final String projectCode = "PRJ_" + GennySettings.mainrealm.toUpperCase();
 		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code='"
-				+ projectCode + "'";
+				+ projectCode + "' and be.realm='"+ GennySettings.mainrealm+"'";
 		log.info("sql code = " + sqlCode);
 		final BaseEntity projectBe = (BaseEntity) em.createQuery(sqlCode).getSingleResult();
 		log.info("DB project = [" + projectBe + "]");
@@ -326,7 +316,7 @@ public class StartupService {
 			BaseEntity existingLayout = null;
 			BaseEntity newLayout = null;
 			try {
-				newLayout = service.findBaseEntityByCode(layout.getCode());
+				newLayout = service.findBaseEntityByCode(layout.getCode(),true);
 			} catch (NoResultException e) {
 				log.info("New Layout detected");
 			}
@@ -380,7 +370,7 @@ public class StartupService {
 		}
 	}
 	
-	@Transactional
+	//@Transactional
 	private void saveProjectBes(Map<String,Map> projects, Service service) {
 		log.info("Updating Project BaseEntitys ");
 		
@@ -433,11 +423,38 @@ public class StartupService {
                 projectBe = createAnswer(projectBe,"ENV_KEYCLOAK_JSON",keycloakJson,true);
 				
 				service.upsert(projectBe);
+				
+				// Set up temp keycloak.json Maps
+    			String[] urls = urlList.split(",");
+    			SecureResources.addRealm(realm,keycloakJson);
+    			SecureResources.addRealm(realm+".json",keycloakJson);
+    			// redundant
+    			if ("genny".equals(realm)) {
+    				SecureResources.addRealm("genny",keycloakJson);
+    				SecureResources.addRealm("genny.json",keycloakJson);
+    			}
+    			for (String url : urls) {
+    			 	SecureResources.addRealm(url+".json",keycloakJson);
+    				SecureResources.addRealm(url,keycloakJson);
+    				if ("alyson3.genny.life".equalsIgnoreCase(url)) {
+    					SecureResources.addRealm("localhost.json",keycloakJson);
+    					SecureResources.addRealm("localhost",keycloakJson);
+    				}
+    			}
+    			String kc  = SecureResources.getKeycloakJsonMap().get("internmatch.json");
+    			if (kc != null) {
+    				if (kc.contains("genny")) {
+    					log.error("Contains genny!!!");
+    				} else {
+    					log.info("looks legit");
+    				}
+    			}
 			}
 		}
 		
 	}
 	
+//	@Transactional
 	private BaseEntity createAnswer(BaseEntity be, final String attributeCode, final String answerValue, final Boolean privacy)
 	{
 		try {
@@ -467,34 +484,38 @@ public class StartupService {
 
 	}
 	
+	@Transactional
 	private void pushProjectsUrlsToDTT()
 	{
 		
 		// fetch all projects from db
 		String sqlCode = "SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code LIKE 'PRJ_%'";
-		final List<BaseEntity> projectBes = (List<BaseEntity>) em.createQuery(sqlCode).getResultList();
-
+		//final List<BaseEntity> projectBes = (List<BaseEntity>) service.getEntityManager().createQuery(sqlCode).getResultList();
+		final List<String> realms = (List<String>) service.getEntityManager().createQuery("select distinct be.realm from BaseEntity be").getResultList();
 		
-		for (BaseEntity projectBe : projectBes) {
-			if ("PRJ_GENNY".equals(projectBe.getCode())) {
+		for (String realm : realms) {
+			if ("genny".equals(realm)) {
 				continue;
 			}
 				// push the project to the urls as keys too
-				service.setCurrentRealm(projectBe.getRealm());
+				service.setCurrentRealm(realm);
 
-			//	BaseEntity be = service.findBaseEntityByCode(projectBe.getCode(),true);
-				Session session = em.unwrap(org.hibernate.Session.class);
-				Criteria criteria = session.createCriteria(BaseEntity.class);
-				BaseEntity be = (BaseEntity)criteria
-						.add(Restrictions.eq("code", projectBe.getCode()))
-						.add(Restrictions.eq("realm", projectBe.getRealm()))
-				                             .uniqueResult();
+				BaseEntity be = service.findBaseEntityByCode("PRJ_"+realm.toUpperCase(),true);
+//				Session session = em.unwrap(org.hibernate.Session.class);
+//				Criteria criteria = session.createCriteria(BaseEntity.class);
+//				BaseEntity be = (BaseEntity)criteria
+//						.add(Restrictions.eq("code", projectBe.getCode()))
+//						.add(Restrictions.eq("realm", projectBe.getRealm()))
+//				                             .uniqueResult();
 				String disabled = be.getValue("ENV_DISABLE","TRUE");
 				if ("FALSE".equals(disabled)) {
 
-				String urlList = be.getValue("ENV_URL_LIST","alyson.genny.life");
+				String urlList = be.getValue("ENV_URL_LIST","alyson3.genny.life");
 				String token = be.getValue("ENV_SERVICE_TOKEN","DUMMY");
+				
 				log.info(be.getRealm()+":"+be.getCode()+":token="+token);
+				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN"+realm, token);
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
 				for (String url : urls) {
 				//	try {

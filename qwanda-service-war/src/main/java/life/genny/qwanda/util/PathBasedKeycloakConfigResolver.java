@@ -104,8 +104,9 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		if (null == deployment) {
 			InputStream is;
 			try {
+				String keycloakJson = SecureResources.getKeycloakJsonMap().get(key);
 				is = new ByteArrayInputStream(
-						SecureResources.getKeycloakJsonMap().get(key).getBytes(StandardCharsets.UTF_8.name()));
+						keycloakJson.getBytes(StandardCharsets.UTF_8.name()));
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 				

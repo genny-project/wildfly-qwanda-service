@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Destroyed;
@@ -30,12 +31,12 @@ public class SecureResources {
 		return keycloakJsonMap;
 	}
 
-	private static Map<String, String> keycloakJsonMap = new HashMap<String, String>();
+	private static Map<String, String> keycloakJsonMap = new ConcurrentHashMap<String, String>();
 
 
 
 	public void init(@Observes @Initialized(ApplicationScoped.class) final Object init) {
-		readFilenamesFromDirectory(GennySettings.realmDir);
+		//readFilenamesFromDirectory(GennySettings.realmDir);
 	}
 
 	public void destroy(@Observes @Destroyed(ApplicationScoped.class) final Object init) {
