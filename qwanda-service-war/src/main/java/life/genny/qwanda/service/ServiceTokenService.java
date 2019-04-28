@@ -152,8 +152,6 @@ public class ServiceTokenService {
 
 		log.info("Generating Service Token for " + realm);
 
-		realm = GennySettings.dynamicRealm(realm);
-
 		String jsonFile = realm + ".json";
 
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {

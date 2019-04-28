@@ -195,17 +195,12 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
 		// Send a vertx message broadcasting an link Change
-		log.info("!!System EVENT ->" + systemCode);
+		log.info("!!System EVENT ->" + systemCode+" for realm "+this.getCurrentRealm());
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
 		VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
-//		try {
-//			String json = JsonUtils.toJson(event);
-//			QwandaUtils.apiPostEntity(bridgeApi, json, token);
-//		} catch (Exception e) {
-//			log.error("Error in posting System Event to JMS:" + e.getLocalizedMessage());
-//		}
+
 
 	}
 
