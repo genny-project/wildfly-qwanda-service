@@ -58,7 +58,6 @@ import org.json.JSONObject;
 
 import org.apache.commons.lang3.StringUtils;
 
-
 @RequestScoped
 
 public class Service extends BaseEntityService2 {
@@ -81,7 +80,7 @@ public class Service extends BaseEntityService2 {
 
 	@Inject
 	private SecureResources secureResources;
-	
+
 //	@Inject
 //	private WildFlyJmsQueueSender jms;
 //
@@ -90,25 +89,23 @@ public class Service extends BaseEntityService2 {
 
 	@Inject
 	private Hazel inDB;
-	
+
 	@Inject
 	private ServiceTokenService serviceTokens;
 
 	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
-	
+
 	String token;
+
+	String currentRealm = GennySettings.mainrealm; // permit temprorary override
 
 	@PostConstruct
 	public void init() {
-	
-		
-	}
-	
 
-	
+	}
+
 	@Override
-	public String getToken()
-	{
+	public String getToken() {
 		return serviceTokens.getServiceToken(getRealm());
 	}
 
@@ -119,7 +116,7 @@ public class Service extends BaseEntityService2 {
 		log.info("!!ATTRIBUTE CHANGE EVENT ->" + event.getBe().getCode());
 
 //		try {
-			VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
+		VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
 //		//	String json = JsonUtils.toJson(event);
 //		//	QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
 //		} catch (Exception e) {
@@ -134,36 +131,37 @@ public class Service extends BaseEntityService2 {
 		// Send a vertx message broadcasting an link Change
 		log.info("!!LINK CHANGE EVENT ->" + event);
 
-		BaseEntity originalParent  = null;
+		BaseEntity originalParent = null;
 		BaseEntity targetParent = null;
 		try {
-			
+
 			// update cache for source and target
-			if (event.getOldLink()!=null) {
-				if (event.getOldLink().getSourceCode()!=null) {
+			if (event.getOldLink() != null) {
+				if (event.getOldLink().getSourceCode() != null) {
 					String originalParentCode = event.getOldLink().getSourceCode();
 					originalParent = this.findBaseEntityByCode(originalParentCode);
-					updateDDT(originalParent.getCode(),JsonUtils.toJson(originalParent));
-					QEventAttributeValueChangeMessage parentEvent = new QEventAttributeValueChangeMessage(originalParent.getCode(),originalParent.getCode(),originalParent,event.getToken());
+					updateDDT(originalParent.getCode(), JsonUtils.toJson(originalParent));
+					QEventAttributeValueChangeMessage parentEvent = new QEventAttributeValueChangeMessage(
+							originalParent.getCode(), originalParent.getCode(), originalParent, event.getToken());
 					this.sendQEventAttributeValueChangeMessage(parentEvent);
 				}
 			}
-			
-			if (event.getLink()!=null) {
-				if (event.getLink().getSourceCode()!=null) {
+
+			if (event.getLink() != null) {
+				if (event.getLink().getSourceCode() != null) {
 					String targetParentCode = event.getLink().getSourceCode();
 					targetParent = this.findBaseEntityByCode(targetParentCode);
-					updateDDT(targetParent.getCode(),JsonUtils.toJson(targetParent));
-					QEventAttributeValueChangeMessage targetEvent = new QEventAttributeValueChangeMessage(targetParent.getCode(),targetParent.getCode(),targetParent,event.getToken());
+					updateDDT(targetParent.getCode(), JsonUtils.toJson(targetParent));
+					QEventAttributeValueChangeMessage targetEvent = new QEventAttributeValueChangeMessage(
+							targetParent.getCode(), targetParent.getCode(), targetParent, event.getToken());
 					this.sendQEventAttributeValueChangeMessage(targetEvent);
 
 				}
 			}
-			
-			
+
 //			String json = JsonUtils.toJson(event);
 //			QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
-			VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
+			VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
 		} catch (Exception e) {
 			log.error("Error in posting link Change to JMS:" + e.getLocalizedMessage());
 		}
@@ -197,17 +195,12 @@ public class Service extends BaseEntityService2 {
 	@javax.ejb.Asynchronous
 	public void sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
 		// Send a vertx message broadcasting an link Change
-		log.info("!!System EVENT ->" + systemCode);
+		log.info("!!System EVENT ->" + systemCode+" for realm "+this.getCurrentRealm());
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
 
-		VertxUtils.publish(getUser(),"events",JsonUtils.toJson(event));
-//		try {
-//			String json = JsonUtils.toJson(event);
-//			QwandaUtils.apiPostEntity(bridgeApi, json, token);
-//		} catch (Exception e) {
-//			log.error("Error in posting System Event to JMS:" + e.getLocalizedMessage());
-//		}
+		VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
+
 
 	}
 
@@ -233,7 +226,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-  public EntityManager getEntityManager() {
+	public EntityManager getEntityManager() {
 		return helper.getEntityManager();
 	}
 
@@ -257,7 +250,7 @@ public class Service extends BaseEntityService2 {
 	@Transactional
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
-			String realm = securityService.getRealm();
+			String realm = getRealm();
 			entity.setRealm(realm); // always override
 			return super.insert(entity);
 		}
@@ -280,9 +273,18 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	protected String getRealm() {
-		
-		return securityService.getRealm();
-	//	return "genny"; // TODO HACK
+
+		String realm = null;
+		try {
+		realm = securityService.getRealm();
+		} catch (Exception e) {
+			return currentRealm;
+		}
+		if (realm == null)
+			return currentRealm;
+		else
+			return realm;
+
 	}
 
 	@Override
@@ -300,7 +302,6 @@ public class Service extends BaseEntityService2 {
 	// mode
 	@Override
 	public void writeToDDT(final List<BaseEntity> bes) {
-
 
 //		if (GennySettings.devMode) {
 //			this.initServiceToken();
@@ -332,10 +333,10 @@ public class Service extends BaseEntityService2 {
 //			}
 //			}
 //		} else {
-			for (BaseEntity be : bes) {
-			//	be = super.findBaseEntityByCode(be.getCode(),true); // ugly
-				writeToDDT(be);
-			}
+		for (BaseEntity be : bes) {
+			// be = super.findBaseEntityByCode(be.getCode(),true); // ugly
+			writeToDDT(be);
+		}
 //		}
 
 	}
@@ -343,14 +344,14 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public void writeToDDT(final BaseEntity be) {
 		String json = JsonUtils.toJson(be);
-		VertxUtils.writeCachedJson(be.getRealm(),be.getCode(), json, getToken());
+		VertxUtils.writeCachedJson(be.getRealm(), be.getCode(), json, getToken());
 	}
 
 	@Override
 	@javax.ejb.Asynchronous
-	public void writeToDDT(final String key,String jsonValue) {
-		
-			VertxUtils.writeCachedJson(this.getRealm(),key, jsonValue, getToken());
+	public void writeToDDT(final String key, String jsonValue) {
+
+		VertxUtils.writeCachedJson(this.getRealm(), key, jsonValue, getToken());
 
 	}
 
@@ -362,7 +363,7 @@ public class Service extends BaseEntityService2 {
 
 	@Override
 	public String readFromDDT(final String key) {
-		return VertxUtils.readCachedJson(this.getRealm(),key,getToken()).toString();
+		return VertxUtils.readCachedJson(this.getRealm(), key, getToken()).toString();
 	}
 
 	@Override
@@ -384,36 +385,45 @@ public class Service extends BaseEntityService2 {
 		writeToDDT("attributes", json);
 
 	}
-	
-	public  String getServiceToken(String realm) {
+
+	public String getServiceToken(String realm) {
 		return serviceTokens.getServiceToken(realm);
 	}
-	
 
-
-
-	
-	public String getKeycloakUrl(String realm)
-	{
+	public String getKeycloakUrl(String realm) {
 		String keycloakurl = null;
-		
-		if (GennySettings.devMode) {  // UGLY!!!
+
+		if (GennySettings.devMode) { // UGLY!!!
 			realm = "genny";
-		} 
+		}
 		if (SecureResources.getKeycloakJsonMap().isEmpty()) {
 			SecureResources.reload();
-		} 
-		String keycloakJson =  SecureResources.getKeycloakJsonMap().get(realm + ".json");
-		if (keycloakJson!=null) {
-		JsonObject realmJson = new JsonObject(keycloakJson);
-		JsonObject secretJson = realmJson.getJsonObject("credentials");
-		String secret = secretJson.getString("secret");
-		log.info("secret:"+secret);
+		}
+		String keycloakJson = SecureResources.getKeycloakJsonMap().get(realm + ".json");
+		if (keycloakJson != null) {
+			JsonObject realmJson = new JsonObject(keycloakJson);
+			JsonObject secretJson = realmJson.getJsonObject("credentials");
+			String secret = secretJson.getString("secret");
+			log.info("secret:" + secret);
 
-		keycloakurl = realmJson.getString("auth-server-url").substring(0,
-				realmJson.getString("auth-server-url").length() - "/auth".length());
+			keycloakurl = realmJson.getString("auth-server-url").substring(0,
+					realmJson.getString("auth-server-url").length() - "/auth".length());
 		}
 
 		return keycloakurl;
+	}
+
+	/**
+	 * @return the currentRealm
+	 */
+	public String getCurrentRealm() {
+		return currentRealm;
+	}
+
+	/**
+	 * @param currentRealm the currentRealm to set
+	 */
+	public void setCurrentRealm(String currentRealm) {
+		this.currentRealm = currentRealm;
 	}
 }
