@@ -72,6 +72,11 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+
+import java.util.concurrent.CompletableFuture;
+
 
 /**
  * JAX-RS endpoint
@@ -100,6 +105,8 @@ public class QwandaEndpoint {
 
 	@Inject
 	private SecurityService securityService;
+	
+
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -239,57 +246,61 @@ public class QwandaEndpoint {
 
 	public Response createBulk2(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//					if (attribute==null) {
-//						throw new NoResultException();
-//					}
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					String name = entity.getAttributeCode().substring(4).toLowerCase();
-//					name = name.replaceAll("_", " ");
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(name));
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("attribute is null ");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//
-//				entity.setAttribute(attribute);
-//				}
-//
-//		}
-		try {
-		service.insert(entitys.getItems());
-			return Response.status(200).build();
-		} catch (javax.persistence.NoResultException e) {
-			return Response.status(404).build();
-		}
-		catch (IllegalArgumentException e) {
-			return Response.status(422).entity(e.getMessage()).build();
-		}
+//	public Response createBulk2(final QDataAnswerMessage entitys,@Suspended final AsyncResponse asyncResponse) {
+
+		insertAnswers(entitys.getItems());
+//		 CompletableFuture
+//         .runAsync(() -> {
+//	    	   try {
+//	    			service.insert(entitys.getItems());
+//	    				//return Response.status(200).build();
+//	    			} catch (javax.persistence.NoResultException e) {
+//	    				//return Response.status(404).build();
+//	    			}
+//	    			catch (IllegalArgumentException e) {
+//	    				//return Response.status(422).entity(e.getMessage()).build();
+//	    			}		       })
+//         .thenApply((result) -> asyncResponse.resume(result));
+//		 
+//		   executor.execute(new Runnable() {
+//		       public void run() {
+//		    	   try {
+//		    			service.insert(entitys.getItems());
+//		    				return Response.status(200).build();
+//		    			} catch (javax.persistence.NoResultException e) {
+//		    				return Response.status(404).build();
+//		    			}
+//		    			catch (IllegalArgumentException e) {
+//		    				return Response.status(422).entity(e.getMessage()).build();
+//		    			}		       }
+//		    });
+		    return Response.status(202).build();
+
+		
 
 	}
+	
+	@javax.ejb.Asynchronous
+	void insertAnswers(final Answer[] answers)
+	{
+		 try {
+ 			service.insert(answers);
+ 				//return Response.status(200).build();
+ 			} catch (javax.persistence.NoResultException e) {
+ 				//return Response.status(404).build();
+ 			}
+ 			catch (IllegalArgumentException e) {
+ 				//return Response.status(422).entity(e.getMessage()).build();
+ 			}		
+	}
+	
 
 	@POST
 	@Consumes("application/json")
 	@Path("/answers/bulk")
-
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-
+			log.info(entitys.getItems().length+" Bulk Answers ");
 			try {
 				service.insert(entitys.getItems());
 					return Response.status(200).build();
@@ -1493,12 +1504,13 @@ public class QwandaEndpoint {
         } catch (Exception e) {
           e.printStackTrace();
         }
-        return Response.status(200).entity("Success").build();
+        return Response.status(200).build();
 	  } else {
 		  Log.info("User does not have required access rights");
-		  return Response.status(401).entity("Unauthorized").build();
+		  return Response.status(503).build();
 	  }
-	}
+        
+    }
 
 
 	
@@ -1650,34 +1662,6 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
-	@GET
-    @Consumes("application/json")
-    @Path("/companycode/{abn}")
-    @Produces("application/json")
-    public Response getCompanyCodeFromABN(@PathParam("abn") final String abn) {
-		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-		          || securityService.inRole("dev")) || GennySettings.devMode) {
-			log.info("Fetching company code for the user name " + abn);
-		      String companyCode = getCompanyCode(abn);
-		      String json = JsonUtils.toJson(companyCode);
-		      return Response.status(200).entity(json).build();
-		} else {
-			log.info("User does not have access rights");
-			String json = JsonUtils.toJson("Unauthorized");
-			return Response.status(401).entity(json).build();
-		}
-      
-    }
-	
-	public String getCompanyCode(String abn) {
-		final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
-		params.add("PRI_ABN", abn);
-		List<BaseEntity> baseEntityList = service.findBaseEntitysByAttributeValues(params, true, 0, 1);
-		if(baseEntityList != null && baseEntityList.get(0) != null) {
-			return baseEntityList.get(0).getCode();
-		} else {
-			return null;
-		}
-	}
+
 
 }
