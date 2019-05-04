@@ -16,6 +16,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
+import life.genny.qwanda.Answer;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
@@ -342,6 +343,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@javax.ejb.Asynchronous
 	public void writeToDDT(final BaseEntity be) {
 		String json = JsonUtils.toJson(be);
 		VertxUtils.writeCachedJson(be.getRealm(), be.getCode(), json, getToken());
@@ -367,6 +369,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
+	@javax.ejb.Asynchronous
 	public void pushAttributes() {
 		if (!SecurityService.importMode) {
 			pushAttributesAsync();
@@ -425,5 +428,19 @@ public class Service extends BaseEntityService2 {
 	 */
 	public void setCurrentRealm(String currentRealm) {
 		this.currentRealm = currentRealm;
+	}
+	
+	@Override
+
+	@Transactional(dontRollbackOn = { Exception.class })
+	public Long insert(Answer[] answers) throws IllegalArgumentException {
+		if (securityService.isAuthorised()) {
+			String realm = getRealm();
+			for (Answer answer : answers) {
+				answer.setRealm(realm); // always override
+			}
+			return super.insert(answers);
+		}
+		return -1L;
 	}
 }

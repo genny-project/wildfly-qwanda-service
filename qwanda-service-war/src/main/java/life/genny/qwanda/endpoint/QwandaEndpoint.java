@@ -72,6 +72,11 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+
+import java.util.concurrent.CompletableFuture;
+
 
 /**
  * JAX-RS endpoint
@@ -100,6 +105,8 @@ public class QwandaEndpoint {
 
 	@Inject
 	private SecurityService securityService;
+	
+
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -239,57 +246,61 @@ public class QwandaEndpoint {
 
 	public Response createBulk2(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//					if (attribute==null) {
-//						throw new NoResultException();
-//					}
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					String name = entity.getAttributeCode().substring(4).toLowerCase();
-//					name = name.replaceAll("_", " ");
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(name));
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("attribute is null ");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//
-//				entity.setAttribute(attribute);
-//				}
-//
-//		}
-		try {
-		service.insert(entitys.getItems());
-			return Response.status(200).build();
-		} catch (javax.persistence.NoResultException e) {
-			return Response.status(404).build();
-		}
-		catch (IllegalArgumentException e) {
-			return Response.status(422).entity(e.getMessage()).build();
-		}
+//	public Response createBulk2(final QDataAnswerMessage entitys,@Suspended final AsyncResponse asyncResponse) {
+
+		insertAnswers(entitys.getItems());
+//		 CompletableFuture
+//         .runAsync(() -> {
+//	    	   try {
+//	    			service.insert(entitys.getItems());
+//	    				//return Response.status(200).build();
+//	    			} catch (javax.persistence.NoResultException e) {
+//	    				//return Response.status(404).build();
+//	    			}
+//	    			catch (IllegalArgumentException e) {
+//	    				//return Response.status(422).entity(e.getMessage()).build();
+//	    			}		       })
+//         .thenApply((result) -> asyncResponse.resume(result));
+//		 
+//		   executor.execute(new Runnable() {
+//		       public void run() {
+//		    	   try {
+//		    			service.insert(entitys.getItems());
+//		    				return Response.status(200).build();
+//		    			} catch (javax.persistence.NoResultException e) {
+//		    				return Response.status(404).build();
+//		    			}
+//		    			catch (IllegalArgumentException e) {
+//		    				return Response.status(422).entity(e.getMessage()).build();
+//		    			}		       }
+//		    });
+		    return Response.status(202).build();
+
+		
 
 	}
+	
+	@javax.ejb.Asynchronous
+	void insertAnswers(final Answer[] answers)
+	{
+		 try {
+ 			service.insert(answers);
+ 				//return Response.status(200).build();
+ 			} catch (javax.persistence.NoResultException e) {
+ 				//return Response.status(404).build();
+ 			}
+ 			catch (IllegalArgumentException e) {
+ 				//return Response.status(422).entity(e.getMessage()).build();
+ 			}		
+	}
+	
 
 	@POST
 	@Consumes("application/json")
 	@Path("/answers/bulk")
-
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-
+			log.info(entitys.getItems().length+" Bulk Answers ");
 			try {
 				service.insert(entitys.getItems());
 					return Response.status(200).build();

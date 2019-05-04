@@ -481,12 +481,7 @@ public class StartupService {
 	@Transactional
 	private void pushProjectsUrlsToDTT() {
 
-		// fetch all projects from db
-		String sqlCode = "SELECT distinct be.realm FROM BaseEntity be,EntityAttribute ea where ea.baseEntityCode=be.code and  be.code LIKE 'PRJ_%' and ea.attributeCode='ENV_DISABLE' and ea.valueString = 'FALSE' and be.realm <> 'genny' and be.realm <> 'hidden'";
-		// final List<BaseEntity> projectBes = (List<BaseEntity>)
-		// service.getEntityManager().createQuery(sqlCode).getResultList();
-		final List<String> realms = (List<String>) service.getEntityManager()
-				.createQuery(sqlCode).getResultList();
+		final List<String> realms = service.getRealms();
  
 		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location in the cache
 		for (String realm : realms) {
@@ -506,8 +501,8 @@ public class StartupService {
 				String token = be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
 
 				log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
-				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm, token);
-				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN"+ realm, token);
+ 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
+				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
 				for (String url : urls) {
 					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, url.toUpperCase(), JsonUtils.toJson(be));

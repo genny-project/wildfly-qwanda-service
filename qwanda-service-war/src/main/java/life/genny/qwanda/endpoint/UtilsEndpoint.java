@@ -271,4 +271,14 @@ public class UtilsEndpoint {
       return Response.status(200).entity(json).build();
     }
 	
+	@GET
+    @Consumes("application/json")
+    @Path("/realms")
+    @Produces("application/json")
+    public Response getRealms() {
+      log.info("Fetching Realms ");
+      List<String> realms = service.getRealms();
+      String json = JsonUtils.toJson(realms);
+      return Response.status(200).entity(json).build();
+    }
 }
