@@ -10,6 +10,9 @@ import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import org.jboss.ejb3.annotation.TransactionTimeout;
 import java.util.concurrent.TimeUnit;
@@ -141,8 +144,8 @@ public class StartupService {
 		serviceTokens.init(projects);
 
 		// Save projects
-		saveProjectBes(projects, service);
-		pushProjectsUrlsToDTT();
+		saveProjectBes(projects);
+		pushProjectsUrlsToDTT(projects);
 
 		if (!GennySettings.skipGoogleDocInStartup) {
 			log.info("Starting Transaction for loading");
@@ -162,7 +165,7 @@ public class StartupService {
 					bl.persistProject(false, null, false);
 					String keycloakJson = bl.constructKeycloakJson(project);
 					bl.upsertKeycloakJson(keycloakJson);
-					bl.upsertProjectUrls((String) project.get("urlList"));
+			//		bl.upsertProjectUrls((String) project.get("urlList"));
 				}
 			}
 			log.info("*********************** Finished Google Doc Import ***********************************");
@@ -175,7 +178,7 @@ public class StartupService {
 			pushToDTT();
 		}
 
-		pushProjectsUrlsToDTT();
+		pushProjectsUrlsToDTT(projects);
 
 		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
 		String branch = "master";
@@ -362,8 +365,8 @@ public class StartupService {
 		}
 	}
 
-	// @Transactional
-	private void saveProjectBes(Map<String, Map> projects, Service service) {
+	 @Transactional
+	private void saveProjectBes(Map<String, Map> projects) {
 		log.info("Updating Project BaseEntitys ");
 
 		for (String realmCode : projects.keySet()) {
@@ -479,17 +482,35 @@ public class StartupService {
 	}
 
 	@Transactional
-	private void pushProjectsUrlsToDTT() {
+	private void pushProjectsUrlsToDTT(Map<String, Map> projects) {
 
 		final List<String> realms = service.getRealms();
- 
-		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location in the cache
-		for (String realm : realms) {
-			// push the project to the urls as keys too
-			service.setCurrentRealm(realm);
-			activeRealms.add(realm);
 
-			BaseEntity be = service.findBaseEntityByCode("PRJ_" + realm.toUpperCase(), true);
+		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location
+																// in the cache
+
+		for (String realm : realms) {
+			Map<String, Object> project = projects.get(realm);
+			if ("FALSE".equals((String) project.get("disable"))) {
+
+				// push the project to the urls as keys too
+				service.setCurrentRealm(realm);
+				activeRealms.add(realm);
+
+				BaseEntity be = null; //service.findBaseEntityByCode("PRJ_" + realm.toUpperCase(), true);
+				CriteriaBuilder cb = em.getCriteriaBuilder();
+			    CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+			    Root<BaseEntity> root = query.from(BaseEntity.class);
+
+			    query = query.select(root)
+			            .where(cb.equal(root.get("code"), "PRJ_" + realm.toUpperCase()),
+			                    cb.equal(root.get("realm"), realm));
+			    
+			    try {
+			        be = em.createQuery(query).getSingleResult();
+			    } catch (NoResultException nre) {
+			       
+			    }
 //				Session session = em.unwrap(org.hibernate.Session.class);
 //				Criteria criteria = session.createCriteria(BaseEntity.class);
 //				BaseEntity be = (BaseEntity)criteria
@@ -501,16 +522,19 @@ public class StartupService {
 				String token = be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
 
 				log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
- 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
+				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
 				for (String url : urls) {
 					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, url.toUpperCase(), JsonUtils.toJson(be));
 					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + url.toUpperCase(), token);
+				}
 			}
+			//
 		}
 		// Push the list of active realms
-		Type listType = new TypeToken<List<String>>(){}.getType();
+		Type listType = new TypeToken<List<String>>() {
+		}.getType();
 		Gson gson = new Gson();
 		String realmsJson = JsonUtils.toJson(activeRealms);
 		VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
