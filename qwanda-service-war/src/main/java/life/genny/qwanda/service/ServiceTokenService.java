@@ -103,6 +103,10 @@ public class ServiceTokenService {
 		
 	}
 
+	public String getToken(String realm) {
+		return getServiceToken(realm); // I keep forgetting the name of the function so I'm creating this
+	}
+	
 	public String getServiceToken(String realm) {
 		/* we get the service token currently stored in the cache */
 

@@ -519,7 +519,7 @@ public class StartupService {
 //				                             .uniqueResult();
 
 				String urlList = be.getValue("ENV_URL_LIST", "alyson3.genny.life");
-				String token = be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
+				String token = serviceTokens.getServiceToken(realm); //be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
 
 				log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
