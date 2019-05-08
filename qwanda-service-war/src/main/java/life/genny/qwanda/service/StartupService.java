@@ -427,6 +427,7 @@ public class StartupService {
 					if (("genny".equals(realm))) {
 						SecureResources.addRealm("genny", keycloakJson);
 						SecureResources.addRealm("genny.json", keycloakJson);
+						SecureResources.addRealm("qwanda-service.genny.life.json", keycloakJson);
 					}
 
 					// Overwrite all the time, must have localhost
@@ -437,14 +438,7 @@ public class StartupService {
 						SecureResources.addRealm(url + ".json", keycloakJson);
 						SecureResources.addRealm(url, keycloakJson);
 					}
-					String kc = SecureResources.getKeycloakJsonMap().get("internmatch.json");
-					if (kc != null) {
-						if (kc.contains("genny")) {
-							log.error("Contains genny!!!");
-						} else {
-							log.info("looks legit");
-						}
-					}
+
 				}
 			}
 		}
