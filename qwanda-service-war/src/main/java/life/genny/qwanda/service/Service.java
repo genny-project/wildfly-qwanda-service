@@ -251,8 +251,8 @@ public class Service extends BaseEntityService2 {
 	@Transactional
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
-			String realm = getRealm();
-			entity.setRealm(realm); // always override
+		//	String realm = getRealm();
+		//	entity.setRealm(realm); // always override
 			return super.insert(entity);
 		}
 

@@ -398,7 +398,8 @@ public class StartupService {
 					}
 					if (projectBe == null) {
 						projectBe = new BaseEntity(projectCode, name);
-						service.insert(projectBe);
+					//	projectBe.setRealm(realm);
+						service.upsert(projectBe);
 					}
 
 					projectBe = createAnswer(projectBe, "PRI_NAME", name, false);

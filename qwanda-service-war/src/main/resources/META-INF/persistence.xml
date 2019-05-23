@@ -54,14 +54,17 @@
 
 		<validation-mode>CALLBACK</validation-mode>
 		
-		<shared-cache-mode>ALL</shared-cache-mode>
+		<!-- <shared-cache-mode>ALL</shared-cache-mode>-->
 		<properties>
-			<property name="hibernate.dialect"
-				value="life.genny.qwanda.util.MySQLDialect2" />
+			<!-- <property name="hibernate.dialect"
+				value="life.genny.qwanda.util.MySQLDialect2" /> -->
+				<property name="hibernate.dialect.storage_engine" value="innodb" />
+				<property name="hibernate.order_inserts" value="true"/>
+			<property name="hibernate.order_updates" value="true"/>
 			<property name="hibernate.hbm2ddl.auto" value="update" />
 			<property
 				name="hibernate.discriminator.ignore_explicit_for_joined"
-				value="true" />
+				value="false" />
 			<property name="hibernate.generate_statistics" value="false" />
 			<property name="hibernate.show_sql" value="false" />
 			<!-- <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.MySQLSpatial56Dialect" 
@@ -70,7 +73,7 @@
 			<property name="hibernate.cache.infinispan.statistics"
 				value="false" />
 			<property name="hibernate.cache.use_structured_entries"
-				value="true" />
+				value="false" />
             <property name="javax.persistence.lock.timeout" value="100"/>
             <property name="javax.persistence.query.timeout" value="100"/>
 
