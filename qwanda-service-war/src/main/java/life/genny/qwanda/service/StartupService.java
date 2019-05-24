@@ -434,7 +434,7 @@ public class StartupService {
 					// Overwrite all the time, must have localhost
 					SecureResources.addRealm("localhost.json", keycloakJson);
 					SecureResources.addRealm("localhost", keycloakJson);
-
+					SecureResources.addRealm("localhost:8080", keycloakJson);
 					for (String url : urls) {
 						SecureResources.addRealm(url + ".json", keycloakJson);
 						SecureResources.addRealm(url, keycloakJson);
