@@ -293,6 +293,12 @@ public class Service extends BaseEntityService2 {
 	public Long update(final BaseEntity baseEntity) {
 		return super.update(baseEntity);
 	}
+	
+	@Override
+	@Transactional
+	public Long upsert(final BaseEntity baseEntity) {
+		return super.upsert(baseEntity);
+	}
 
 	@Override
 	public Boolean inRole(final String role) {
