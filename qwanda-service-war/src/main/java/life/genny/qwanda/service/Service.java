@@ -296,7 +296,7 @@ public class Service extends BaseEntityService2 {
 	
 	@Override
 	@Transactional
-	public Long upsert(final BaseEntity baseEntity) {
+	public BaseEntity upsert(final BaseEntity baseEntity) {
 		return super.upsert(baseEntity);
 	}
 
