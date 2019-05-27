@@ -93,6 +93,7 @@ import life.genny.qwanda.message.QDataSubLayoutMessage;
 import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.GitUtils;
@@ -763,6 +764,7 @@ public class ServiceEndpoint {
 	}
 
 
+
 	public QDataSubLayoutMessage synchLayouts(final List<BaseEntity> layouts, final boolean saveToDatabase) {
 
 		Layout[] layoutArray = new Layout[layouts.size()];
@@ -857,5 +859,169 @@ public class ServiceEndpoint {
 
 		log.info("Finished loading " + layouts.size() + " layouts");
 		return v1messages;
+	}
+	
+	
+	/**
+	 * Returns a CSV export of the realm
+	 * 
+	 * @param table
+	 * @return response of the synchronization
+	 */
+	@GET
+	@Consumes("application/json")
+	@Path("/export/{table}/{realm}")
+	@Transactional
+	public Response exportRealm(
+			@PathParam("table") final String tableStr,
+			@PathParam("realm") final String realmStr)
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException,
+			RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+
+		String ret = "";
+		String realm = realmStr.toLowerCase().trim();  // TODO, check if realm is real
+		String table = tableStr.toLowerCase().trim();  // TODO, check if table is real
+		
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+
+
+			log.info("************* Generating Realm Export *************");
+
+			switch (table) {
+			
+			case "attribute":
+				// 				final String code = (String) object.get("code");
+//				final String name = (String) object.get("name");
+//				final String dataType = (String) object.get("datatype");
+//				final String privacy = (String) object.get("privacy");
+//				final String description = (String) object.get("description");
+//				final String help = (String) object.get("help");
+//				final String placeholder = (String) object.get("placeholder");
+//				final String defaultValue = (String) object.get("defaultValue");
+				// BaseEntitys
+				List<Attribute> attributes = em
+						.createQuery("SELECT distinct att FROM Attribute att  where att.realm=:realm")
+						.setParameter("realm",realm)
+						.getResultList();
+
+//				code	name	datatype	Hint (Example Associated BaseEntity)	privacy	description	help	placeholder	defaultValue																					
+//				PRI_IS_INTERN	Intern	DTT_BOOLEAN	USER																										
+				ret = "\"code\",\"name\",\"datatype\",\"privacy\",\"description\",\"help\",\"placeholder\",\"defaultValue\"\n";
+				for (Attribute att : attributes) {
+					ret += cell(att.getCode())
+						+	cell(att.getName())
+						+ cell(att.getDataType().getClassName())
+						+ cell(att.getDefaultPrivacyFlag())
+						+ cell(att.getDescription())
+						+ cell(att.getHelp())
+						+ cell(att.getPlaceholder())
+						+ cell(att.getDefaultValue())
+						+"\n";
+				}
+
+				log.info("Exported "+attributes.size()+" attributes for realm "+realm);
+				break;
+
+			
+			
+			case "baseentity":
+			// BaseEntitys
+			List<BaseEntity> bes = em
+					.createQuery("SELECT distinct be FROM BaseEntity be  where be.realm=:realm")
+					.setParameter("realm",realm)
+					.getResultList();
+
+			//code	name	icon
+			// GRP_DASHBOARD	Dashboard	dashboard
+			ret = "\"code\",\"name\",\"icon\"\n";
+			for (BaseEntity be : bes) {
+				ret += "\""+be.getCode()+"\",\""+be.getName()+"\",\"\"\n";
+			}
+
+			log.info("Exported "+bes.size()+" bes for realm "+realm);
+			break;
+			case "entityattribute":
+			// BaseEntitys
+			List<EntityAttribute> eas = em
+					.createQuery("SELECT ea FROM EntityAttribute ea where ea.realm=:realm")
+					.setParameter("realm",realm)
+					.getResultList();
+			
+			//baseEntityCode	attributeCode	weight	valueString	valueDateTime	valueLong	valueInteger	valueDouble																				
+			//PRJ_INTERNMATCH	PRI_NAME	1	INTERNMATCH																								
+			ret = "\"baseEntityCode\",\"attributeCode\",\"weight\",\"valueString\",\"valueDateTime\",\"valueLong\",\"valueInteger\",\"valueDouble\"\n";
+			for (EntityAttribute ea : eas) {
+				ret += cell(ea.getBaseEntityCode())
+						+	cell(ea.getAttributeCode())
+						+ cell(ea.getWeight())
+						+ cell(ea.getValueString())
+						+ cell(ea.getValueDateTime())
+						+ cell(ea.getValueLong())
+						+ cell(ea.getValueInteger())
+						+ cell(ea.getValueDouble())
+						+"\n";
+			}
+			
+			log.info("Exported "+eas.size()+" eas for realm "+realm);
+			break;
+			
+			case "validation":
+				// Validations
+				List<Validation> vlds = em
+						.createQuery("SELECT vld FROM Validation vld where vld.realm=:realm")
+						.setParameter("realm",realm)
+						.getResultList();
+			
+//				code	name	regex	group_codes	recursive	multi_allowed																					
+//				VLD_SELECT_EDU_PROVIDER	dropdown	.*	GRP_EDU_PROVIDER_SELECTION	FALSE																						
+				ret = "\"code\",\"name\",\"regex\",\"group_codes\",\"recursive\",\"multi_allowed\"\n";
+				for (Validation a : vlds) {
+					ret += cell(a.getCode())
+							+	cell(a.getName())
+							+ cell(a.getRegex())
+							+ cell(a.getSelectionBaseEntityGroupList())
+							+ cell(a.getRecursiveGroup())
+							+ cell(a.getMultiAllowed())
+
+							+"\n";
+				}
+				
+				log.info("Exported "+vlds.size()+" eas for realm "+realm);
+				break;
+			
+			default:
+				log.error("Unknown table ["+table+"]");
+				return Response.status(400).build();
+			}
+
+		}
+		return Response.status(200).entity(ret).build();
+	}
+
+	private String cell(final String field) {
+		return "\""+field+"\",";
+	}
+	
+	private String cell(final boolean field) {
+		return "\""+(field?"TRUE":"FALSE")+"\",";
+	}
+	
+	private String cell(final Double field) {
+		return "\""+(field.toString())+"\",";
+	}
+	
+	private String cell(final LocalDateTime field) {
+		return "\""+(field.toString())+"\",";
+	}
+	
+	private String cell(final Long field) {
+		return "\""+(field.toString())+"\",";
+	}
+	private String cell(final Integer field) {
+		return "\""+(field.toString())+"\",";
+	}
+	
+	private String cell(final List<String> field) {
+		return "\""+(field.toString())+"\",";
 	}
 }
