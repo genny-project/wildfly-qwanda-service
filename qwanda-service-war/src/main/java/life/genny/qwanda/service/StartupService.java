@@ -94,9 +94,9 @@ import org.hibernate.criterion.Restrictions;
  */
 @Singleton
 @Startup
-@Transactional
 
-@TransactionTimeout(value = 8000, unit = TimeUnit.SECONDS)
+
+//@TransactionTimeout(value = 8000, unit = TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
@@ -365,7 +365,7 @@ public class StartupService {
 		}
 	}
 
-	 @Transactional
+
 	private void saveProjectBes(Map<String, Map> projects) {
 		log.info("Updating Project BaseEntitys ");
 
@@ -391,16 +391,10 @@ public class StartupService {
 
 					String projectCode = "PRJ_" + realm.toUpperCase();
 					BaseEntity projectBe = null;
-					try {
-						projectBe = service.findBaseEntityByCode(projectCode);
-					} catch (NoResultException e) {
-						projectBe = null;
-					}
-					if (projectBe == null) {
+	
 						projectBe = new BaseEntity(projectCode, name);
-					//	projectBe.setRealm(realm);
-						service.upsert(projectBe);
-					}
+						projectBe = service.upsert(projectBe);
+
 
 					projectBe = createAnswer(projectBe, "PRI_NAME", name, false);
 					projectBe = createAnswer(projectBe, "PRI_CODE", projectCode, false);
@@ -418,7 +412,7 @@ public class StartupService {
 					String keycloakJson = bl.constructKeycloakJson(project);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_JSON", keycloakJson, true);
 
-					service.upsert(projectBe);
+					projectBe = service.upsert(projectBe);
 
 					// Set up temp keycloak.json Maps
 					String[] urls = urlList.split(",");
@@ -446,7 +440,7 @@ public class StartupService {
 
 	}
 
-//	@Transactional
+
 	private BaseEntity createAnswer(BaseEntity be, final String attributeCode, final String answerValue,
 			final Boolean privacy) {
 		try {
@@ -476,7 +470,7 @@ public class StartupService {
 
 	}
 
-	@Transactional
+
 	private void pushProjectsUrlsToDTT(Map<String, Map> projects) {
 
 		final List<String> realms = service.getRealms();

@@ -248,7 +248,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	@Transactional
+
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
 		//	String realm = getRealm();
@@ -260,7 +260,7 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	@Transactional
+
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode,
 			final Object value, final Double weight) {
 		try {
@@ -289,13 +289,11 @@ public class Service extends BaseEntityService2 {
 	}
 
 	@Override
-	@Transactional
 	public Long update(final BaseEntity baseEntity) {
 		return super.update(baseEntity);
 	}
 	
 	@Override
-	@Transactional
 	public BaseEntity upsert(final BaseEntity baseEntity) {
 		return super.upsert(baseEntity);
 	}
@@ -438,7 +436,7 @@ public class Service extends BaseEntityService2 {
 	
 	@Override
 
-	@Transactional(dontRollbackOn = { Exception.class })
+//	@Transactional(dontRollbackOn = { Exception.class })
 	public Long insert(Answer[] answers) throws IllegalArgumentException {
 		if (securityService.isAuthorised()) {
 			String realm = getRealm();
