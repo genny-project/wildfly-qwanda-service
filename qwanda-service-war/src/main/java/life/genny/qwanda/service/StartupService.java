@@ -94,9 +94,9 @@ import org.hibernate.criterion.Restrictions;
  */
 @Singleton
 @Startup
+@Transactional
 
-
-//@TransactionTimeout(value = 8000, unit = TimeUnit.SECONDS)
+@TransactionTimeout(value = 8000, unit = TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
