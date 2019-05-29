@@ -96,7 +96,7 @@ import org.hibernate.criterion.Restrictions;
 @Startup
 @Transactional
 
-@TransactionTimeout(value = 8000, unit = TimeUnit.SECONDS)
+@TransactionTimeout(value = 80000, unit = TimeUnit.SECONDS)
 public class StartupService {
 
 	/**
@@ -158,7 +158,7 @@ public class StartupService {
 					service.setCurrentRealm(realm);
 					log.info("PROJECT " + realm);
 					BatchLoading bl = new BatchLoading(project, service);
-
+					
 					// save urls to Keycloak maps
 					service.setCurrentRealm(projectCode); // provide overridden realm
 
