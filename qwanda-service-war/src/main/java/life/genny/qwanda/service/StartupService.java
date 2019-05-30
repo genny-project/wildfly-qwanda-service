@@ -515,8 +515,18 @@ public class StartupService {
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
 				for (String url : urls) {
-					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, url.toUpperCase(), JsonUtils.toJson(be));
-					VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + url.toUpperCase(), token);
+					URL aURL = null;
+					try {
+						if (!((url.startsWith("http:"))||(url.startsWith("https:")))) {
+							url = "http://"+url; // hack
+						}
+						aURL = new URL(url);
+						final String cleanUrl = aURL.getHost();
+						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(), JsonUtils.toJson(be));
+						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);
+					} catch (MalformedURLException e) {
+						log.error("Bad URL for realm "+be.getRealm()+"="+url);
+					}
 				}
 			}
 			//
