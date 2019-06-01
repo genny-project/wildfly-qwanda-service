@@ -407,7 +407,7 @@ public class StartupService {
 					projectBe = createAnswer(projectBe, "ENV_DISABLE", disable, true);
 					projectBe = createAnswer(projectBe, "ENV_REALM", realm, true);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_URL", keycloakUrl, true);
-
+					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_REDIRECTURI", keycloakUrl, true);
 					BatchLoading bl = new BatchLoading(project, service);
 					String keycloakJson = bl.constructKeycloakJson(project);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_JSON", keycloakJson, true);
