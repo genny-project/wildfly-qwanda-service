@@ -158,14 +158,14 @@ public class StartupService {
 					service.setCurrentRealm(realm);
 					log.info("PROJECT " + realm);
 					BatchLoading bl = new BatchLoading(project, service);
-					
+
 					// save urls to Keycloak maps
 					service.setCurrentRealm(projectCode); // provide overridden realm
 
 					bl.persistProject(false, null, false);
 					String keycloakJson = bl.constructKeycloakJson(project);
 					bl.upsertKeycloakJson(keycloakJson);
-			//		bl.upsertProjectUrls((String) project.get("urlList"));
+					// bl.upsertProjectUrls((String) project.get("urlList"));
 				}
 			}
 			log.info("*********************** Finished Google Doc Import ***********************************");
@@ -213,44 +213,46 @@ public class StartupService {
 			log.info("Skipped Github Layout loading ....");
 		}
 
-		log.info("Loading V1 Genny Sublayouts");
-		for (String realm : projects.keySet()) {
-			Map<String, Object> project = projects.get(realm);
-			if ("FALSE".equals((String) project.get("disable"))) {
+		if (false) {
+			log.info("Loading V1 Genny Sublayouts");
+			for (String realm : projects.keySet()) {
+				Map<String, Object> project = projects.get(realm);
+				if ("FALSE".equals((String) project.get("disable"))) {
 
-				QDataSubLayoutMessage sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, "genny/sublayouts",
-						"master");
-				log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
+					QDataSubLayoutMessage sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, "genny/sublayouts",
+							"master");
+					log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
 
-				VertxUtils.writeCachedJson(realm, "GENNY-V1-LAYOUTS", JsonUtils.toJson(sublayoutsMsg),
-						serviceTokens.getServiceToken(realm));
+					VertxUtils.writeCachedJson(realm, "GENNY-V1-LAYOUTS", JsonUtils.toJson(sublayoutsMsg),
+							serviceTokens.getServiceToken(realm));
 
-				log.info("Loading V1 " + realm + " Realm Sublayouts");
-				sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, realm + "/sublayouts", "master");
-				log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
-				VertxUtils.writeCachedJson(realm, realm.toUpperCase() + "-V1-LAYOUTS", JsonUtils.toJson(sublayoutsMsg),
-						serviceTokens.getServiceToken(realm));
+					log.info("Loading V1 " + realm + " Realm Sublayouts");
+					sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, realm + "/sublayouts", "master");
+					log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
+					VertxUtils.writeCachedJson(realm, realm.toUpperCase() + "-V1-LAYOUTS",
+							JsonUtils.toJson(sublayoutsMsg), serviceTokens.getServiceToken(realm));
 
-				SearchEntity searchBE = new SearchEntity("SER_V2_LAYOUTS", "V2 Layout Search");
-				try {
-					searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
-					searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
-					searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "LAY_%");
-					// searchBE.addFilter("PRI_BRANCH",SearchEntity.StringFilter.LIKE, branch);
+					SearchEntity searchBE = new SearchEntity("SER_V2_LAYOUTS", "V2 Layout Search");
+					try {
+						searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+						searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
+						searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "LAY_%");
+						// searchBE.addFilter("PRI_BRANCH",SearchEntity.StringFilter.LIKE, branch);
 
-				} catch (BadDataException e) {
-					log.error("Bad Data Exception");
+					} catch (BadDataException e) {
+						log.error("Bad Data Exception");
+					}
+
+					List<BaseEntity> v2layouts = service.findBySearchBE(searchBE);
+
+					log.info("Loaded " + v2layouts.size() + " V2 " + realm + "-new Realm Sublayouts");
+
+					QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
+					msg.setParentCode("GRP_LAYOUTS");
+					msg.setLinkCode("LNK_CORE");
+					VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg),
+							serviceTokens.getServiceToken(realm));
 				}
-
-				List<BaseEntity> v2layouts = service.findBySearchBE(searchBE);
-
-				log.info("Loaded " + v2layouts.size() + " V2 " + realm + "-new Realm Sublayouts");
-
-				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
-				msg.setParentCode("GRP_LAYOUTS");
-				msg.setLinkCode("LNK_CORE");
-				VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg),
-						serviceTokens.getServiceToken(realm));
 			}
 		}
 
@@ -365,7 +367,6 @@ public class StartupService {
 		}
 	}
 
-
 	private void saveProjectBes(Map<String, Map> projects) {
 		log.info("Updating Project BaseEntitys ");
 
@@ -391,10 +392,9 @@ public class StartupService {
 
 					String projectCode = "PRJ_" + realm.toUpperCase();
 					BaseEntity projectBe = null;
-	
-						projectBe = new BaseEntity(projectCode, name);
-						projectBe = service.upsert(projectBe);
 
+					projectBe = new BaseEntity(projectCode, name);
+					projectBe = service.upsert(projectBe);
 
 					projectBe = createAnswer(projectBe, "PRI_NAME", name, false);
 					projectBe = createAnswer(projectBe, "PRI_CODE", projectCode, false);
@@ -439,6 +439,7 @@ public class StartupService {
 		}
 
 	}
+	
 
 
 	private BaseEntity createAnswer(BaseEntity be, final String attributeCode, final String answerValue,
@@ -470,7 +471,6 @@ public class StartupService {
 
 	}
 
-
 	private void pushProjectsUrlsToDTT(Map<String, Map> projects) {
 
 		final List<String> realms = service.getRealms();
@@ -486,20 +486,19 @@ public class StartupService {
 				service.setCurrentRealm(realm);
 				activeRealms.add(realm);
 
-				BaseEntity be = null; //service.findBaseEntityByCode("PRJ_" + realm.toUpperCase(), true);
+				BaseEntity be = null; // service.findBaseEntityByCode("PRJ_" + realm.toUpperCase(), true);
 				CriteriaBuilder cb = em.getCriteriaBuilder();
-			    CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
-			    Root<BaseEntity> root = query.from(BaseEntity.class);
+				CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+				Root<BaseEntity> root = query.from(BaseEntity.class);
 
-			    query = query.select(root)
-			            .where(cb.equal(root.get("code"), "PRJ_" + realm.toUpperCase()),
-			                    cb.equal(root.get("realm"), realm));
-			    
-			    try {
-			        be = em.createQuery(query).getSingleResult();
-			    } catch (NoResultException nre) {
-			       
-			    }
+				query = query.select(root).where(cb.equal(root.get("code"), "PRJ_" + realm.toUpperCase()),
+						cb.equal(root.get("realm"), realm));
+
+				try {
+					be = em.createQuery(query).getSingleResult();
+				} catch (NoResultException nre) {
+
+				}
 //				Session session = em.unwrap(org.hibernate.Session.class);
 //				Criteria criteria = session.createCriteria(BaseEntity.class);
 //				BaseEntity be = (BaseEntity)criteria
@@ -508,7 +507,7 @@ public class StartupService {
 //				                             .uniqueResult();
 
 				String urlList = be.getValue("ENV_URL_LIST", "alyson3.genny.life");
-				String token = serviceTokens.getServiceToken(realm); //be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
+				String token = serviceTokens.getServiceToken(realm); // be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
 
 				log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
@@ -517,15 +516,16 @@ public class StartupService {
 				for (String url : urls) {
 					URL aURL = null;
 					try {
-						if (!((url.startsWith("http:"))||(url.startsWith("https:")))) {
-							url = "http://"+url; // hack
+						if (!((url.startsWith("http:")) || (url.startsWith("https:")))) {
+							url = "http://" + url; // hack
 						}
 						aURL = new URL(url);
 						final String cleanUrl = aURL.getHost();
-						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(), JsonUtils.toJson(be));
+						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(),
+								JsonUtils.toJson(be));
 						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);
 					} catch (MalformedURLException e) {
-						log.error("Bad URL for realm "+be.getRealm()+"="+url);
+						log.error("Bad URL for realm " + be.getRealm() + "=" + url);
 					}
 				}
 			}
