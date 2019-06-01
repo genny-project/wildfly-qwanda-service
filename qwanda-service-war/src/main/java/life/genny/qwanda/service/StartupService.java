@@ -480,7 +480,7 @@ public class StartupService {
 
 		for (String realm : realms) {
 			Map<String, Object> project = projects.get(realm);
-			if ("FALSE".equals((String) project.get("disable"))) {
+			if ((project != null) && ("FALSE".equals((String) project.get("disable")))) {
 
 				// push the project to the urls as keys too
 				service.setCurrentRealm(realm);
