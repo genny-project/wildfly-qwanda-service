@@ -8,10 +8,13 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import org.jboss.ejb3.annotation.TransactionTimeout;
@@ -175,7 +178,7 @@ public class StartupService {
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
-			pushToDTT();
+			pushToDTT(projects);
 		}
 
 		pushProjectsUrlsToDTT(projects);
@@ -270,7 +273,7 @@ public class StartupService {
 
 	}
 
-	public void pushToDTT() {
+	public void pushToDTT(Map<String, Map> projects) {
 		// Attributes
 		log.info("Pushing Attributes to Cache");
 		final List<Attribute> entitys = service.findAttributes();
@@ -282,16 +285,57 @@ public class StartupService {
 		log.info("Pushed " + entitys.size() + " attributes to cache");
 
 		// BaseEntitys
-		List<BaseEntity> results = em
-				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
-
 //		List<BaseEntity> results = em
-//				.createQuery("SELECT be FROM BaseEntity be  JOIN  be.baseEntityAttributes ea ").getResultList();
+//				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
+		Session session = em.unwrap(org.hibernate.Session.class);
+
+		for (String realmCode : projects.keySet()) {
+			Map<String, Object> project = projects.get(realmCode);
+			if ("FALSE".equals((String) project.get("disable"))) {
+
+				service.setCurrentRealm(realmCode);
+				log.info("Project: " + projects.get(realmCode)+" push to DDT");
+
+					String realm = realmCode;
+					
+//					CriteriaBuilder cb = em.getCriteriaBuilder();
+//					CriteriaQuery<BaseEntity> q = cb.createQuery(BaseEntity.class);
+//					Root<BaseEntity> r = q.from(BaseEntity.class);
+//				//	r.fetch("baseEntityAttributes", JoinType.LEFT);
+//					Join<BaseEntity, EntityAttribute> productItemJoin = (Join<BaseEntity, EntityAttribute>) r.<BaseEntity, EntityAttribute>fetch("baseEntityAttributes", JoinType.LEFT);
+//					// here join with the root instead of the fetch
+//					// casting the fetch to the join could cause portability problems
+//					// plus, not nice
+//					q.where(cb.equal(r.get("productItem").get("status"), "received"));
+//					Ereturn ereturn= em.createQuery(q).getSingleResult();
+					
+					
+					CriteriaBuilder builder = em.getCriteriaBuilder();
+					CriteriaQuery<BaseEntity> query = builder.createQuery(BaseEntity.class);
+					Root<BaseEntity> be = query.from(BaseEntity.class);
+					Join<BaseEntity, EntityAttribute> ea = (Join)be.fetch("baseEntityAttributes");
+					query.select(be);
+					query.distinct(true);
+					query.where(builder.equal(ea.get("realm"), realm));
+					
+					List<BaseEntity> results = em.createQuery(query).getResultList();
+					
+//					EntityGraph<BaseEntity> fetchGraph = em.createEntityGraph(BaseEntity.class);
+//					fetchGraph.addSubgraph(Team_.players);
+//					TypedQuery<Team> q = entityManager.createQuery(c).setHint("javax.persistence.loadgraph", fetchGraph);
+//					
+//					
+//					Criteria criteria = session.createCriteria(BaseEntity.class);
+//
+//					List<BaseEntity> results = (List<BaseEntity>) criteria.add(Restrictions.eq("realm", realm)).list();
+					log.info("Pushing " +realm+" : "+ results.size() + " Basentitys to Cache");
+					service.writeToDDT(results);
+					log.info("Pushed " +realm+" : "+ results.size() + " Basentitys to Cache");
+				}
+
+		}
 
 		// Collect all the baseentitys
-		log.info("Pushing " + results.size() + " Basentitys to Cache");
-		service.writeToDDT(results);
-		log.info("Pushed " + results.size() + " Basentitys to Cache");
 
 	}
 
@@ -439,8 +483,6 @@ public class StartupService {
 		}
 
 	}
-	
-
 
 	private BaseEntity createAnswer(BaseEntity be, final String attributeCode, final String answerValue,
 			final Boolean privacy) {

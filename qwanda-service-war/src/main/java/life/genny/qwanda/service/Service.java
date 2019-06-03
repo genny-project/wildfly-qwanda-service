@@ -79,22 +79,12 @@ public class Service extends BaseEntityService2 {
 	@Inject
 	private SecurityService securityService;
 
-	@Inject
-	private SecureResources secureResources;
-
-//	@Inject
-//	private WildFlyJmsQueueSender jms;
-//
-//	@Inject
-//	private WildflyJms jms2;
 
 	@Inject
 	private Hazel inDB;
 
 	@Inject
 	private ServiceTokenService serviceTokens;
-
-	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	String token;
 
@@ -116,13 +106,7 @@ public class Service extends BaseEntityService2 {
 		// Send a vertx message broadcasting an attribute value Change
 		log.info("!!ATTRIBUTE CHANGE EVENT ->" + event.getBe().getCode());
 
-//		try {
 		VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
-//		//	String json = JsonUtils.toJson(event);
-//		//	QwandaUtils.apiPostEntity(bridgeApi, json, event.getToken());
-//		} catch (Exception e) {
-//			log.error("Error in posting attribute changeto JMS:" + event);
-//		}
 
 	}
 
@@ -199,7 +183,7 @@ public class Service extends BaseEntityService2 {
 		log.info("!!System EVENT ->" + systemCode+" for realm "+this.getCurrentRealm());
 
 		QEventSystemMessage event = new QEventSystemMessage(systemCode, properties, token);
-
+		
 		VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
 
 
@@ -234,16 +218,9 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public BaseEntity getUser() {
 		BaseEntity user = null;
-		String username = (String) securityService.getUserMap().get("username");
-		final MultivaluedMap params = new MultivaluedMapImpl();
-		params.add("PRI_USERNAME", username);
+		
+ 		user =  super.findBaseEntityByCode(securityService.getUserCode(), true);
 
-		List<BaseEntity> users = this.findBaseEntitysByAttributeValues(params, true, 0, 1);
-
-		if (!(users == null || users.isEmpty())) {
-			user = users.get(0);
-
-		}
 		return user;
 	}
 
@@ -251,8 +228,6 @@ public class Service extends BaseEntityService2 {
 
 	public Long insert(final BaseEntity entity) {
 		if (securityService.isAuthorised()) {
-		//	String realm = getRealm();
-		//	entity.setRealm(realm); // always override
 			return super.insert(entity);
 		}
 
@@ -266,7 +241,6 @@ public class Service extends BaseEntityService2 {
 		try {
 			return super.addLink(sourceCode, targetCode, linkCode, value, weight);
 		} catch (IllegalArgumentException | BadDataException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -308,41 +282,11 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public void writeToDDT(final List<BaseEntity> bes) {
 
-//		if (GennySettings.devMode) {
-//			this.initServiceToken();
-//			int pageSize = 100;
-//			int pages = bes.size()/pageSize;
-//			for (int page=0;page<=pages;page++) {
-//			try {
-//				int arrSize = pageSize;
-//				if (page==pages) {
-//					arrSize = bes.size()-page*pageSize;
-//				}
-//			
-//				
-//				BaseEntity[] arr = new BaseEntity[arrSize];
-//				for (int index=0;index<arrSize;index++) {
-//					int offset = page*pageSize+index;
-//					arr[index] = bes.get(offset);
-//				}
-//				log.info("Sending "+page+" to cache api");
-//				QDataBaseEntityMessage msg = new QDataBaseEntityMessage(arr, "CACHE",
-//						token);
-//				String jsonMsg = JsonUtils.toJson(msg);
-//				JsonObject json = new JsonObject();
-//				json.put("json", jsonMsg);
-//				QwandaUtils.apiPostEntity(GennySettings.ddtUrl + "/writearray", json.toString(), token);
-//				
-//			} catch (IOException e) {
-//				log.error("Could not write to cache");
-//			}
-//			}
-//		} else {
+
 		for (BaseEntity be : bes) {
-			// be = super.findBaseEntityByCode(be.getCode(),true); // ugly
 			writeToDDT(be);
 		}
-//		}
+
 
 	}
 
@@ -435,8 +379,6 @@ public class Service extends BaseEntityService2 {
 	}
 	
 	@Override
-
-//	@Transactional(dontRollbackOn = { Exception.class })
 	public Long insert(Answer[] answers) throws IllegalArgumentException {
 		if (securityService.isAuthorised()) {
 			String realm = getRealm();

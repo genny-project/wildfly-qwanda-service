@@ -1223,33 +1223,33 @@ public class QwandaEndpoint {
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
-		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
 		final String pageSizeStr = params.getFirst("pageSize");
 		if (pageStartStr != null) {
 			pageStart = Integer.decode(pageStartStr);
-			qparams.remove("pageStart");
+
 		}
 		if (pageSizeStr != null) {
 			pageSize = Integer.decode(pageSizeStr);
-			qparams.remove("pageSize");
+
 		}
 
-		final List<BaseEntity> targets = service.findBaseEntitysByAttributeValues(qparams, true, pageStart, pageSize);
+        SearchEntity searchBE = new SearchEntity("SBE_TEST2", "findBaseEntitysByAttributeValue");
+        for(String str : params.keySet()){
+        	if ((!"pageStart".equals(str))&&(!"pageSize".equals(str))) {
+        		searchBE.addFilter(str,SearchEntity.StringFilter.EQUAL, params.getFirst(str));
+        	}
+        }
+        searchBE.addSort("PRI_CREATED", "Created", SearchEntity.Sort.DESC)
+        .setPageStart(pageStart)
+        .setPageSize(pageSize);
 
-		BaseEntity[] beArr = new BaseEntity[targets.size()];
-		beArr = targets.toArray(beArr);
-		final Long total = service.findBaseEntitysByAttributeValuesCount(params);
-
-		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
-
-		String json = JsonUtils.toJson(msg);
-		// log.debug("BE:" + json);
-		return Response.status(200).entity(json).build();
-
-		// return Response.status(200).entity(msg).build();
+	
+		Response response = findBySearchBE(searchBE);
+		
+		
+				return response;
 
 	}
 

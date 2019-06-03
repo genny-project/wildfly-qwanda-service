@@ -116,7 +116,11 @@ public class SecurityService implements Serializable {
 	public String getUserCode()
 	{
 		String username = (String)getUserMap().get("username");
-		return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+		if (username == null) {
+			return "PER_SERVICE";  // TODO - Test this out!
+		} else {
+			return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+		}
 	}
 	
 	public static void setImportMode(final boolean mode) {

@@ -23,5 +23,6 @@
     <logger name="com.hazelcast.client.spi.impl.ClientMembershipListener" level="ERROR" />
     <logger name="com.hazelcast.internal.diagnostics" level="SEVERE"/>
     <logger name="com.hazelcast.spi.impl.operationservice.impl.Invocation" level="SEVERE" />
+    <logger name="org.hibernate.orm.deprecation" level="ERROR" />
 </configuration>
 
