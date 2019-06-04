@@ -148,6 +148,7 @@ public class StartupService {
 
 		// Save projects
 		saveProjectBes(projects);
+		saveServiceBes(projects);
 		pushProjectsUrlsToDTT(projects);
 
 		if (!GennySettings.skipGoogleDocInStartup) {
@@ -477,6 +478,40 @@ public class StartupService {
 						SecureResources.addRealm(url + ".json", keycloakJson);
 						SecureResources.addRealm(url, keycloakJson);
 					}
+
+				}
+			}
+		}
+
+	}
+	
+	private void saveServiceBes(Map<String, Map> projects) {
+		log.info("Updating Service BaseEntitys ");
+
+		for (String realmCode : projects.keySet()) {
+			Map<String, Object> project = projects.get(realmCode);
+			if ("FALSE".equals((String) project.get("disable"))) {
+
+				service.setCurrentRealm(realmCode);
+				log.info("Service: " + projects.get(realmCode));
+
+				if ("FALSE".equals((String) project.get("disable"))) {
+					String realm = realmCode;
+					String name = (String) project.get("name")+" Service User";
+					String realmToken = serviceTokens.getServiceToken(realm);
+
+					String serviceCode = "PER_SERVICE";
+					BaseEntity serviceBe = null;
+
+					serviceBe = new BaseEntity(serviceCode, name);
+					serviceBe = service.upsert(serviceBe);
+
+					serviceBe = createAnswer(serviceBe, "PRI_NAME", name, false);
+					serviceBe = createAnswer(serviceBe, "PRI_CODE", serviceCode, false);
+					serviceBe = createAnswer(serviceBe, "ENV_SERVICE_TOKEN", realmToken, true);
+
+					serviceBe = service.upsert(serviceBe);
+
 
 				}
 			}
