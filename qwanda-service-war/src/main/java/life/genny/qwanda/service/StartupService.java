@@ -157,7 +157,7 @@ public class StartupService {
 			for (String projectCode : projects.keySet()) {
 				log.info("Project: " + projects.get(projectCode));
 				Map<String, Object> project = projects.get(projectCode);
-				if ("FALSE".equals((String) project.get("disable"))) {
+				if ("FALSE".equals((String) project.get("skipGoogleDoc"))) {
 					String realm = ((String) project.get("code"));
 					service.setCurrentRealm(realm);
 					log.info("PROJECT " + realm);
@@ -263,7 +263,7 @@ public class StartupService {
 		for (String realm : projects.keySet()) {
 			Map<String, Object> project = projects.get(realm);
 			if ("FALSE".equals((String) project.get("disable"))) {
-
+				service.setCurrentRealm(realm);
 				String accessToken = serviceTokens.getServiceToken(realm);
 				service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
 			}

@@ -18,6 +18,8 @@ import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
 
+import life.genny.qwandautils.GennySettings;
+
 import life.genny.security.SecureResources;
 
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
@@ -71,16 +73,21 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 				} else {
 
+					if (request.getURI().equals("http://localhost:8080/version")) {
+						realm = GennySettings.mainrealm;
+					} else {
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
 					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
 					if (keycloakJsonText==null) {
 						log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
+						
 					} else {
 					// extract realm
 					final JSONObject json = new JSONObject(keycloakJsonText);
 					realm = json.getString("realm");
 					key = realm + ".json";
+					}
 					}
 				}
 
@@ -97,6 +104,9 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				log.debug(logtext);
 				lastlog = logtext;
 			}
+		} else {
+			realm = GennySettings.mainrealm;
+			key = realm;
 		}
 
 		KeycloakDeployment deployment = cache.get(realm);
