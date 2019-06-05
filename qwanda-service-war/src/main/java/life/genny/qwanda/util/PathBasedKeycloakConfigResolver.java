@@ -106,10 +106,13 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				lastlog = logtext;
 			}
 		} else {
-			Optional<String> firstRealm = cache.keySet().stream().findFirst();
+			Optional<String> firstRealm = SecureResources.getKeycloakJsonMap().keySet().stream().findFirst();
 			if (firstRealm.isPresent()) {
-				realm = firstRealm.get();
-				key = realm;
+				String kcStr = firstRealm.get();
+				final JSONObject json = new JSONObject(kcStr);
+				realm = json.getString("realm");
+				key = realm + ".json";
+
 			} else {
 				log.error("No Realms in KeycloakJson Cache!");
 				return null;
