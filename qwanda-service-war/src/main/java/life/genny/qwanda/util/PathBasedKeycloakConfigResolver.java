@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
@@ -105,11 +106,18 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				lastlog = logtext;
 			}
 		} else {
-			realm = GennySettings.mainrealm;
-			key = realm;
+			Optional<String> firstRealm = cache.keySet().stream().findFirst();
+			if (firstRealm.isPresent()) {
+				realm = firstRealm.get();
+				key = realm;
+			} else {
+				log.error("No Realms in KeycloakJson Cache!");
+				return null;
+			}
 		}
 
-		KeycloakDeployment deployment = cache.get(realm);
+		KeycloakDeployment deployment = cache.get(realm);  // just get one
+		key = realm;
 
 		if (null == deployment) {
 			InputStream is;
