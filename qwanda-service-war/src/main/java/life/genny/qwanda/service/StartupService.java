@@ -598,6 +598,7 @@ public class StartupService {
 						}
 						aURL = new URL(url);
 						final String cleanUrl = aURL.getHost();
+						log.info("Writing to Cache: "+GennySettings.GENNY_REALM+":"+cleanUrl.toUpperCase());
 						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(),
 								JsonUtils.toJson(be));
 						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);

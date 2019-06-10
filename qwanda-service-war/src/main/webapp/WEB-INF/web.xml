@@ -103,6 +103,7 @@
 		</web-resource-collection>
 	<auth-constraint>
         <role-name>dev</role-name>
+         <role-name>test</role-name>
     </auth-constraint>
 	</security-constraint>
 	
@@ -138,7 +139,9 @@
 		<security-role>
 		<role-name>dev</role-name>
 	</security-role>
-  
+  		<security-role>
+		<role-name>test</role-name>
+	</security-role>
  
   
 	
