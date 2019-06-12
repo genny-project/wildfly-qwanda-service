@@ -1,5 +1,5 @@
-FROM gennyproject/wildfly:16.0.0.Final 
-#FROM gennyproject/wildfly:v2.3.0 
+#FROM gennyproject/wildfly:16.0.0.Final 
+FROM gennyproject/wildfly:v2.4.0 
 RUN apk update && apk add git 
 
 USER root
