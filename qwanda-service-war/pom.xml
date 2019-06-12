@@ -34,9 +34,9 @@
 
 		<qwanda-services.version>${revision}</qwanda-services.version>
 		<genny-verticle.version>${revision}</genny-verticle.version>
-		
 
-		<version.org.wildfly>15.0.1.Final</version.org.wildfly>
+
+		<version.org.wildfly>16.0.0.Final</version.org.wildfly>
 
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
 
@@ -57,9 +57,9 @@
 		<project.http.version>1.19.0</project.http.version>
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<version.jboss.bom>15.0.1.Final</version.jboss.bom>
-		<drools.version>7.1.0.Final</drools.version>
-		<jbpm.version>7.1.0.Final</jbpm.version>
+		<version.jboss.bom>16.0.0.Final</version.jboss.bom>
+		<drools.version>7.20.0.Final</drools.version>
+		<jbpm.version>7.20.0.Final</jbpm.version>
 		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
 		<keycloak-adapter-core.version>3.4.0.Final</keycloak-adapter-core.version>
 
@@ -194,6 +194,11 @@
 			<version>1.0.0-PFD</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-jaxb-annotations</artifactId>
+			<version>2.9.8</version>
+		</dependency>
 		<!--> <dependency> <groupId>com.hazelcast</groupId> <artifactId>hazelcast</artifactId> 
 			<version>${hazelcast.version}</version> </dependency> <dependency> <groupId>com.hazelcast</groupId> 
 			<artifactId>hazelcast-client</artifactId> <version>${hazelcast.version}</version> 
@@ -459,15 +464,10 @@
 			<scope>provided</scope>
 		</dependency>
 
-        <!-->
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-client</artifactId>
-            <version>${hazelcast.version}</version>
-        </dependency>
-        </!-->
-	
-			<dependency>
+		<!--> <dependency> <groupId>com.hazelcast</groupId> <artifactId>hazelcast-client</artifactId> 
+			<version>${hazelcast.version}</version> </dependency> </! -->
+
+		<dependency>
 			<groupId>life.genny</groupId>
 			<artifactId>genny-verticle-rules</artifactId>
 			<version>${genny-verticle.version}</version>

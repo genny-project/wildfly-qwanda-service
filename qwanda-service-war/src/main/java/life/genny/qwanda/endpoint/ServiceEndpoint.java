@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import org.jboss.ejb3.annotation.TransactionTimeout;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +83,7 @@ import life.genny.qwanda.GPSLocation;
 import life.genny.qwanda.GPSRoute;
 import life.genny.qwanda.GPSRouteStatus;
 import life.genny.qwanda.Layout;
+import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
@@ -93,6 +95,7 @@ import life.genny.qwanda.message.QDataSubLayoutMessage;
 import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GPSUtils;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.GitUtils;
@@ -707,35 +710,36 @@ public class ServiceEndpoint {
 			log.info("Realm = " + realm);
 			log.info("gitUrl = " + gitUrl);
 			log.info("Branch = " + branch);
-			
+
 			// V1
 
-			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,"genny/sublayouts",true); // get common layouts
-			
+			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, "genny/sublayouts",
+					true); // get common layouts
+
 			log.info("about to synch sublayouts for genny");
-			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts,false);
+			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts, false);
 			log.info("writing to cache GENNY-V1-LAYOUTS");
 			VertxUtils.writeCachedJson(securityService.getRealm(), "GENNY-V1-LAYOUTS", JsonUtils.toJson(v1messages),
 					service.getToken());
-			
 
-			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,realm+"/sublayouts",true);
-			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts,false);
-			log.info("writing to cache "+realm.toUpperCase()+"-V1-LAYOUTS");			
-			VertxUtils.writeCachedJson(securityService.getRealm(), realm.toUpperCase()+"-V1-LAYOUTS", JsonUtils.toJson(v1realmmessages),
-					service.getToken());
-			
+			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "/sublayouts",
+					true);
+			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts, false);
+			log.info("writing to cache " + realm.toUpperCase() + "-V1-LAYOUTS");
+			VertxUtils.writeCachedJson(securityService.getRealm(), realm.toUpperCase() + "-V1-LAYOUTS",
+					JsonUtils.toJson(v1realmmessages), service.getToken());
+
 			// Do V2
-			
+
 			log.info("************* Generating V2 Layouts *************");
-			
-			gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,"genny",false); // get common layouts
-		//	service.saveLayouts( gennyLayouts, "genny-new", "V2", branch);
-			synchLayouts( gennyLayouts,true);
-			realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm,realm+"-new",true);
-			synchLayouts( realmLayouts,true);
-		//	service.saveLayouts( realmLayouts, realm+"-new", "V2", branch);
-		
+
+			gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, "genny", false); // get common layouts
+			// service.saveLayouts( gennyLayouts, "genny-new", "V2", branch);
+			synchLayouts(gennyLayouts, true);
+			realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "-new", true);
+			synchLayouts(realmLayouts, true);
+			// service.saveLayouts( realmLayouts, realm+"-new", "V2", branch);
+
 			List<BaseEntity> layouts = new ArrayList<BaseEntity>();
 //			log.info("genny "+gennyLayouts.size()+" layouts ");
 			layouts.addAll(gennyLayouts);
@@ -748,114 +752,287 @@ public class ServiceEndpoint {
 //
 //			
 //			synchLayouts(layouts,true);   // save the layouts to the database
-			
+
 			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(layouts.toArray(new BaseEntity[0]));
 			msg.setParentCode("GRP_LAYOUTS");
 			msg.setLinkCode("LNK_CORE");
-			VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg),
-					service.getToken());
+			VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg), service.getToken());
 
-			log.info("Loaded in layouts for realm "+realm);
+			log.info("Loaded in layouts for realm " + realm);
 			// genny/sublayouts ..
 			// [{"name":"DRIVER.json","download_url":"http://layout-cache:2223/genny/sublayouts/DRIVER.json","path":"/genny/sublayouts/DRIVER.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"LOAD-ITEM.json","download_url":"http://layout-cache:2223/genny/sublayouts/LOAD-ITEM.json","path":"/genny/sublayouts/LOAD-ITEM.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"LOAD.json","download_url":"http://layout-cache:2223/genny/sublayouts/LOAD.json","path":"/genny/sublayouts/LOAD.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"OFFER-ACCEPTED.json","download_url":"http://layout-cache:2223/genny/sublayouts/OFFER-ACCEPTED.json","path":"/genny/sublayouts/OFFER-ACCEPTED.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"OFFER.json","download_url":"http://layout-cache:2223/genny/sublayouts/OFFER.json","path":"/genny/sublayouts/OFFER.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"OWNER.json","download_url":"http://layout-cache:2223/genny/sublayouts/OWNER.json","path":"/genny/sublayouts/OWNER.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"STAFF.json","download_url":"http://layout-cache:2223/genny/sublayouts/STAFF.json","path":"/genny/sublayouts/STAFF.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"address-dropoff-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/address-dropoff-display.json","path":"/genny/sublayouts/address-dropoff-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"address-pickup-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/address-pickup-display.json","path":"/genny/sublayouts/address-pickup-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"list-item-conversation.json","download_url":"http://layout-cache:2223/genny/sublayouts/list-item-conversation.json","path":"/genny/sublayouts/list-item-conversation.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"list-item-website.json","download_url":"http://layout-cache:2223/genny/sublayouts/list-item-website.json","path":"/genny/sublayouts/list-item-website.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"load-action-buttons.json","download_url":"http://layout-cache:2223/genny/sublayouts/load-action-buttons.json","path":"/genny/sublayouts/load-action-buttons.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"map-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/map-display.json","path":"/genny/sublayouts/map-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"price-display.json","download_url":"http://layout-cache:2223/genny/sublayouts/price-display.json","path":"/genny/sublayouts/price-display.json","modified_date":"2019-03-08T03:33:37.341Z"},{"name":"quote-received.json","download_url":"http://layout-cache:2223/genny/sublayouts/quote-received.json","path":"/genny/sublayouts/quote-received.json","modified_date":"2019-03-08T03:33:37.341Z"}]
 		}
 		return Response.status(200).entity(ret).build();
 	}
 
-
 	public QDataSubLayoutMessage synchLayouts(final List<BaseEntity> layouts, final boolean saveToDatabase) {
 
 		Layout[] layoutArray = new Layout[layouts.size()];
-		
+
 		Attribute layoutDataAttribute = service.findAttributeByCode("PRI_LAYOUT_DATA");
 		Attribute layoutURLAttribute = service.findAttributeByCode("PRI_LAYOUT_URL");
 		Attribute layoutURIAttribute = service.findAttributeByCode("PRI_LAYOUT_URI");
 		Attribute layoutNameAttribute = service.findAttributeByCode("PRI_LAYOUT_NAME");
 		Attribute layoutModifiedDateAttribute = service.findAttributeByCode("PRI_LAYOUT_MODIFIED_DATE");
 
-
 		int index = 0;
 		for (BaseEntity layout : layouts) {
 			final String code = layout.getCode();
 			BaseEntity existingLayout = null;
 
-
-		
-				// log.info(e.getLocalizedMessage());
-				// so save the layout
-				BaseEntity newLayout = null;
-				try {
-					newLayout = service.findBaseEntityByCode(layout.getCode());
-				} catch (NoResultException e) {
-					log.info("New Layout detected");
-				}
-				if (newLayout == null) {
-					newLayout = new BaseEntity(layout.getCode(), layout.getName());
-				} else {
-					int newData = layout.getValue("PRI_LAYOUT_DATA").get().toString().hashCode();
-					Optional<EntityAttribute> oldDataEA = newLayout.findEntityAttribute("PRI_LAYOUT_DATA");
-					if (oldDataEA.isPresent()) {
-						int oldData = oldDataEA.get().getAsString().hashCode();
-						if (newData == oldData) {
-							continue;
-						}
+			// log.info(e.getLocalizedMessage());
+			// so save the layout
+			BaseEntity newLayout = null;
+			try {
+				newLayout = service.findBaseEntityByCode(layout.getCode());
+			} catch (NoResultException e) {
+				log.info("New Layout detected");
+			}
+			if (newLayout == null) {
+				newLayout = new BaseEntity(layout.getCode(), layout.getName());
+			} else {
+				int newData = layout.getValue("PRI_LAYOUT_DATA").get().toString().hashCode();
+				Optional<EntityAttribute> oldDataEA = newLayout.findEntityAttribute("PRI_LAYOUT_DATA");
+				if (oldDataEA.isPresent()) {
+					int oldData = oldDataEA.get().getAsString().hashCode();
+					if (newData == oldData) {
+						continue;
 					}
 				}
-				newLayout.setRealm(securityService.getRealm());
-				newLayout.setUpdated(layout.getUpdated());
+			}
+			newLayout.setRealm(securityService.getRealm());
+			newLayout.setUpdated(layout.getUpdated());
 
-				if (saveToDatabase) {
-					service.upsert(newLayout);
-				}
-				
-				 try {
-		              EntityAttribute ea = newLayout.addAttribute(layoutDataAttribute, 0.0, layout.getValue("PRI_LAYOUT_DATA").get().toString());
-		              EntityAttribute ea2 = newLayout.addAttribute(layoutURLAttribute, 0.0, layout.getValue("PRI_LAYOUT_URL").get().toString());
-		              EntityAttribute ea3 = newLayout.addAttribute(layoutURIAttribute, 0.0, layout.getValue("PRI_LAYOUT_URI").get().toString());
-		              EntityAttribute ea4 = newLayout.addAttribute(layoutNameAttribute, 0.0, layout.getValue("PRI_LAYOUT_NAME").get().toString());
-		              EntityAttribute ea5 = newLayout.addAttribute(layoutModifiedDateAttribute, 0.0, layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString());
-		            } catch (final BadDataException e) {
-		              e.printStackTrace();
-		            }
-		            
+			if (saveToDatabase) {
+				service.upsert(newLayout);
+			}
 
-				if (saveToDatabase) {
+			try {
+				EntityAttribute ea = newLayout.addAttribute(layoutDataAttribute, 0.0,
+						layout.getValue("PRI_LAYOUT_DATA").get().toString());
+				EntityAttribute ea2 = newLayout.addAttribute(layoutURLAttribute, 0.0,
+						layout.getValue("PRI_LAYOUT_URL").get().toString());
+				EntityAttribute ea3 = newLayout.addAttribute(layoutURIAttribute, 0.0,
+						layout.getValue("PRI_LAYOUT_URI").get().toString());
+				EntityAttribute ea4 = newLayout.addAttribute(layoutNameAttribute, 0.0,
+						layout.getValue("PRI_LAYOUT_NAME").get().toString());
+				EntityAttribute ea5 = newLayout.addAttribute(layoutModifiedDateAttribute, 0.0,
+						layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString());
+			} catch (final BadDataException e) {
+				e.printStackTrace();
+			}
+
+			if (saveToDatabase) {
+				try {
+
+					// service.updateWithAttributes(newLayout);
 					try {
-				
-						//service.updateWithAttributes(newLayout);
-						try {
-							// merge in entityAttributes
-							newLayout = service.getEntityManager().merge(newLayout);
-				 		} catch (final Exception  e) {
-							// so persist otherwise
-							service.getEntityManager().persist(newLayout);
-						}
-						String json = JsonUtils.toJson(newLayout);
-						service.writeToDDT(newLayout.getCode(), json);
-						service.addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0,false);   // don't send change event
-					} catch (IllegalArgumentException | BadDataException e) {
-						log.error("Could not write layout - "+e.getLocalizedMessage());
+						// merge in entityAttributes
+						newLayout = service.getEntityManager().merge(newLayout);
+					} catch (final Exception e) {
+						// so persist otherwise
+						service.getEntityManager().persist(newLayout);
 					}
-					
-				}
-			
-
-				// create layout array
-				try {
-					layoutArray[index++] = new Layout(layout.getValue("PRI_LAYOUT_NAME").get().toString(),
-							layout.getValue("PRI_LAYOUT_DATA").get().toString(), null, null, null);
-				} catch (Exception e) {
+					String json = JsonUtils.toJson(newLayout);
+					service.writeToDDT(newLayout.getCode(), json);
+					service.addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0, false); // don't send
+																											// change
+																											// event
+				} catch (IllegalArgumentException | BadDataException e) {
+					log.error("Could not write layout - " + e.getLocalizedMessage());
 				}
 
-				String json = JsonUtils.toJson(newLayout);
-				VertxUtils.writeCachedJson(newLayout.getRealm(), newLayout.getCode(), json, service.getToken());
-				index++;
+			}
 
+			// create layout array
+			try {
+				layoutArray[index++] = new Layout(layout.getValue("PRI_LAYOUT_NAME").get().toString(),
+						layout.getValue("PRI_LAYOUT_DATA").get().toString(), null, null, null);
+			} catch (Exception e) {
+			}
+
+			String json = JsonUtils.toJson(newLayout);
+			VertxUtils.writeCachedJson(newLayout.getRealm(), newLayout.getCode(), json, service.getToken());
+			index++;
 
 		}
 		QDataSubLayoutMessage v1messages = new QDataSubLayoutMessage(layoutArray, service.getToken());
 
 		log.info("Finished loading " + layouts.size() + " layouts");
 		return v1messages;
+	}
+
+	/**
+	 * Returns a CSV export of the realm
+	 * 
+	 * @param table
+	 * @return response of the synchronization
+	 */
+	@GET
+	@Consumes("application/json")
+	@Path("/export/{table}/{realm}")
+	@Transactional
+	public Response exportRealm(@PathParam("table") final String tableStr, @PathParam("realm") final String realmStr)
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException,
+			RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+
+		String ret = "";
+		String realm = realmStr.toLowerCase().trim(); // TODO, check if realm is real
+		String table = tableStr.toLowerCase().trim(); // TODO, check if table is real
+
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+
+			log.info("************* Generating Realm Export *************");
+
+			switch (table) {
+
+			case "attribute":
+				// final String code = (String) object.get("code");
+//				final String name = (String) object.get("name");
+//				final String dataType = (String) object.get("datatype");
+//				final String privacy = (String) object.get("privacy");
+//				final String description = (String) object.get("description");
+//				final String help = (String) object.get("help");
+//				final String placeholder = (String) object.get("placeholder");
+//				final String defaultValue = (String) object.get("defaultValue");
+				// BaseEntitys
+				List<Attribute> attributes = em
+						.createQuery("SELECT distinct att FROM Attribute att  where att.realm=:realm")
+						.setParameter("realm", realm).getResultList();
+
+//				code	name	datatype	Hint (Example Associated BaseEntity)	privacy	description	help	placeholder	defaultValue																					
+//				PRI_IS_INTERN	Intern	DTT_BOOLEAN	USER																										
+				ret = "\"code\",\"name\",\"datatype\",\"privacy\",\"description\",\"help\",\"placeholder\",\"defaultValue\"\n";
+				for (Attribute att : attributes) {
+					ret += cell(att.getCode()) + cell(att.getName()) + cell(att.getDataType().getClassName())
+							+ cell(att.getDefaultPrivacyFlag()) + cell(att.getDescription()) + cell(att.getHelp())
+							+ cell(att.getPlaceholder()) + cell(att.getDefaultValue()) + "\n";
+				}
+
+				log.info("Exported " + attributes.size() + " attributes for realm " + realm);
+				break;
+
+			case "baseentity":
+				// BaseEntitys
+				List<BaseEntity> bes = em.createQuery("SELECT distinct be FROM BaseEntity be  where be.realm=:realm")
+						.setParameter("realm", realm).getResultList();
+
+				// code name icon
+				// GRP_DASHBOARD Dashboard dashboard
+				ret = "\"code\",\"name\",\"icon\"\n";
+				for (BaseEntity be : bes) {
+					ret += "\"" + be.getCode() + "\",\"" + be.getName() + "\",\"\"\n";
+				}
+
+				log.info("Exported " + bes.size() + " bes for realm " + realm);
+				break;
+			case "entityattribute":
+				// BaseEntitys
+				List<EntityAttribute> eas = em.createQuery("SELECT ea FROM EntityAttribute ea where ea.realm=:realm")
+						.setParameter("realm", realm).getResultList();
+
+				// baseEntityCode attributeCode weight valueString valueDateTime valueLong
+				// valueInteger valueDouble
+				// PRJ_INTERNMATCH PRI_NAME 1 INTERNMATCH
+				ret = "\"baseEntityCode\",\"attributeCode\",\"weight\",\"valueString\",\"valueDateTime\",\"valueLong\",\"valueInteger\",\"valueDouble\"\n";
+				for (EntityAttribute ea : eas) {
+					ret += cell(ea.getBaseEntityCode()) + cell(ea.getAttributeCode()) + cell(ea.getWeight())
+							+ cell(ea.getValueString()) + cell(ea.getValueDateTime()) + cell(ea.getValueLong())
+							+ cell(ea.getValueInteger()) + cell(ea.getValueDouble()) + "\n";
+				}
+
+				log.info("Exported " + eas.size() + " eas for realm " + realm);
+				break;
+
+			case "validation":
+				// Validations
+				List<Validation> vlds = em.createQuery("SELECT vld FROM Validation vld where vld.realm=:realm")
+						.setParameter("realm", realm).getResultList();
+
+//				code	name	regex	group_codes	recursive	multi_allowed																					
+//				VLD_SELECT_EDU_PROVIDER	dropdown	.*	GRP_EDU_PROVIDER_SELECTION	FALSE																						
+				ret = "\"code\",\"name\",\"regex\",\"group_codes\",\"recursive\",\"multi_allowed\"\n";
+				for (Validation a : vlds) {
+					ret += cell(a.getCode()) + cell(a.getName()) + cell(a.getRegex())
+							+ cell(a.getSelectionBaseEntityGroupList()) + cell(a.getRecursiveGroup())
+							+ cell(a.getMultiAllowed())
+
+							+ "\n";
+				}
+
+				log.info("Exported " + vlds.size() + " eas for realm " + realm);
+				break;
+
+			default:
+				log.error("Unknown table [" + table + "]");
+				return Response.status(400).build();
+			}
+
+		}
+		return Response.status(200).entity(ret).build();
+	}
+
+	private String cell(final String field) {
+		return "\"" + field + "\",";
+	}
+
+	private String cell(final boolean field) {
+		return "\"" + (field ? "TRUE" : "FALSE") + "\",";
+	}
+
+	private String cell(final Double field) {
+		return "\"" + (field.toString()) + "\",";
+	}
+
+	private String cell(final LocalDateTime field) {
+		return "\"" + (field.toString()) + "\",";
+	}
+
+	private String cell(final Long field) {
+		return "\"" + (field.toString()) + "\",";
+	}
+
+	private String cell(final Integer field) {
+		return "\"" + (field.toString()) + "\",";
+	}
+
+	private String cell(final List<String> field) {
+		return "\"" + (field.toString()) + "\",";
+	}
+
+	@GET
+	@Path("/forms")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getForms() {
+
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || securityService.inRole("test")) {
+
+			String realm = securityService.getRealm();
+//select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NULL and q.realm='internmatch' and q.code like 'QUE_%_GRP';
+			try {
+				Query q = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code like 'QUE_%_GRP' and q.code NOT LIKE 'QUE_JOURNAL%' LIMIT 10");
+				List<Object[]> questionCodes = q.getResultList();
+				Query q2 = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1_GRP' LIMIT 1");
+				List<Object[]> questionCodes2 = q2.getResultList();
+				Query q3 = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1D1_GRP' LIMIT 1");
+				List<Object[]> questionCodes3 = q3.getResultList();
+				
+				questionCodes.addAll(questionCodes2);
+				questionCodes.addAll(questionCodes3);
+				
+//				List<String> qqs = em.createQuery(
+//						"SELECT qq.code FROM QuestionQuestion qq where  qq.pk.sourceCode IS NULL  and qq.pk.source.realm=:realm")
+//						.setParameter("realm", realm).getResultList();
+				String json = JsonUtils.toJson(questionCodes);
+
+				return Response.status(200).entity(json).build();
+			} catch (Exception e) {
+				log.error("Error in fetching forms for realm "+realm+" "+e.getLocalizedMessage());
+				return Response.status(401).entity("Query did not work.").build();
+			}
+
+		}
+		return Response.status(401).entity("You need to be a test.").build();
+
 	}
 }

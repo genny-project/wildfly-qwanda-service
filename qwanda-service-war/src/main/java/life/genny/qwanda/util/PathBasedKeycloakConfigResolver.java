@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
@@ -17,6 +18,8 @@ import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
+
+import life.genny.qwandautils.GennySettings;
 
 import life.genny.security.SecureResources;
 
@@ -71,16 +74,21 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 				} else {
 
+					if (request.getURI().equals("http://localhost:8080/version")) {
+						realm = GennySettings.mainrealm;
+					} else {
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
 					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
 					if (keycloakJsonText==null) {
 						log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
+						
 					} else {
 					// extract realm
 					final JSONObject json = new JSONObject(keycloakJsonText);
 					realm = json.getString("realm");
 					key = realm + ".json";
+					}
 					}
 				}
 
@@ -97,15 +105,31 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				log.debug(logtext);
 				lastlog = logtext;
 			}
+		} else {
+			Optional<String> firstRealm = SecureResources.getKeycloakJsonMap().keySet().stream().findFirst();
+			if (firstRealm.isPresent()) {
+				String kcStr = firstRealm.get();
+				final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(kcStr);
+
+				final JSONObject json = new JSONObject(keycloakJsonText);
+				realm = json.getString("realm");
+				key = realm + ".json";
+
+			} else {
+				log.error("No Realms in KeycloakJson Cache!");
+				return null;
+			}
 		}
 
-		KeycloakDeployment deployment = cache.get(realm);
+		KeycloakDeployment deployment = cache.get(realm);  // just get one
+		key = realm;
 
 		if (null == deployment) {
 			InputStream is;
 			try {
+				String keycloakJson = SecureResources.getKeycloakJsonMap().get(key);
 				is = new ByteArrayInputStream(
-						SecureResources.getKeycloakJsonMap().get(key).getBytes(StandardCharsets.UTF_8.name()));
+						keycloakJson.getBytes(StandardCharsets.UTF_8.name()));
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 				

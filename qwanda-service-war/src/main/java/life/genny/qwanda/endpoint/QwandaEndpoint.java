@@ -72,6 +72,11 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+
+import java.util.concurrent.CompletableFuture;
+
 
 /**
  * JAX-RS endpoint
@@ -100,6 +105,8 @@ public class QwandaEndpoint {
 
 	@Inject
 	private SecurityService securityService;
+	
+
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -145,6 +152,7 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/asks")
+	@Transactional
 	public Response create(final Ask entity) {
 
 		service.insert(entity);
@@ -226,6 +234,7 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/gpss")
+	@Transactional
 	public Response create(final GPS entity) {
 		service.insert(entity);
 		return Response
@@ -236,60 +245,65 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/answers/bulk2")
-
+	@Transactional
 	public Response createBulk2(final QDataAnswerMessage entitys) {
 
-//		for (Answer entity : entitys.getItems()) {
-//			if (entity == null) {
-//				log.error("Null Entity posted");
-//				continue;
-//			}
-//				Attribute attribute = null;
-//
-//				try {
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//					if (attribute==null) {
-//						throw new NoResultException();
-//					}
-//				} catch (NoResultException e) {
-//					// Create it (ideally if user is admin)
-//					String name = entity.getAttributeCode().substring(4).toLowerCase();
-//					name = name.replaceAll("_", " ");
-//					attribute = new AttributeText(entity.getAttributeCode(),
-//							StringUtils.capitalize(name));
-//					service.insert(attribute);
-//					attribute = service.findAttributeByCode(entity.getAttributeCode());
-//				}
-//				if (attribute == null) {
-//					log.error("attribute is null ");
-//				} else 
-//				if (attribute.getDataType()==null) {
-//					log.error("Bad data type");
-//				} else {
-//
-//				entity.setAttribute(attribute);
-//				}
-//
-//		}
-		try {
-		service.insert(entitys.getItems());
-			return Response.status(200).build();
-		} catch (javax.persistence.NoResultException e) {
-			return Response.status(404).build();
-		}
-		catch (IllegalArgumentException e) {
-			return Response.status(422).entity(e.getMessage()).build();
-		}
+//	public Response createBulk2(final QDataAnswerMessage entitys,@Suspended final AsyncResponse asyncResponse) {
+
+		insertAnswers(entitys.getItems());
+//		 CompletableFuture
+//         .runAsync(() -> {
+//	    	   try {
+//	    			service.insert(entitys.getItems());
+//	    				//return Response.status(200).build();
+//	    			} catch (javax.persistence.NoResultException e) {
+//	    				//return Response.status(404).build();
+//	    			}
+//	    			catch (IllegalArgumentException e) {
+//	    				//return Response.status(422).entity(e.getMessage()).build();
+//	    			}		       })
+//         .thenApply((result) -> asyncResponse.resume(result));
+//		 
+//		   executor.execute(new Runnable() {
+//		       public void run() {
+//		    	   try {
+//		    			service.insert(entitys.getItems());
+//		    				return Response.status(200).build();
+//		    			} catch (javax.persistence.NoResultException e) {
+//		    				return Response.status(404).build();
+//		    			}
+//		    			catch (IllegalArgumentException e) {
+//		    				return Response.status(422).entity(e.getMessage()).build();
+//		    			}		       }
+//		    });
+		    return Response.status(202).build();
+
+		
 
 	}
+	
+	@javax.ejb.Asynchronous
+	void insertAnswers(final Answer[] answers)
+	{
+		 try {
+ 			service.insert(answers);
+ 				//return Response.status(200).build();
+ 			} catch (javax.persistence.NoResultException e) {
+ 				//return Response.status(404).build();
+ 			}
+ 			catch (IllegalArgumentException e) {
+ 				//return Response.status(422).entity(e.getMessage()).build();
+ 			}		
+	}
+	
 
 	@POST
 	@Consumes("application/json")
 	@Path("/answers/bulk")
-
+	@Transactional
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-
+			log.info(entitys.getItems().length+" Bulk Answers ");
 			try {
 				service.insert(entitys.getItems());
 					return Response.status(200).build();
@@ -306,7 +320,7 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/answers")
-
+	@Transactional
 	public Response create(final Answer entity) {
 		QDataAnswerMessage answerMsg = new QDataAnswerMessage(entity);
 
@@ -326,6 +340,7 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys")
+	@Transactional
 	public Response create(final BaseEntity entity) {
 		Long ret = service.insert(entity);
 		return Response.status(200).entity(ret).build();
@@ -333,6 +348,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/rules/{id}")
+	@Transactional
 	public Response fetchRuleById(@PathParam("id") final Long id) {
 		final Rule entity = service.findRuleById(id);
 		return Response.status(200).entity(entity).build();
@@ -608,6 +624,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/baseentitys/{sourceCode}")
+	@Transactional
 	public Response fetchBaseEntityByCode(@Context final ServletContext servletContext,
 			@PathParam("sourceCode") final String code) {
 
@@ -627,6 +644,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/questions/{id}")
+	@Transactional
 	public Response fetchQuestionById(@PathParam("id") final Long id) {
 		final Question entity = service.findQuestionById(id);
 		return Response.status(200).entity(entity).build();
@@ -634,6 +652,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/questions")
+	@Transactional
 	public Response fetchQuestions() {
 		final List<Question> entitys = service.findQuestions();
 		return Response.status(200).entity(entitys).build();
@@ -641,6 +660,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/attributes")
+	@Transactional
 	public Response fetchAttributes() {
 		final List<Attribute> entitys = service.findAttributes();
 		Attribute[] atArr = new Attribute[entitys.size()];
@@ -653,6 +673,7 @@ public class QwandaEndpoint {
 	
 	@GET
 	@Path("/attributes/{code}")
+	@Transactional
 	public Response fetchAttribute(@PathParam("code") final String attributeCode) {
 		final Attribute attribute = service.findAttributeByCode(attributeCode);
 		Attribute[] atArr = new Attribute[1];
@@ -667,6 +688,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/questions/{questionCode}")
+	@Transactional
 	public Response fetchQuestions(@PathParam("questionCode") final String questionCode) {
 		final List<Question> entitys = service.findQuestions();
 		return Response.status(200).entity(entitys).build();
@@ -674,6 +696,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/rules")
+	@Transactional
 	public Response fetchRules() {
 		final List<Rule> entitys = service.findRules();
 
@@ -683,6 +706,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/asks")
+	@Transactional
 	// @RolesAllowed("admin")
 	public Response fetchAsks() {
 		final List<Ask> entitys = service.findAsksWithQuestions();
@@ -691,6 +715,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/asksmsg")
+	@Transactional
 	public Response fetchAsksMsg() {
 		final List<Ask> entitys = service.findAsks();
 		final QDataAskMessage qasks = new QDataAskMessage(entitys.toArray(new Ask[0]));
@@ -713,6 +738,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/attributes/{id}")
+	@Transactional
 	public Response fetchAttributeById(@PathParam("id") final Long id) {
 		final Attribute entity = service.findAttributeById(id);
 		return Response.status(200).entity(entity).build();
@@ -720,6 +746,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/asks/{id}")
+	@Transactional
 	public Response fetchAskById(@PathParam("id") final Long id) {
 		final Ask entity = service.findAskById(id);
 		return Response.status(200).entity(entity).build();
@@ -727,6 +754,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/answers/{id}")
+	@Transactional
 	public Response fetchAnswerById(@PathParam("id") final Long id) {
 		final Answer entity = service.findAnswerById(id);
 		return Response.status(200).entity(entity).build();
@@ -734,6 +762,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Path("/contexts/{id}")
+	@Transactional
 	public Response fetchContextById(@PathParam("id") final Long id) {
 		final life.genny.qwanda.Context entity = service.findContextById(id);
 		return Response.status(200).entity(entity).build();
@@ -775,6 +804,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/{code}/asks/source")
 	@ApiOperation(value = "asks", notes = "Source BaseEntity Asks")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public Response fetchAsksBySourceBaseEntityCode(@PathParam("code") final String code) {
 		final List<Ask> items = service.findAsksBySourceBaseEntityCode(code);
 		String json = JsonUtils.toJson(items);
@@ -785,6 +815,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/{code}/asks/target")
 	@ApiOperation(value = "asks", notes = "Target BaseEntity Asks")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public Response fetchAsksByTargetBaseEntityCode(@PathParam("code") final String code) {
 		final List<Ask> items = service.findAsksByTargetBaseEntityCode(code);
 		String json = JsonUtils.toJson(items);
@@ -796,6 +827,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/{id}/asks/target")
 	@ApiOperation(value = "asks", notes = "BaseEntity Asks about Targets")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	public Response fetchAsksByTargetBaseEntityId(@PathParam("id") final Long id) {
 		final List<Ask> items = service.findAsksBySourceBaseEntityId(id);
 		String json = JsonUtils.toJson(items);
@@ -830,6 +862,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys")
 	@Produces("application/json")
+	@Transactional
 	public Response getBaseEntitys(@Context final UriInfo uriInfo) {
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
@@ -866,6 +899,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}")
 	@Produces("application/json")
+	@Transactional
 	public Response getTargets(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
 	//	log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}");
@@ -923,6 +957,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys2/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}")
 	@Produces("application/json")
+	@Transactional
 	public Response getTargetsUsingLinkValue(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
@@ -981,6 +1016,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys2/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}/attributes")
 	@Produces("application/json")
+	@Transactional
 	public Response getTargetsUsingLinkValueWithAttributes(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
@@ -1039,6 +1075,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/attributes")
 	@Produces("application/json")
+	@Transactional
 	public Response getTargetsWithAttributes(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
 		String stakeholderCode = null;
@@ -1096,6 +1133,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys/{sourceCode}/linkcodes/{linkCode}/attributes/{stakeholderCode}")
 	@Produces("application/json")
+	@Transactional
 	public Response getTargetsWithAttributesAndStakeholderCode(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@DefaultValue("USER") @PathParam("stakeholderCode") String stakeholderCode,
@@ -1180,37 +1218,38 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/baseentitys/test2")
 	@Produces("application/json")
+	@Transactional
 	public Response findBaseEntitysByAttributeValues(@Context final UriInfo uriInfo) {
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
-		qparams.putAll(params);
 
 		final String pageStartStr = params.getFirst("pageStart");
 		final String pageSizeStr = params.getFirst("pageSize");
 		if (pageStartStr != null) {
 			pageStart = Integer.decode(pageStartStr);
-			qparams.remove("pageStart");
+
 		}
 		if (pageSizeStr != null) {
 			pageSize = Integer.decode(pageSizeStr);
-			qparams.remove("pageSize");
+
 		}
 
-		final List<BaseEntity> targets = service.findBaseEntitysByAttributeValues(qparams, true, pageStart, pageSize);
+        SearchEntity searchBE = new SearchEntity("SBE_TEST2", "findBaseEntitysByAttributeValue");
+        for(String str : params.keySet()){
+        	if ((!"pageStart".equals(str))&&(!"pageSize".equals(str))) {
+        		searchBE.addFilter(str,SearchEntity.StringFilter.EQUAL, params.getFirst(str));
+        	}
+        }
+        searchBE.addSort("PRI_CREATED", "Created", SearchEntity.Sort.DESC)
+        .setPageStart(pageStart)
+        .setPageSize(pageSize);
 
-		BaseEntity[] beArr = new BaseEntity[targets.size()];
-		beArr = targets.toArray(beArr);
-		final Long total = service.findBaseEntitysByAttributeValuesCount(params);
-
-		final QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "", "", total);
-
-		String json = JsonUtils.toJson(msg);
-		// log.debug("BE:" + json);
-		return Response.status(200).entity(json).build();
-
-		// return Response.status(200).entity(msg).build();
+	
+		Response response = findBySearchBE(searchBE);
+		
+		
+				return response;
 
 	}
 
@@ -1288,7 +1327,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/links")
 	@Produces("application/json")
-
+	@Transactional
 	public Response updateLink(final Link link) {
 
 		log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
@@ -1309,7 +1348,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-
+	@Transactional
 	public Response updateEntityEntity(final Link link) {
 
 		log.info("Updating Link " + link.getSourceCode() + ":" + link.getTargetCode() + ":" + link.getAttributeCode()
@@ -1330,7 +1369,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/baseentitys")
 	@Produces("application/json")
-
+	@Transactional
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
 		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
@@ -1346,7 +1385,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/baseentitys/force")
 	@Produces("application/json")
-
+	@Transactional
 	public Response forceBaseEntityAttributes(final BaseEntity baseEntity) {
 		Map<String,Object> map = securityService.getUserMap();
 		String username = (String) securityService.getUserMap().get("username");
@@ -1387,7 +1426,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/baseentitys/{baseEntityCode}/{attributeCode}")
 	@Produces("application/json")
-
+	@Transactional
 	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,@PathParam("attributeCode") final String attributeCode) {
 		
 		String username = (String) securityService.getUserMap().get("preferred_username");
@@ -1407,7 +1446,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/baseentitys/attributes/{attributeCode}")
 	@Produces("application/json")
-
+	@Transactional
 	public Response removeEntityAttributes(@PathParam("attributeCode") final String attributeCode) {
 		
 		String username = (String) securityService.getUserMap().get("preferred_username");
@@ -1427,7 +1466,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-
+	@Transactional
 	public Response addLink(final Link ee) {
 
 		log.info("Creating new Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode()
@@ -1451,7 +1490,7 @@ public class QwandaEndpoint {
 	@Consumes("application/json")
 	@Path("/entityentitys")
 	@Produces("application/json")
-
+	@Transactional
 	public Response removeLink(final Link ee) {
 
 		log.info("Removing Link " + ee.getSourceCode() + ":" + ee.getTargetCode() + ":" + ee.getAttributeCode());
@@ -1464,7 +1503,7 @@ public class QwandaEndpoint {
     @Consumes("application/json")
 	@Path("/baseentitys/{code}")
     @Produces("application/json")
-
+	@Transactional
     public Response removeUser(@PathParam("code") final String code) {
 	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
           || securityService.inRole("dev")) || GennySettings.devMode) {
@@ -1644,6 +1683,7 @@ public class QwandaEndpoint {
 	@GET
 	@Path("/templates/{templateCode}")
 	@Produces("application/json")
+	@Transactional
 	public Response getMessageTemplates(@PathParam("templateCode") final String code) {
 		QBaseMSGMessageTemplate template = service.findTemplateByCode(code);
 

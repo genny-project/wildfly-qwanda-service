@@ -84,13 +84,9 @@ public class SecurityService implements Serializable {
 	}
 
 	public String getRealm() {
-		return CoreEntity.DEFAULT_REALM;
-//		 if (!importMode) {
-//			 return ((KeycloakPrincipal)
-//					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
-//		 } else {
-//			 return CoreEntity.DEFAULT_REALM;
-//		 }
+			 return ((KeycloakPrincipal)
+					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+
 	}
 
 	public Map<String, Object> getUserMap() {
@@ -120,7 +116,11 @@ public class SecurityService implements Serializable {
 	public String getUserCode()
 	{
 		String username = (String)getUserMap().get("username");
-		return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+		if (username == null) {
+			return "PER_SERVICE";  // TODO - Test this out!
+		} else {
+			return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+		}
 	}
 	
 	public static void setImportMode(final boolean mode) {
