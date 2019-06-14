@@ -33,16 +33,6 @@ public class EventBusBean implements EventBusInterface {
 		String json = msg.toString();
 		JsonObject event = new JsonObject(json);
 		
-		if (GennySettings.forceEventBusApi) {
-			try {
-
-				QwandaUtils.apiPostEntity(GennySettings.bridgeServiceUrl, json, event.getString("token"));
-			} catch (Exception e) {
-				log.error("Error in posting message to bridge eventbus:" + event);
-			}
-			
-		} else {
-
 		   javax.naming.InitialContext ctx = null;
 		    io.vertx.resourceadapter.VertxConnection conn = null;
 		    try {
@@ -69,7 +59,7 @@ public class EventBusBean implements EventBusInterface {
 		    	  }
 		      }
 		    }
-		}
+
 	}
   
 
@@ -77,18 +67,10 @@ public class EventBusBean implements EventBusInterface {
 	{
 		//String msgStr = JsonUtils.toJson(msg);
 	   //   JsonObject event = new JsonObject(msgStr);
-		String json = (String)msg;
-		JsonObject event = new JsonObject(json);
+		String json = msg.toString();
+		JsonObject event = new JsonObject(json);  // TODO, change this to use an original JsonObject
 	      
-		if (GennySettings.forceEventBusApi) {
-			try {
-				QwandaUtils.apiPostEntity(GennySettings.bridgeServiceUrl, json, event.getString("token"));
-			} catch (Exception e) {
-				log.error("Error in posting message to bridge eventbus:" + event);
-			}
-			
-			
-		} else {
+
 		   javax.naming.InitialContext ctx = null;
 		    io.vertx.resourceadapter.VertxConnection conn = null;
 		    try {
@@ -115,64 +97,8 @@ public class EventBusBean implements EventBusInterface {
 		    	  }
 		      }
 		    }
-		}
-	}
-  // @PostConstruct
-  public static void whatever() throws NamingException, ResourceException {
-    javax.naming.InitialContext ctx = null;
-    io.vertx.resourceadapter.VertxConnection conn = null;
-    try {
-      ctx = new javax.naming.InitialContext();
-      io.vertx.resourceadapter.VertxConnectionFactory connFactory =
-          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
-              .lookup("java:/eis/VertxConnectionFactory");
-      conn = connFactory.getVertxConnection();
-      conn.vertxEventBus().send("cmds", "Hello from JCA");
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      if (ctx != null) {
-        ctx.close();
-      }
-      if (conn != null) {
-        conn.close();
-      }
-    }
-  }
 
-	@Override
-	public void publish(BaseEntity user, String channel, Object payload, final String[] filterAttributes) {
-		try {
-		// Actually Send ....
-		switch (channel) {
-		case "event":
-		case "events":
-			send("events",payload);
-			break;
-		case "data":
-			write("data",payload);
-			break;
-
-		case "webdata":
-			payload = EventBusInterface.privacyFilter(user, payload,filterAttributes);
-			write("webdata",payload);
-			break;
-		case "cmds":
-		case "webcmds":
-			payload = EventBusInterface.privacyFilter(user, payload,filterAttributes);
-			write("webcmds",payload);
-			break;
-		case "services":
-			write("services",payload);
-			break;
-		case "messages":
-			write("messages",payload);
-			break;
-		default:
-			log.error("Channel does not exist: " + channel);
-		}
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
 	}
+ 
+
 }
