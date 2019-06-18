@@ -302,7 +302,7 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Reading from cache : key = [" + key + "]");
 			log.info("realm=[" + securityService.getRealm() + "]");
-			log.info("token=[" + service.getToken() + "]");
+		//	log.info("token=[" + service.getToken() + "]");
 			results = service.readFromDDT(key);
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
