@@ -7,7 +7,11 @@ import javax.ejb.Startup;
 import javax.naming.NamingException;
 import javax.resource.ResourceException;
 import io.vertx.resourceadapter.*;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.EventBusOptions;
 import life.genny.channel.Producer;
+import life.genny.cluster.CurrentVtxCtx;
 import life.genny.eventbus.EventBusInterface;
 import life.genny.qwanda.entity.BaseEntity;
 import javax.enterprise.context.ApplicationScoped;
@@ -79,9 +83,10 @@ public class EventBusBean implements EventBusInterface {
 		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
 		              .lookup("java:/eis/VertxConnectionFactory");
 		     // log.info("Sending Vertx Bus Message on channel "+channel+":");
+		      DeliveryOptions options = new DeliveryOptions();
 		      conn = connFactory.getVertxConnection();
 
-		      conn.vertxEventBus().send(channel, event);
+		      conn.vertxEventBus().send(channel, event,options);
 		     // log.info("Sent Vertx Bus Message on channel "+channel);
 		    } catch (Exception e) {
 		      e.printStackTrace();

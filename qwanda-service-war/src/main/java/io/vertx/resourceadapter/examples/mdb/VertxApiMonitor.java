@@ -66,7 +66,7 @@ EventBusBean eventBus;
    * Default constructor.
    */
   public VertxApiMonitor() {
-    log.info("VertxApiMonitor started.");
+   // log.info("VertxApiMonitor started.");
   }
 
   @Override
