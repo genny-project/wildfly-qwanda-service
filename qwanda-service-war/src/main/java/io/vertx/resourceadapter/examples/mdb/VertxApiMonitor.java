@@ -38,7 +38,7 @@ import life.genny.eventbus.EventBusInterface;
 /**
  * Message-Driven Bean implementation class for: VertxApiMonitor
  */
-//@MessageDriven(name = "VertxApiMonitor", messageListenerInterface = VertxListener.class)
+
 @MessageDriven(name = "VertxApiMonitor", messageListenerInterface = VertxListener.class, activationConfig = { @ActivationConfigProperty(propertyName = "address", propertyValue = "api"), })
 
 public class VertxApiMonitor implements VertxListener {
@@ -48,18 +48,9 @@ public class VertxApiMonitor implements VertxListener {
 EventBusBean eventBus;
 
 
-  final static String st = System.getenv("MYIP");
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
   
-	static Map<String, Object> decodedToken = null;
-	static Set<String> userRoles = null;
-	private static Map<String, User> usersSession = new HashMap<String, User>();
-
-	
-
-
-	static String token;
 
 
   /**

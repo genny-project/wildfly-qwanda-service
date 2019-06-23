@@ -46,7 +46,7 @@ public class SecureResources {
 	public static void addRealm(final String key, String keycloakJsonText) {
 
 		keycloakJsonText = keycloakJsonText.replaceAll("localhost", GennySettings.hostIP);
-		log.info("Adding keycloak key:" + key + "," + keycloakJsonText);
+		log.info("Adding keycloak key:" + key /*+ "," + keycloakJsonText*/);
 
 		keycloakJsonMap.put(key, keycloakJsonText);
 	}
