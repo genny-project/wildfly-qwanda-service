@@ -71,6 +71,8 @@ import life.genny.qwandautils.GitUtils;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.qwanda.Question;
+import life.genny.qwanda.QuestionQuestion;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -299,39 +301,10 @@ public class StartupService {
 
 					String realm = realmCode;
 					
-//					CriteriaBuilder cb = em.getCriteriaBuilder();
-//					CriteriaQuery<BaseEntity> q = cb.createQuery(BaseEntity.class);
-//					Root<BaseEntity> r = q.from(BaseEntity.class);
-//				//	r.fetch("baseEntityAttributes", JoinType.LEFT);
-//					Join<BaseEntity, EntityAttribute> productItemJoin = (Join<BaseEntity, EntityAttribute>) r.<BaseEntity, EntityAttribute>fetch("baseEntityAttributes", JoinType.LEFT);
-//					// here join with the root instead of the fetch
-//					// casting the fetch to the join could cause portability problems
-//					// plus, not nice
-//					q.where(cb.equal(r.get("productItem").get("status"), "received"));
-//					Ereturn ereturn= em.createQuery(q).getSingleResult();
-					
 					
 					CriteriaBuilder builder = em.getCriteriaBuilder();
-					CriteriaQuery<BaseEntity> query = builder.createQuery(BaseEntity.class);
-					Root<BaseEntity> be = query.from(BaseEntity.class);
-					Join<BaseEntity, EntityAttribute> ea = (Join)be.fetch("baseEntityAttributes");
-					query.select(be);
-					query.distinct(true);
-					query.where(builder.equal(ea.get("realm"), realm));
-					
-					List<BaseEntity> results = em.createQuery(query).getResultList();
-					
-//					EntityGraph<BaseEntity> fetchGraph = em.createEntityGraph(BaseEntity.class);
-//					fetchGraph.addSubgraph(Team_.players);
-//					TypedQuery<Team> q = entityManager.createQuery(c).setHint("javax.persistence.loadgraph", fetchGraph);
-//					
-//					
-//					Criteria criteria = session.createCriteria(BaseEntity.class);
-//
-//					List<BaseEntity> results = (List<BaseEntity>) criteria.add(Restrictions.eq("realm", realm)).list();
-					log.info("Pushing " +realm+" : "+ results.size() + " Basentitys to Cache");
-					service.writeToDDT(results);
-					log.info("Pushed " +realm+" : "+ results.size() + " Basentitys to Cache");
+					pushBEsToCache(builder,realm);
+					pushQuestionsToCache(builder,realm);
 				}
 
 		}
@@ -340,6 +313,40 @@ public class StartupService {
 
 	}
 
+	private void pushBEsToCache(CriteriaBuilder builder, final String realm)
+	{
+		CriteriaQuery<BaseEntity> query = builder.createQuery(BaseEntity.class);
+		Root<BaseEntity> be = query.from(BaseEntity.class);
+		Join<BaseEntity, EntityAttribute> ea = (Join)be.fetch("baseEntityAttributes");
+		query.select(be);
+		query.distinct(true);
+		query.where(builder.equal(ea.get("realm"), realm));
+		
+		List<BaseEntity> results = em.createQuery(query).getResultList();
+		
+		log.info("Pushing " +realm+" : "+ results.size() + " Basentitys to Cache");
+		service.writeToDDT(results);
+		log.info("Pushed " +realm+" : "+ results.size() + " Basentitys to Cache");
+
+	}
+	
+	private void pushQuestionsToCache(CriteriaBuilder builder, final String realm)
+	{
+		CriteriaQuery<Question> query = builder.createQuery(Question.class);
+		Root<Question> be = query.from(Question.class);
+		Join<Question, QuestionQuestion> ea = (Join)be.fetch("childQuestions");
+		query.select(be);
+		query.distinct(true);
+		query.where(builder.equal(ea.get("realm"), realm));
+		
+		List<Question> results = em.createQuery(query).getResultList();
+		
+		log.info("Pushing " +realm+" : "+ results.size() + " Questions to Cache");
+		service.writeQuestionsToDDT(results);
+		log.info("Pushed " +realm+" : "+ results.size() + " Questions to Cache");
+
+	}
+	
 	// The following function is also in the serviceEndpoint. It is here because
 	// hibernate is not letting me save easily
 	public void saveLayouts(final String realm, final List<BaseEntity> layouts) {

@@ -18,6 +18,7 @@ import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -281,13 +282,16 @@ public class Service extends BaseEntityService2 {
 	// mode
 	@Override
 	public void writeToDDT(final List<BaseEntity> bes) {
-
-
 		for (BaseEntity be : bes) {
 			writeToDDT(be);
 		}
-
-
+	}
+	
+	@Override
+	public void writeQuestionsToDDT(final List<Question> qs) {
+		for (Question q : qs) {
+			writeToDDT(q);
+		}
 	}
 
 	@Override
@@ -296,6 +300,14 @@ public class Service extends BaseEntityService2 {
 		String json = JsonUtils.toJson(be);
 		VertxUtils.writeCachedJson(be.getRealm(), be.getCode(), json, getToken());
 	}
+	
+	@Override
+	@javax.ejb.Asynchronous
+	public void writeToDDT(final Question q) {
+		String json = JsonUtils.toJson(q);
+		VertxUtils.writeCachedJson(q.getRealm(), q.getCode(), json, getToken());
+	}
+
 
 	@Override
 	@javax.ejb.Asynchronous
