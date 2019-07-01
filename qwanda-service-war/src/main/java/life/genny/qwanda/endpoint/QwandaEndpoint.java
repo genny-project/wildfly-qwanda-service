@@ -687,11 +687,11 @@ public class QwandaEndpoint {
 
 
 	@GET
-	@Path("/questions/{questionCode}")
+	@Path("/questioncodes/{questionCode}")
 	@Transactional
 	public Response fetchQuestions(@PathParam("questionCode") final String questionCode) {
-		final List<Question> entitys = service.findQuestions();
-		return Response.status(200).entity(entitys).build();
+		final Question entity = service.findQuestionByCode(questionCode);
+		return Response.status(200).entity(entity).build();
 	}
 
 	@GET
