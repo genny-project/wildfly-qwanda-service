@@ -1,26 +1,17 @@
 package io.vertx.resourceadapter.examples.mdb;
 
 
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import java.lang.invoke.MethodHandles;
+
+import javax.enterprise.context.ApplicationScoped;
 import javax.naming.NamingException;
 import javax.resource.ResourceException;
-import io.vertx.resourceadapter.*;
-import io.vertx.core.eventbus.DeliveryOptions;
-import io.vertx.core.VertxOptions;
-import io.vertx.core.eventbus.EventBusOptions;
-import life.genny.channel.Producer;
-import life.genny.cluster.CurrentVtxCtx;
-import life.genny.eventbus.EventBusInterface;
-import life.genny.qwanda.entity.BaseEntity;
-import javax.enterprise.context.ApplicationScoped;
-import io.vertx.core.json.JsonObject;
-import life.genny.qwandautils.GennySettings;
-import life.genny.qwandautils.QwandaUtils;
-import life.genny.qwandautils.JsonUtils;
-import java.lang.invoke.MethodHandles;
+
 import org.apache.logging.log4j.Logger;
+
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.json.JsonObject;
+import life.genny.eventbus.EventBusInterface;
 
 @ApplicationScoped
 public class EventBusBean implements EventBusInterface {
