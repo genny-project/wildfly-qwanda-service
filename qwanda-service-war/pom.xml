@@ -59,10 +59,10 @@
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<drools.version>7.22.0.Final</drools.version>
-		<jbpm.version>7.22.0.Final</jbpm.version>
-		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
-		<keycloak-adapter-core.version>3.4.0.Final</keycloak-adapter-core.version>
+		<drools.version>7.23.0.Final</drools.version>
+		<jbpm.version>7.23.0.Final</jbpm.version>
+		<keycloak-core.version>6.0.1</keycloak-core.version>
+		<keycloak-adapter-core.version>6.0.1</keycloak-adapter-core.version>
 
 		<version.ee7>1.0.2.Final</version.ee7>
 		<version.resteasy>3.0.10.Final</version.resteasy>
@@ -183,12 +183,6 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-jsf -->
-		<dependency>
-			<groupId>org.wildfly</groupId>
-			<artifactId>wildfly-jsf</artifactId>
-			<version>${version.org.wildfly}</version>
-		</dependency>
 		<dependency>
 			<groupId>javax.cache</groupId>
 			<artifactId>cache-api</artifactId>
@@ -307,6 +301,13 @@
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-admin-client</artifactId>
 			<version>${keycloak-core.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-services</artifactId>
+			<version>${keycloak-core.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -723,8 +724,8 @@
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 						<!-- the maven dependency plugin will have already downloaded the server 
 							on /target -->
-						<jboss.home>${project.basedir}/target/wildfly-14.0.1.Final</jboss.home>
-						<module.path>${project.basedir}/target/wildfly-14.0.1.Final/modules</module.path>
+						<jboss.home>${project.basedir}/target/wildfly-17.0.1.Final</jboss.home>
+						<module.path>${project.basedir}/target/wildfly-17.0.1.Final/modules</module.path>
 					</systemPropertyVariables>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 				</configuration>

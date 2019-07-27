@@ -34,6 +34,7 @@ import life.genny.qwanda.entity.SearchEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.SystemUtils;
 import life.genny.services.BatchLoading;
 import life.genny.services.ProjectsLoading;
 
@@ -134,6 +135,7 @@ public class StartupService {
 	@Transactional
 	public void init() {
 
+		
 		cacheInterface = new WildflyCache(inDb);
 
 		VertxUtils.init(eventBus, cacheInterface);
@@ -623,4 +625,6 @@ public class StartupService {
 		String realmsJson = JsonUtils.toJson(activeRealms);
 		VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 	}
+	
+
 }

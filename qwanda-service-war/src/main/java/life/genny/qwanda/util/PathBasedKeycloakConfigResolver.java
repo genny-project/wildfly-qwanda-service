@@ -64,7 +64,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					}
 					try {
 						username = (String) jsonObj.get("preferred_username");
-						realm = (String) jsonObj.get("aud");
+						realm = (String) jsonObj.get("azp");
 						key = realm + ".json";
 					} catch (final JSONException e1) {
 						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
@@ -134,6 +134,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				cache.put(realm, deployment);
 				
 			} catch (final java.lang.RuntimeException ce) {
+				ce.printStackTrace();
 				log.debug("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
 				+ ":" + request.getRemoteAddr()+" ->"+ce.getMessage());
 			} catch (final UnsupportedEncodingException e) {
