@@ -161,7 +161,9 @@ public class StartupService {
 			for (String projectCode : projects.keySet()) {
 				log.info("Project: " + projects.get(projectCode));
 				Map<String, Object> project = projects.get(projectCode);
-				if ("FALSE".equals((String) project.get("skipGoogleDoc"))) {
+				String skipGoogleDoc = (String) project.get("skipGoogleDoc");
+				
+				if ((skipGoogleDoc != null) &&("FALSE".equals(((String) project.get("skipGoogleDoc")).toUpperCase()))) {
 					String realm = ((String) project.get("code"));
 					service.setCurrentRealm(realm);
 					log.info("PROJECT " + realm);
@@ -443,7 +445,7 @@ public class StartupService {
 					String key = (String) project.get("ENV_SECURITY_KEY");
 					String encryptedPassword = (String) project.get("ENV_SERVICE_PASSWORD");
 					String realmToken = serviceTokens.getServiceToken(realm);
-
+					String skipGoogleDoc = (String) project.get("skipGoogleDoc");
 					String projectCode = "PRJ_" + realm.toUpperCase();
 					BaseEntity projectBe = null;
 

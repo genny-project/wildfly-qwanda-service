@@ -128,11 +128,14 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			InputStream is;
 			try {
 				String keycloakJson = SecureResources.getKeycloakJsonMap().get(key);
+				if (keycloakJson != null) {
 				is = new ByteArrayInputStream(
 						keycloakJson.getBytes(StandardCharsets.UTF_8.name()));
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
-				
+				} else {
+					log.warn("Incorrect realm being used! - "+key);
+				}
 			} catch (final java.lang.RuntimeException ce) {
 				ce.printStackTrace();
 				log.debug("Connection Refused:"+username+":"+ realm + " :" + request.getURI() + ":" + request.getMethod()
