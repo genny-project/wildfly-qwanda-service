@@ -135,7 +135,6 @@ public class StartupService {
 	@Transactional
 	public void init() {
 
-		
 		cacheInterface = new WildflyCache(inDb);
 
 		VertxUtils.init(eventBus, cacheInterface);
@@ -159,23 +158,27 @@ public class StartupService {
 			log.info("Starting Transaction for loading");
 
 			for (String projectCode : projects.keySet()) {
-				log.info("Project: " + projects.get(projectCode));
 				Map<String, Object> project = projects.get(projectCode);
-				String skipGoogleDoc = (String) project.get("skipGoogleDoc");
-				
-				if ((skipGoogleDoc != null) &&("FALSE".equals(((String) project.get("skipGoogleDoc")).toUpperCase()))) {
-					String realm = ((String) project.get("code"));
-					service.setCurrentRealm(realm);
-					log.info("PROJECT " + realm);
-					BatchLoading bl = new BatchLoading(project, service);
+				if ("FALSE".equals((String) project.get("disable"))) {
+					log.info("Project: " + projects.get(projectCode));
 
-					// save urls to Keycloak maps
-					service.setCurrentRealm(projectCode); // provide overridden realm
+					String skipGoogleDoc = (String) project.get("skipGoogleDoc");
 
-					bl.persistProject(false, null, false);
-					String keycloakJson = bl.constructKeycloakJson(project);
-					bl.upsertKeycloakJson(keycloakJson);
-					// bl.upsertProjectUrls((String) project.get("urlList"));
+					if ((skipGoogleDoc != null)
+							&& ("FALSE".equals(((String) project.get("skipGoogleDoc")).toUpperCase()))) {
+						String realm = ((String) project.get("code"));
+						service.setCurrentRealm(realm);
+						log.info("PROJECT " + realm);
+						BatchLoading bl = new BatchLoading(project, service);
+
+						// save urls to Keycloak maps
+						service.setCurrentRealm(projectCode); // provide overridden realm
+
+						bl.persistProject(false, null, false);
+						String keycloakJson = bl.constructKeycloakJson(project);
+						bl.upsertKeycloakJson(keycloakJson);
+						// bl.upsertProjectUrls((String) project.get("urlList"));
+					}
 				}
 			}
 			log.info("*********************** Finished Google Doc Import ***********************************");
@@ -301,15 +304,14 @@ public class StartupService {
 			if ("FALSE".equals((String) project.get("disable"))) {
 
 				service.setCurrentRealm(realmCode);
-				log.info("Project: " + projects.get(realmCode)+" push to DDT");
+				log.info("Project: " + projects.get(realmCode) + " push to DDT");
 
-					String realm = realmCode;
-					
-					
-					CriteriaBuilder builder = em.getCriteriaBuilder();
-					pushBEsToCache(builder,realm);
-					pushQuestionsToCache(builder,realm);
-				}
+				String realm = realmCode;
+
+				CriteriaBuilder builder = em.getCriteriaBuilder();
+				pushBEsToCache(builder, realm);
+				pushQuestionsToCache(builder, realm);
+			}
 
 		}
 
@@ -317,40 +319,38 @@ public class StartupService {
 
 	}
 
-	private void pushBEsToCache(CriteriaBuilder builder, final String realm)
-	{
+	private void pushBEsToCache(CriteriaBuilder builder, final String realm) {
 		CriteriaQuery<BaseEntity> query = builder.createQuery(BaseEntity.class);
 		Root<BaseEntity> be = query.from(BaseEntity.class);
-		Join<BaseEntity, EntityAttribute> ea = (Join)be.fetch("baseEntityAttributes");
+		Join<BaseEntity, EntityAttribute> ea = (Join) be.fetch("baseEntityAttributes");
 		query.select(be);
 		query.distinct(true);
 		query.where(builder.equal(ea.get("realm"), realm));
-		
+
 		List<BaseEntity> results = em.createQuery(query).getResultList();
-		
-		log.info("Pushing " +realm+" : "+ results.size() + " Basentitys to Cache");
+
+		log.info("Pushing " + realm + " : " + results.size() + " Basentitys to Cache");
 		service.writeToDDT(results);
-		log.info("Pushed " +realm+" : "+ results.size() + " Basentitys to Cache");
+		log.info("Pushed " + realm + " : " + results.size() + " Basentitys to Cache");
 
 	}
-	
-	private void pushQuestionsToCache(CriteriaBuilder builder, final String realm)
-	{
+
+	private void pushQuestionsToCache(CriteriaBuilder builder, final String realm) {
 		CriteriaQuery<Question> query = builder.createQuery(Question.class);
 		Root<Question> be = query.from(Question.class);
-		Join<Question, QuestionQuestion> ea = (Join)be.fetch("childQuestions");
+		Join<Question, QuestionQuestion> ea = (Join) be.fetch("childQuestions");
 		query.select(be);
 		query.distinct(true);
 		query.where(builder.equal(ea.get("realm"), realm));
-		
+
 		List<Question> results = em.createQuery(query).getResultList();
-		
-		log.info("Pushing " +realm+" : "+ results.size() + " Questions to Cache");
+
+		log.info("Pushing " + realm + " : " + results.size() + " Questions to Cache");
 		service.writeQuestionsToDDT(results);
-		log.info("Pushed " +realm+" : "+ results.size() + " Questions to Cache");
+		log.info("Pushed " + realm + " : " + results.size() + " Questions to Cache");
 
 	}
-	
+
 	// The following function is also in the serviceEndpoint. It is here because
 	// hibernate is not letting me save easily
 	public void saveLayouts(final String realm, final List<BaseEntity> layouts) {
@@ -491,14 +491,15 @@ public class StartupService {
 					}
 
 					// Save project BE in a consistent place
-					VertxUtils.putObject(realm, "", "PROJECT", JsonUtils.toJson(projectBe),serviceTokens.getServiceToken(realm));
+					VertxUtils.putObject(realm, "", "PROJECT", JsonUtils.toJson(projectBe),
+							serviceTokens.getServiceToken(realm));
 
 				}
 			}
 		}
 
 	}
-	
+
 	private void saveServiceBes(Map<String, Map> projects) {
 		log.info("Updating Service BaseEntitys ");
 
@@ -511,7 +512,7 @@ public class StartupService {
 
 				if ("FALSE".equals((String) project.get("disable"))) {
 					String realm = realmCode;
-					String name = (String) project.get("name")+" Service User";
+					String name = (String) project.get("name") + " Service User";
 					String realmToken = serviceTokens.getServiceToken(realm);
 
 					String serviceCode = "PER_SERVICE";
@@ -525,7 +526,6 @@ public class StartupService {
 					serviceBe = createAnswer(serviceBe, "ENV_SERVICE_TOKEN", realmToken, true);
 
 					serviceBe = service.upsert(serviceBe);
-
 
 				}
 			}
@@ -600,7 +600,7 @@ public class StartupService {
 				String urlList = be.getValue("ENV_URL_LIST", "alyson3.genny.life");
 				String token = serviceTokens.getServiceToken(realm); // be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
 
-				//log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
+				// log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
@@ -612,7 +612,7 @@ public class StartupService {
 						}
 						aURL = new URL(url);
 						final String cleanUrl = aURL.getHost();
-						log.info("Writing to Cache: "+GennySettings.GENNY_REALM+":"+cleanUrl.toUpperCase());
+						log.info("Writing to Cache: " + GennySettings.GENNY_REALM + ":" + cleanUrl.toUpperCase());
 						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(),
 								JsonUtils.toJson(be));
 						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);
@@ -630,6 +630,5 @@ public class StartupService {
 		String realmsJson = JsonUtils.toJson(activeRealms);
 		VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 	}
-	
 
 }
