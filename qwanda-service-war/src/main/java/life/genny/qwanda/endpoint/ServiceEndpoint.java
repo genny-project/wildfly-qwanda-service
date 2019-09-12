@@ -1010,7 +1010,7 @@ public class ServiceEndpoint {
 			String realm = securityService.getRealm();
 //select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NULL and q.realm='internmatch' and q.code like 'QUE_%_GRP';
 			try {
-				Query q = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code like 'QUE_%_GRP' and q.code NOT LIKE 'QUE_JOURNAL%'");
+				Query q = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code like 'QUE_%_GRP'");
 				List<Object[]> questionCodes = q.getResultList();
 //				Query q2 = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1_GRP' LIMIT 1");
 //				List<Object[]> questionCodes2 = q2.getResultList();
