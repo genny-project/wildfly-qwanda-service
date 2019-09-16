@@ -121,6 +121,12 @@
 			<artifactId>vertx-core</artifactId>
 			<scope>provided</scope>
 		</dependency>
+        <dependency>
+        	<groupId>life.genny</groupId>
+        	<artifactId>bootxport</artifactId>
+        	<version>${revision}</version>
+        </dependency>
+
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-hazelcast</artifactId>

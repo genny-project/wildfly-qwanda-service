@@ -1,102 +1,55 @@
 package life.genny.qwanda.service;
 
 import java.lang.invoke.MethodHandles;
-import java.time.LocalDate;
-import java.util.List;
+import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
-import org.jboss.ejb3.annotation.TransactionTimeout;
-import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Logger;
-
-import java.lang.reflect.Type;
-import com.google.gson.reflect.TypeToken;
+import org.hibernate.Session;
+import org.jboss.ejb3.annotation.TransactionTimeout;
 import com.google.gson.Gson;
-
-import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeDate;
-import life.genny.qwanda.attribute.AttributeInteger;
-import life.genny.qwanda.attribute.AttributeText;
-import life.genny.qwanda.entity.BaseEntity;
-import life.genny.qwanda.entity.SearchEntity;
-import life.genny.qwanda.exception.BadDataException;
-import life.genny.qwanda.message.QDataAttributeMessage;
-import life.genny.qwandautils.JsonUtils;
-import life.genny.qwandautils.SystemUtils;
-import life.genny.services.BatchLoading;
-import life.genny.services.ProjectsLoading;
-
-import life.genny.eventbus.EventBusInterface;
+import com.google.gson.reflect.TypeToken;
 import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
-import javax.inject.Inject;
-import life.genny.utils.VertxUtils;
-import life.genny.qwandautils.GennySettings;
-
-import life.genny.qwanda.message.QDataSubLayoutMessage;
-import life.genny.qwanda.message.QDataBaseEntityMessage;
-
-import life.genny.qwandautils.GitUtils;
+import life.genny.bootxport.bootx.GoogleImportService;
+import life.genny.bootxport.bootx.Realm;
+import life.genny.bootxport.bootx.RealmUnit;
+//import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.bootxport.bootx.XlsxImport;
+import life.genny.bootxport.bootx.XlsxImportOnline;
+//import life.genny.services.BatchLoading;
+import life.genny.bootxport.xlsimport.BatchLoading;
 import life.genny.qwanda.Answer;
-import life.genny.qwanda.GPSLocation;
-import life.genny.qwanda.GPSRoute;
-import life.genny.qwanda.GPSRouteStatus;
 import life.genny.qwanda.Layout;
+import life.genny.qwanda.Question;
+import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
-import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
-import life.genny.qwanda.message.QDataBaseEntityMessage;
-import life.genny.qwanda.message.QDataSubLayoutMessage;
-import life.genny.qwanda.message.QEventSystemMessage;
-import life.genny.qwanda.service.SecurityService;
-import life.genny.qwanda.service.Service;
-import life.genny.qwandautils.GPSUtils;
+import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.GennySettings;
-import life.genny.qwandautils.GitUtils;
 import life.genny.qwandautils.JsonUtils;
-import life.genny.qwandautils.KeycloakUtils;
-import life.genny.qwandautils.QwandaUtils;
-import life.genny.qwanda.Question;
-import life.genny.qwanda.QuestionQuestion;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import java.util.Optional;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import java.io.File;
-import java.util.Map;
-
 import life.genny.security.SecureResources;
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.criterion.Restrictions;
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.Revision;
-import com.google.api.services.drive.model.RevisionList;
+import life.genny.utils.VertxUtils;
 
-import java.io.IOException;
-import java.util.List;
 
 
 
@@ -119,6 +72,30 @@ public class StartupService {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+	public void persistEnabledProject(RealmUnit realmUnit) {
+		if (!realmUnit.getDisable()) {
+			log.info("Project: " + realmUnit.getCode());
+
+			Boolean skipGoogleDoc = realmUnit.getSkipGoogleDoc();
+
+			if ((skipGoogleDoc != null)
+					&& !realmUnit.getDisable()) {
+				String realm = realmUnit.getCode();
+				service.setCurrentRealm(realm);
+				log.info("PROJECT " + realm);
+				BatchLoading bl = new BatchLoading(service);
+
+				// save urls to Keycloak maps
+				service.setCurrentRealm(realmUnit.getCode()); // provide overridden realm
+
+                bl.persistProject(realmUnit);
+				String keycloakJson = bl.constructKeycloakJson(realmUnit);
+				bl.upsertKeycloakJson(keycloakJson);
+				bl.upsertProjectUrls((String) realmUnit.getUrlList());
+			}
+		}
+	}
+
 	@Inject
 	Hazel inDb;
 
@@ -139,56 +116,130 @@ public class StartupService {
 	@PersistenceContext
 	private EntityManager em;
 
+//	@PostConstruct
+//	@Transactional
+//	public void init() {
+//
+//        GoogleImportService gs = GoogleImportService.getInstance();
+//        XlsxImport xlsImport = new XlsxImportOnline(gs.getService());
+//        Realm rx = new Realm(xlsImport, System.getenv("GOOGLE_HOSTING_SHEET_ID"));
+//        
+//		cacheInterface = new WildflyCache(inDb);
+//
+//		VertxUtils.init(eventBus, cacheInterface);
+//
+//		securityService.setImportMode(true); // ugly way of getting past security
+//
+////		String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+////		String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+////		File credentialPath = new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
+//
+////		Map<String, Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
+//
+////		serviceTokens.init(projects);
+//		rx.getDataUnits().forEach(serviceTokens::init);
+//
+//
+//		// Save projects
+//		rx.getDataUnits().forEach(this::saveProjectBes);
+//		rx.getDataUnits().forEach(this::saveServiceBes);
+//		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
+//
+//		if (!GennySettings.skipGoogleDocInStartup) {
+//			log.info("Starting Transaction for loading");
+//
+//			rx.getDataUnits().forEach(project -> {
+////			for (String projectCode : projects.keySet()) {
+//			  
+//			
+//				if ("FALSE".equals((String) project.getDisable().toString().toUpperCase())) {
+//					log.info("Project: " + project.getCode());
+//
+//					String skipGoogleDoc = project.getSkipGoogleDoc().toString().toUpperCase();
+//
+//					if ((skipGoogleDoc != null)
+//							&& ("FALSE".equals((project.getSkipGoogleDoc().toString().toUpperCase())))) {
+//						String realm = project.getCode();
+//						service.setCurrentRealm(realm);
+//						log.info("PROJECT " + realm);
+//						BatchLoading bl = new BatchLoading(service);
+//
+//						// save urls to Keycloak maps
+//						service.setCurrentRealm(project.getCode()); // provide overridden realm
+//
+//						bl.persistProject(project);
+//						String keycloakJson = bl.constructKeycloakJson(project);
+//						bl.upsertKeycloakJson(keycloakJson);
+//						// bl.upsertProjectUrls((String) project.get("urlList"));
+//					}
+////				}
+//			  
+//    			}
+//			});
+//			log.info("*********************** Finished Google Doc Import ***********************************");
+//		} else {
+//			log.info("Skipping Google doc loading");
+//		}
+//
+//		// Push BEs to cache
+//		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
+//			rx.getDataUnits().forEach(this::pushToDTT);
+////			pushToDTT(projects);
+//		}
+//
+//    	rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
+////		pushProjectsUrlsToDTT(projects);
+//
+//		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+//
+////		for (String realm : projects.keySet()) {
+//		  rx.getDataUnits().forEach(project ->{
+////			Map<String, Object> project = projects.get(realm);
+//			if ("FALSE".equals((String) project.getDisable().toString().toUpperCase())) {
+//				service.setCurrentRealm(project.getCode());
+//				String accessToken = serviceTokens.getServiceToken(project.getCode());
+//				service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+//			}
+//	    
+//		  });
+////			Map<String, Object> project = projects.get(realm);
+////			if ("FALSE".equals((String) project.get("disable"))) {
+////				service.setCurrentRealm(realm);
+////				String accessToken = serviceTokens.getServiceToken(realm);
+////				service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+////			}
+////		}
+//
+//		log.info("---------------- Completed Startup ----------------");
+//		securityService.setImportMode(false);
+//
+//	}
+
 	@PostConstruct
 	@Transactional
-	public void init() {
-
-		cacheInterface = new WildflyCache(inDb);
+	public void inits() {
+       	cacheInterface = new WildflyCache(inDb);
 
 		VertxUtils.init(eventBus, cacheInterface);
 
+		cacheInterface = new WildflyCache(inDb);
+		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
+        GoogleImportService gs = GoogleImportService.getInstance();
+        XlsxImport xlsImport = new XlsxImportOnline(gs.getService());
+        Realm rx = new Realm(xlsImport,
+            System.getenv("GOOGLE_HOSTING_SHEET_ID"));
 
-		String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-		String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
-		File credentialPath = new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
-
-		Map<String, Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
-
-		serviceTokens.init(projects);
-
+        rx.getDataUnits().forEach(serviceTokens::init);
 		// Save projects
-		saveProjectBes(projects);
-		saveServiceBes(projects);
-		pushProjectsUrlsToDTT(projects);
+		rx.getDataUnits().forEach(this::saveProjectBes);
+		rx.getDataUnits().forEach(this::saveServiceBes);
+		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
 
 		if (!GennySettings.skipGoogleDocInStartup) {
 			log.info("Starting Transaction for loading");
 
-			for (String projectCode : projects.keySet()) {
-				Map<String, Object> project = projects.get(projectCode);
-				if ("FALSE".equals((String) project.get("disable"))) {
-					log.info("Project: " + projects.get(projectCode));
-
-					String skipGoogleDoc = (String) project.get("skipGoogleDoc");
-
-					if ((skipGoogleDoc != null)
-							&& ("FALSE".equals(((String) project.get("skipGoogleDoc")).toUpperCase()))) {
-						String realm = ((String) project.get("code"));
-						service.setCurrentRealm(realm);
-						log.info("PROJECT " + realm);
-						BatchLoading bl = new BatchLoading(project, service);
-
-						// save urls to Keycloak maps
-						service.setCurrentRealm(projectCode); // provide overridden realm
-
-						bl.persistProject(false, null, false);
-						String keycloakJson = bl.constructKeycloakJson(project);
-						bl.upsertKeycloakJson(keycloakJson);
-						// bl.upsertProjectUrls((String) project.get("urlList"));
-					}
-				}
-			}
+			rx.getDataUnits().forEach(this::persistEnabledProject);
 			log.info("*********************** Finished Google Doc Import ***********************************");
 		} else {
 			log.info("Skipping Google doc loading");
@@ -196,102 +247,234 @@ public class StartupService {
 
 		// Push BEs to cache
 		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
-			pushToDTT(projects);
+		    
+            log.info("Pushing to DTT  ");
+		    rx.getDataUnits().forEach(this::pushToDTT);
 		}
-
-		pushProjectsUrlsToDTT(projects);
-
+		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
 		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
 		String branch = "master";
-		if (!GennySettings.skipGithubInStartup) {
-
-			log.info("************* Generating V1 Layouts *************");
-			for (String realm : projects.keySet()) {
-				Map<String, Object> project = projects.get(realm);
-				if ("FALSE".equals((String) project.get("disable"))) {
-
-					try {
-						List<BaseEntity> v1GennyLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl,
-								branch, realm, "genny/sublayouts", true); // get common layouts
-						saveLayouts(realm, v1GennyLayouts);
-						List<BaseEntity> v1RealmLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl,
-								branch, realm, realm + "/sublayouts", true);
-						saveLayouts(realm, v1RealmLayouts);
-
-						log.info("************* Generating V2 Layouts *************");
-						List<BaseEntity> v2GennyLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl,
-								branch, realm, "genny", false); // get common layouts
-						saveLayouts(realm, v2GennyLayouts);
-						List<BaseEntity> v2RealmLayouts = GitUtils.getLayoutBaseEntitys(GennySettings.githubLayoutsUrl,
-								branch, realm, realm + "-new", true);
-						saveLayouts(realm, v2RealmLayouts);
-					} catch (Exception e) {
-						log.error("Bad Data Exception");
-					}
-				}
-			}
-		} else {
-			log.info("Skipped Github Layout loading ....");
-		}
-
-		if (false) {
-			log.info("Loading V1 Genny Sublayouts");
-			for (String realm : projects.keySet()) {
-				Map<String, Object> project = projects.get(realm);
-				if ("FALSE".equals((String) project.get("disable"))) {
-
-					QDataSubLayoutMessage sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, "genny/sublayouts",
-							"master");
-					log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
-
-					VertxUtils.writeCachedJson(realm, "GENNY-V1-LAYOUTS", JsonUtils.toJson(sublayoutsMsg),
-							serviceTokens.getServiceToken(realm));
-
-					log.info("Loading V1 " + realm + " Realm Sublayouts");
-					sublayoutsMsg = service.fetchSubLayoutsFromDb(realm, realm + "/sublayouts", "master");
-					log.info("Loaded " + sublayoutsMsg.getItems().length + " V1 " + realm + " Realm Sublayouts");
-					VertxUtils.writeCachedJson(realm, realm.toUpperCase() + "-V1-LAYOUTS",
-							JsonUtils.toJson(sublayoutsMsg), serviceTokens.getServiceToken(realm));
-
-					SearchEntity searchBE = new SearchEntity("SER_V2_LAYOUTS", "V2 Layout Search");
-					try {
-						searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
-						searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 1000);
-						searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "LAY_%");
-						// searchBE.addFilter("PRI_BRANCH",SearchEntity.StringFilter.LIKE, branch);
-
-					} catch (BadDataException e) {
-						log.error("Bad Data Exception");
-					}
-
-					List<BaseEntity> v2layouts = service.findBySearchBE(searchBE);
-
-					log.info("Loaded " + v2layouts.size() + " V2 " + realm + "-new Realm Sublayouts");
-
-					QDataBaseEntityMessage msg = new QDataBaseEntityMessage(v2layouts.toArray(new BaseEntity[0]));
-					msg.setParentCode("GRP_LAYOUTS");
-					msg.setLinkCode("LNK_CORE");
-					VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg),
-							serviceTokens.getServiceToken(realm));
-				}
-			}
-		}
-
-		for (String realm : projects.keySet()) {
-			Map<String, Object> project = projects.get(realm);
-			if ("FALSE".equals((String) project.get("disable"))) {
-				service.setCurrentRealm(realm);
-				String accessToken = serviceTokens.getServiceToken(realm);
-				service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
-			}
-		}
-
+		rx.getDataUnits().forEach(this::setEnabledRealm);
 		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
-
 	}
 
-	public void pushToDTT(Map<String, Map> projects) {
+//	private void pushProjectsUrlsToDTT(RealmUnit realmUnit) {
+//
+//		final List<String> realms = service.getRealms();
+//
+//		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location
+//																// in the cache
+//
+//			if (!realmUnit.getDisable()) {
+//
+//				// push the project to the urls as keys too
+//				service.setCurrentRealm(realmUnit.getCode());
+//				activeRealms.add(realmUnit.getCode());
+//
+//				String realm = realmUnit.getCode();
+//				BaseEntity be = null; // service.findBaseEntityByCode("PRJ_" + realm.toUpperCase(), true);
+//				CriteriaBuilder cb = em.getCriteriaBuilder();
+//				CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+//				Root<BaseEntity> root = query.from(BaseEntity.class);
+//
+//				query = query.select(root).where(cb.equal(root.get("code"), "PRJ_" + realm.toUpperCase()),
+//						cb.equal(root.get("realm"), realm));
+//
+//				try {
+//					be = em.createQuery(query).getSingleResult();
+//				} catch (NoResultException nre) {
+//
+//				}
+////				Session session = em.unwrap(org.hibernate.Session.class);
+////				Criteria criteria = session.createCriteria(BaseEntity.class);
+////				BaseEntity be = (BaseEntity)criteria
+////						.add(Restrictions.eq("code", projectBe.getCode()))
+////						.add(Restrictions.eq("realm", projectBe.getRealm()))
+////				                             .uniqueResult();
+//
+//				String urlList = be.getValue("ENV_URL_LIST", "alyson3.genny.life");
+//				String token = serviceTokens.getServiceToken(realm); // be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
+//
+//				// log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
+//				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
+//				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
+//				String[] urls = urlList.split(",");
+//				for (String url : urls) {
+//					URL aURL = null;
+//					try {
+//						if (!((url.startsWith("http:")) || (url.startsWith("https:")))) {
+//							url = "http://" + url; // hack
+//						}
+//						aURL = new URL(url);
+//						final String cleanUrl = aURL.getHost();
+//						log.info("Writing to Cache: " + GennySettings.GENNY_REALM + ":" + cleanUrl.toUpperCase());
+//						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(),
+//								JsonUtils.toJson(be));
+//						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);
+//					} catch (MalformedURLException e) {
+//						log.error("Bad URL for realm " + be.getRealm() + "=" + url);
+//					}
+//				}
+//			//
+//		}
+//		// Push the list of active realms
+//		Type listType = new TypeToken<List<String>>() {
+//		}.getType();
+//		Gson gson = new Gson();
+//		String realmsJson = JsonUtils.toJson(activeRealms);
+//		VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+//	}
+
+//	private void saveProjectBes(RealmUnit realmUnit) {
+//		log.info("Updating Project BaseEntitys ");
+//
+//		String realmCode = realmUnit.getCode();
+//
+//		if (!realmUnit.getDisable()) {
+//
+//			service.setCurrentRealm(realmCode);
+//			log.info("Project: " + realmCode);
+//
+//				String realm = realmCode;
+//				String keycloakUrl = (String) realmUnit.getKeycloakUrl();
+//				String name = (String) realmUnit.getName();
+//				String urlList = realmUnit.getUrlList();
+//				String code = realmUnit.getCode();
+//				Boolean disable = realmUnit.getDisable();
+//				String secret = realmUnit.getClientSecret(); 
+//				String key = realmUnit.getSecurityKey();
+//				String encryptedPassword = realmUnit.getServicePassword();
+//				String realmToken = serviceTokens.getServiceToken(realm);
+//				Boolean skipGoogleDoc = realmUnit.getSkipGoogleDoc();
+//				String projectCode = "PRJ_" + realm.toUpperCase();
+//				BaseEntity projectBe = null;
+//
+//				projectBe = new BaseEntity(projectCode, name);
+//				projectBe = service.upsert(projectBe);
+//
+//				projectBe = createAnswer(projectBe, "PRI_NAME", name, false);
+//				projectBe = createAnswer(projectBe, "PRI_CODE", projectCode, false);
+//				projectBe = createAnswer(projectBe, "ENV_SECURITY_KEY", key, true);
+//				projectBe = createAnswer(projectBe, "ENV_SERVICE_PASSWORD", encryptedPassword, true);
+//				projectBe = createAnswer(projectBe, "ENV_SERVICE_TOKEN", realmToken, true);
+//				projectBe = createAnswer(projectBe, "ENV_SECRET", secret, true);
+////				projectBe = createAnswer(projectBe, "ENV_SHEET_ID", sheetID, true);
+//				projectBe = createAnswer(projectBe, "ENV_URL_LIST", urlList, true);
+//				projectBe = createAnswer(projectBe, "ENV_DISABLE", disable.toString().toUpperCase(), true);
+//				projectBe = createAnswer(projectBe, "ENV_REALM", realm, true);
+//				projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_URL", keycloakUrl, true);
+//				projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_REDIRECTURI", keycloakUrl, true);
+//
+//				BatchLoading bl =  new BatchLoading(service);
+//				String keycloakJson = bl.constructKeycloakJson(realmUnit);
+//
+//				projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_JSON", keycloakJson, true);
+//
+//				projectBe = service.upsert(projectBe);
+//
+//				// Set up temp keycloak.json Maps
+//				String[] urls = urlList.split(",");
+//				SecureResources.addRealm(realm, keycloakJson);
+//				SecureResources.addRealm(realm + ".json", keycloakJson);
+//				// redundant
+//				if (("genny".equals(realm))) {
+//					SecureResources.addRealm("genny", keycloakJson);
+//					SecureResources.addRealm("genny.json", keycloakJson);
+//					SecureResources.addRealm("qwanda-service.genny.life.json", keycloakJson);
+//				}
+//
+//				// Overwrite all the time, must have localhost
+//				SecureResources.addRealm("localhost.json", keycloakJson);
+//				SecureResources.addRealm("localhost", keycloakJson);
+//				SecureResources.addRealm("localhost:8080", keycloakJson);
+//				for (String url : urls) {
+//					SecureResources.addRealm(url + ".json", keycloakJson);
+//					SecureResources.addRealm(url, keycloakJson);
+//				}
+//
+//				// Save project BE in a consistent place
+//				VertxUtils.putObject(realm, "", "PROJECT", JsonUtils.toJson(projectBe),
+//						serviceTokens.getServiceToken(realm));
+//
+//			}
+//
+//	}
+
+//	private void saveServiceBes(RealmUnit realmUnit) {
+//		log.info("Updating Service BaseEntitys ");
+//
+//			if (!realmUnit.getDisable()) {
+//
+//			  String realmCode = realmUnit.getCode();
+//				service.setCurrentRealm(realmCode);
+//				log.info("Service: " + realmCode);
+//
+//					String realm = realmCode;
+//					String name = realmUnit.getName() + " Service User";
+//					String realmToken = serviceTokens.getServiceToken(realm);
+//
+//					String serviceCode = "PER_SERVICE";
+//					BaseEntity serviceBe = null;
+//
+//					serviceBe = new BaseEntity(serviceCode, name);
+//					serviceBe = service.upsert(serviceBe);
+//
+//					serviceBe = createAnswer(serviceBe, "PRI_NAME", name, false);
+//					serviceBe = createAnswer(serviceBe, "PRI_CODE", serviceCode, false);
+//					serviceBe = createAnswer(serviceBe, "ENV_SERVICE_TOKEN", realmToken, true);
+//
+//					serviceBe = service.upsert(serviceBe);
+//
+//			}
+//
+//	}
+
+   	public void setEnabledRealm(RealmUnit realmUnit) {
+		if (!realmUnit.getDisable()) {
+		    String realm = realmUnit.getCode();
+			service.setCurrentRealm(realm);
+			String accessToken = serviceTokens.getServiceToken(realm);
+			service.sendQEventSystemMessage("EVT_QWANDA_SERVICE_STARTED", accessToken);
+		}
+	}
+
+
+//	public void pushToDTT(RealmUnit realmUnit) {
+//		// Attributes
+//		log.info("Pushing Attributes to Cache");
+//		final List<Attribute> entitys = service.findAttributes();
+//		Attribute[] atArr = new Attribute[entitys.size()];
+//		atArr = entitys.toArray(atArr);
+//		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+//		String json = JsonUtils.toJson(msg);
+//		service.writeToDDT("attributes", json);
+//		log.info("Pushed " + entitys.size() + " attributes to cache");
+//
+//		// BaseEntitys
+////		List<BaseEntity> results = em
+////				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
+//		Session session = em.unwrap(org.hibernate.Session.class);
+//
+//			if (!realmUnit.getDisable()) {
+//
+//				service.setCurrentRealm(realmUnit.getCode());
+//				log.info("Project: " + realmUnit.getCode() + " push to DDT");
+//
+//				String realm = realmUnit.getCode();
+//
+//				CriteriaBuilder builder = em.getCriteriaBuilder();
+//				pushBEsToCache(builder, realm);
+//				pushQuestionsToCache(builder, realm);
+//			}
+//
+//
+//		// Collect all the baseentitys
+//
+//	}
+
+
+	public void pushToDTT(RealmUnit realmUnit) {
 		// Attributes
 		log.info("Pushing Attributes to Cache");
 		final List<Attribute> entitys = service.findAttributes();
@@ -302,17 +485,18 @@ public class StartupService {
 		service.writeToDDT("attributes", json);
 		log.info("Pushed " + entitys.size() + " attributes to cache");
 
+		String realmCode = realmUnit.getCode();
 		// BaseEntitys
 //		List<BaseEntity> results = em
 //				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
 		Session session = em.unwrap(org.hibernate.Session.class);
 
-		for (String realmCode : projects.keySet()) {
-			Map<String, Object> project = projects.get(realmCode);
-			if ("FALSE".equals((String) project.get("disable"))) {
+//		for (String realmCode : projects.keySet()) {
+//			Map<String, Object> project = projects.get(realmCode);
+			if ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase())) {
 
 				service.setCurrentRealm(realmCode);
-				log.info("Project: " + projects.get(realmCode) + " push to DDT");
+				log.info("Project: " + realmCode + " push to DDT");
 
 				String realm = realmCode;
 
@@ -321,7 +505,7 @@ public class StartupService {
 				pushQuestionsToCache(builder, realm);
 			}
 
-		}
+//		}
 
 		// Collect all the baseentitys
 
@@ -431,29 +615,30 @@ public class StartupService {
 		}
 	}
 
-	private void saveProjectBes(Map<String, Map> projects) {
+	private void saveProjectBes(RealmUnit realmUnit) {
 		log.info("Updating Project BaseEntitys ");
 
-		for (String realmCode : projects.keySet()) {
-			Map<String, Object> project = projects.get(realmCode);
-			if ("FALSE".equals((String) project.get("disable"))) {
+//		for (String realmCode : projects.keySet()) {
+//			Map<String, Object> project = projects.get(realmCode);
+			if ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase())) {
 
+			    String realmCode = realmUnit.getCode();
 				service.setCurrentRealm(realmCode);
-				log.info("Project: " + projects.get(realmCode));
+				log.info("Project: " + realmCode);
 
-				if ("FALSE".equals((String) project.get("disable"))) {
+				if ("FALSE".equals((String)realmUnit.getDisable().toString().toUpperCase())) {
 					String realm = realmCode;
-					String keycloakUrl = (String) project.get("keycloakUrl");
-					String name = (String) project.get("name");
-					String sheetID = (String) project.get("sheetID");
-					String urlList = (String) project.get("urlList");
-					String code = (String) project.get("code");
-					String disable = (String) project.get("disable");
-					String secret = (String) project.get("clientSecret");
-					String key = (String) project.get("ENV_SECURITY_KEY");
-					String encryptedPassword = (String) project.get("ENV_SERVICE_PASSWORD");
+					String keycloakUrl = (String) realmUnit.getKeycloakUrl();
+					String name = (String) realmUnit.getName() ;
+					String sheetID = (String) realmUnit.getUri();
+					String urlList = (String) realmUnit.getUrlList();
+					String code = (String) realmUnit.getCode();
+					String disable = (String) realmUnit.getDisable().toString().toUpperCase();
+					String secret = (String)  realmUnit.getClientSecret();
+					String key = (String) realmUnit.getSecurityKey();
+					String encryptedPassword = realmUnit.getServicePassword();
 					String realmToken = serviceTokens.getServiceToken(realm);
-					String skipGoogleDoc = (String) project.get("skipGoogleDoc");
+					String skipGoogleDoc = (String) realmUnit.getSkipGoogleDoc().toString().toUpperCase();
 					String projectCode = "PRJ_" + realm.toUpperCase();
 					BaseEntity projectBe = null;
 
@@ -472,8 +657,8 @@ public class StartupService {
 					projectBe = createAnswer(projectBe, "ENV_REALM", realm, true);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_URL", keycloakUrl, true);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_REDIRECTURI", keycloakUrl, true);
-					BatchLoading bl = new BatchLoading(project, service);
-					String keycloakJson = bl.constructKeycloakJson(project);
+					BatchLoading bl = new BatchLoading(service);
+					String keycloakJson = bl.constructKeycloakJson(realmUnit);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_JSON", keycloakJson, true);
 
 					projectBe = service.upsert(projectBe);
@@ -504,23 +689,24 @@ public class StartupService {
 
 				}
 			}
-		}
+//		}
 
 	}
 
-	private void saveServiceBes(Map<String, Map> projects) {
+	private void saveServiceBes(RealmUnit realmUnit) {
 		log.info("Updating Service BaseEntitys ");
 
-		for (String realmCode : projects.keySet()) {
-			Map<String, Object> project = projects.get(realmCode);
-			if ("FALSE".equals((String) project.get("disable"))) {
+//		for (String realmCode : projects.keySet()) {
+//			Map<String, Object> project = projects.get(realmCode);
+			if ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase())) {
 
+			    String realmCode = realmUnit.getCode();
 				service.setCurrentRealm(realmCode);
-				log.info("Service: " + projects.get(realmCode));
+				log.info("Service: " + realmCode);
 
-				if ("FALSE".equals((String) project.get("disable"))) {
+				if ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase())) {
 					String realm = realmCode;
-					String name = (String) project.get("name") + " Service User";
+					String name = realmUnit.getName() + " Service User";
 					String realmToken = serviceTokens.getServiceToken(realm);
 
 					String serviceCode = "PER_SERVICE";
@@ -537,7 +723,7 @@ public class StartupService {
 
 				}
 			}
-		}
+//		}
 
 	}
 
@@ -570,16 +756,17 @@ public class StartupService {
 
 	}
 
-	private void pushProjectsUrlsToDTT(Map<String, Map> projects) {
+	private void pushProjectsUrlsToDTT(RealmUnit realmUnit) {
 
-		final List<String> realms = service.getRealms();
+//		final List<String> realms = service.getRealms();
 
 		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location
 																// in the cache
+			    String realm = realmUnit.getCode();
 
-		for (String realm : realms) {
-			Map<String, Object> project = projects.get(realm);
-			if ((project != null) && ("FALSE".equals((String) project.get("disable")))) {
+//		for (String realm : realms) {
+//			Map<String, Object> project = projects.get(realm);
+			if ((realmUnit != null) && ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase()))) {
 
 				// push the project to the urls as keys too
 				service.setCurrentRealm(realm);
@@ -630,13 +817,15 @@ public class StartupService {
 				}
 			}
 			//
-		}
+//		}
 		// Push the list of active realms
 		Type listType = new TypeToken<List<String>>() {
 		}.getType();
 		Gson gson = new Gson();
-		String realmsJson = JsonUtils.toJson(activeRealms);
-		VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		if(!(activeRealms.size() == 0)) {
+          String realmsJson = JsonUtils.toJson(activeRealms);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		}
 	}
 
 
