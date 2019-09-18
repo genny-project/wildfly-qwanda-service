@@ -57,12 +57,18 @@ import java.util.TimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import life.genny.bootxport.bootx.QwandaRepository;
 import org.apache.commons.lang3.StringUtils;
 
 @RequestScoped
 
-public class Service extends BaseEntityService2 {
+public class Service extends BaseEntityService2 implements QwandaRepository {
+
+    @Override
+    public void setRealm(String realm) {
+      // TODO Auto-generated method stub
+
+    }
 
 	/**
 	 * Stores logger object.

@@ -68,6 +68,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import life.genny.bootxport.bootx.RealmUnit;
+
 
 @ApplicationScoped
 
@@ -100,6 +102,25 @@ public class ServiceTokenService {
 				serviceTokens.put(projectCode,realmToken);
 			}
 		}
+		
+	}
+
+	public void init(RealmUnit multitenancy) {
+		log.info("Initialising Service Tokens ");
+		 
+			log.info("Project: "+multitenancy.getName());
+
+			if (!multitenancy.getDisable()) {
+				String realm = multitenancy.getCode();
+				String keycloakUrl = multitenancy.getKeycloakUrl();
+				String secret = multitenancy.getClientSecret();
+				String key = multitenancy.getSecurityKey();
+				String encryptedPassword = multitenancy.getServicePassword();
+				String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
+		
+				serviceTokens.put(multitenancy.getCode(),realmToken);
+			}
+		
 		
 	}
 
