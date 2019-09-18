@@ -51,7 +51,7 @@ if [ $XMX ] ; then
   export JAVA_OPTS="${JAVA_OPTS} -Xmx$XMX "
 fi
 
-    /opt/jboss/wildfly/bin/add-user.sh  jmsuser jmspassword1
+#    /opt/jboss/wildfly/bin/add-user.sh  jmsuser jmspassword1
 
 rm -Rf /opt/jboss/wildfly/data/*
 

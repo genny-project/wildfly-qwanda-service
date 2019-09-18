@@ -358,6 +358,8 @@ public class StartupService {
 		log.info("Pushed " + realm + " : " + results.size() + " Questions to Cache");
 
 	}
+	
+
 
 	// The following function is also in the serviceEndpoint. It is here because
 	// hibernate is not letting me save easily

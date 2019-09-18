@@ -283,7 +283,20 @@ public class Service extends BaseEntityService2 {
 	@Override
 	public void writeToDDT(final List<BaseEntity> bes) {
 		for (BaseEntity be : bes) {
-			writeToDDT(be);
+			if (!be.getCode().startsWith("RUL_FRM_")) {
+				writeToDDT(be);
+			} else {
+				// write themes and frames and ASKS ands MSG
+				String PRI_ASKS = be.getValue("PRI_ASKS","");
+				if (StringUtils.isBlank(PRI_ASKS)) {
+					VertxUtils.writeCachedJson(be.getRealm(),be.getCode().substring("RUL_".length()) + "_ASKS", PRI_ASKS, getToken());
+				}
+				String PRI_MSG = be.getValue("PRI_MSG","");
+				if (StringUtils.isBlank(PRI_MSG)) {
+					VertxUtils.writeCachedJson(be.getRealm(),be.getCode().substring("RUL_".length()) + "_MSG", PRI_MSG, getToken());
+				}
+
+			}
 		}
 	}
 	
