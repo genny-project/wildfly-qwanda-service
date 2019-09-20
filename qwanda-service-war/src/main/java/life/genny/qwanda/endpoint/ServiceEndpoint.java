@@ -309,6 +309,22 @@ public class ServiceEndpoint {
 		}
 		return Response.status(200).entity(results).build();
 	}
+	
+	@GET
+	@Path("/cache/clear")
+	@ApiOperation(value = "cache", notes = "clear all cache data")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response cacheClear() {
+
+		log.info("Cache Clear");
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			service.clearCache();
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
+		}
+		return Response.status(200).build();
+	}
 
 	@GET
 	@Path("/answers/{sourceCode}/{targetCode}/{attributeCode}/{value}")

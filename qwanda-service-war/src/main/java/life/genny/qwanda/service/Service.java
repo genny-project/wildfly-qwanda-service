@@ -320,6 +320,11 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		VertxUtils.writeCachedJson(be.getRealm(), be.getCode(), json, getToken());
 	}
 	
+
+	public void clearCache() {
+		VertxUtils.clearCache(getRealm(),getToken());
+	}
+	
 	@Override
 	@javax.ejb.Asynchronous
 	public void writeToDDT(final Question q) {
