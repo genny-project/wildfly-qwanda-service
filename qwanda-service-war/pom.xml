@@ -59,8 +59,8 @@
 		<project.oauth.version>1.19.0</project.oauth.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<drools.version>7.25.0.Final</drools.version>
-		<jbpm.version>7.25.0.Final</jbpm.version>
+		<drools.version>7.26.0.Final</drools.version>
+		<jbpm.version>7.26.0.Final</jbpm.version>
 		<keycloak-core.version>7.0.0</keycloak-core.version>
 		<keycloak-adapter-core.version>7.0.0</keycloak-adapter-core.version>
 
