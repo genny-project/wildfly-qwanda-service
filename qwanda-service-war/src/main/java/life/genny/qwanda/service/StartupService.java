@@ -21,6 +21,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
+//import org.bouncycastle.util.Strings;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
 import com.google.gson.Gson;
@@ -30,8 +31,10 @@ import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import life.genny.bootxport.bootx.GoogleImportService;
 import life.genny.bootxport.bootx.Realm;
 import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.bootxport.bootx.XSSFService;
 //import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.bootxport.bootx.XlsxImport;
+import life.genny.bootxport.bootx.XlsxImportOffline;
 import life.genny.bootxport.bootx.XlsxImportOnline;
 //import life.genny.services.BatchLoading;
 import life.genny.bootxport.xlsimport.BatchLoading;
@@ -226,8 +229,20 @@ public class StartupService {
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
         GoogleImportService gs = GoogleImportService.getInstance();
-        XlsxImport xlsImport = new XlsxImportOnline(gs.getService());
-        Realm rx = new Realm(xlsImport,
+        
+        Boolean onlineMode = Optional.ofNullable(System.getenv("ONLINE_MODE"))
+            .map(val -> val.toLowerCase())
+            .map(Boolean::getBoolean)
+            .orElse(true);
+
+        XlsxImport xlsImport;
+        XSSFService service = new  XSSFService();
+        if(onlineMode){
+            xlsImport = new XlsxImportOnline(gs.getService());
+        }else{
+            xlsImport = new XlsxImportOffline(service);
+        }
+        Realm rx = new Realm(xlsImport, 
             System.getenv("GOOGLE_HOSTING_SHEET_ID"));
 
         rx.getDataUnits().forEach(serviceTokens::init);
