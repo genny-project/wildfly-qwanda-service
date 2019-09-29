@@ -246,8 +246,7 @@ public class StartupService {
 		}
 
 		// Push BEs to cache
-		if (System.getenv("LOAD_DDT_IN_STARTUP") != null) {
-		    
+		if (GennySettings.loadDdtInStartup) {		    
             log.info("Pushing to DTT  ");
 		    rx.getDataUnits().forEach(this::pushToDTT);
 		}
