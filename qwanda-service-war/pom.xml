@@ -121,11 +121,32 @@
 			<artifactId>vertx-core</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+			<version>3.1.0</version>
+ 		</dependency>
         <dependency>
-        	<groupId>life.genny</groupId>
-        	<artifactId>bootxport</artifactId>
-        	<version>${revision}</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.193</version>
         </dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.19</version>
+		</dependency>
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>bootxport</artifactId>
+			<version>${revision}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-compress</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 		<dependency>
 			<groupId>io.vertx</groupId>
@@ -181,12 +202,24 @@
 			<artifactId>qwanda-services</artifactId>
 			<version>${qwanda-services.version}</version>
 			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-compress</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda-utils</artifactId>
 			<version>${qwanda-services.version}</version>
 			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-compress</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

@@ -30,8 +30,10 @@ import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import life.genny.bootxport.bootx.GoogleImportService;
 import life.genny.bootxport.bootx.Realm;
 import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.bootxport.bootx.XSSFService;
 //import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.bootxport.bootx.XlsxImport;
+import life.genny.bootxport.bootx.XlsxImportOffline;
 import life.genny.bootxport.bootx.XlsxImportOnline;
 //import life.genny.services.BatchLoading;
 import life.genny.bootxport.xlsimport.BatchLoading;
@@ -226,8 +228,20 @@ public class StartupService {
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
         GoogleImportService gs = GoogleImportService.getInstance();
-        XlsxImport xlsImport = new XlsxImportOnline(gs.getService());
-        Realm rx = new Realm(xlsImport,
+    
+        Boolean onlineMode = Optional.ofNullable(System.getenv("ONLINE_MODE"))
+            .map(val -> val.toLowerCase())
+            .map(Boolean::getBoolean)
+            .orElse(true);
+
+        XlsxImport xlsImport;
+        XSSFService service = new  XSSFService();
+        if(onlineMode){
+            xlsImport = new XlsxImportOnline(gs.getService());
+        }else{
+            xlsImport = new XlsxImportOffline(service);
+        }
+        Realm rx = new Realm(xlsImport, 
             System.getenv("GOOGLE_HOSTING_SHEET_ID"));
 
         rx.getDataUnits().forEach(serviceTokens::init);
