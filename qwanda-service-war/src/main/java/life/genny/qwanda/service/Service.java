@@ -205,8 +205,8 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
 	@Override
 	@Lock(LockType.READ)
-	public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode, final String linkCode,
-			final MultivaluedMap<String, String> params, final String stakeholderCode) {
+	public Long findChildrenByAttributeLinkCount(String sourceCode, String linkCode,
+			MultivaluedMap<String, String> params, final String stakeholderCode) {
 
 		return super.findChildrenByAttributeLinkCount(sourceCode, linkCode, params, stakeholderCode);
 	}
