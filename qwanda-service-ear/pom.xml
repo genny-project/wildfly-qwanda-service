@@ -10,8 +10,8 @@
 	<packaging>ear</packaging>
 	<name>qwanda-service-ear</name>
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<vertx.version>3.5.1</vertx.version>
-		<keycloak-core.version>7.0.0</keycloak-core.version>
 		<version.org.wildfly>17.0.1.Final</version.org.wildfly>		
 	</properties>
 	<dependencies>
