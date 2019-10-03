@@ -4,10 +4,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
    http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>life.genny</groupId>
 	<artifactId>qwanda-service-war</artifactId>
 	<packaging>war</packaging>
-	<version>${revision}</version>
 	<name>qwanda-service-war</name>
 	<url>http://genny.life</url>
 
@@ -40,17 +38,24 @@
 		<version.jboss.bom>17.0.1.Final</version.jboss.bom>
 
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
+		<compiler-plugin-version>3.1</compiler-plugin-version>
+		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
+		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
+		
 
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<version.h2>1.4.195</version.h2>
 		<version.postgresql>9.4.1207</version.postgresql>
 		<version.mysql-connector-java>8.0.17</version.mysql-connector-java>
 
 		<version.jodatime>2.7</version.jodatime>
 
-		<version.h2db>1.4.193</version.h2db>
+		<version.hibernate>5.3.12.Final</version.hibernate>	
+		<version.hibernate-validator>6.0.17.Final</version.hibernate-validator>
+		<version.hibernate.envers>5.4.6.Final</version.hibernate.envers>
+		<version.hsqldb>2.5.0</version.hsqldb>
+		<version.h2db>1.4.199</version.h2db>
 		<jackson.version>2.6.3</jackson.version>
 
 		<joda-time-version>2.8</joda-time-version>
@@ -285,7 +290,6 @@
 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-api</artifactId>
-			<version>8.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-validator-provider-11 -->
@@ -564,10 +568,9 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -792,8 +795,7 @@
 			<plugin>
 				<groupId>org.wildfly.plugins</groupId>
 				<artifactId>wildfly-maven-plugin</artifactId>
-				<version>1.2.1.Final</version>
-			</plugin>
+				</plugin>
 		</plugins>
 		<finalName>${project.name}</finalName>
 	</build>
