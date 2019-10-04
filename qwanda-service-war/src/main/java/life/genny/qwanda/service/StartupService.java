@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -220,10 +221,7 @@ public class StartupService {
 	@PostConstruct
 	@Transactional
 	public void inits() {
-       	cacheInterface = new WildflyCache(inDb);
-
-		VertxUtils.init(eventBus, cacheInterface);
-
+	  
 		cacheInterface = new WildflyCache(inDb);
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
@@ -243,6 +241,11 @@ public class StartupService {
         }
         Realm rx = new Realm(xlsImport, 
             System.getenv("GOOGLE_HOSTING_SHEET_ID"));
+
+        List<String> realms = rx.getDataUnits().stream()
+            .filter(r-> !r.getDisable())
+            .map(d -> d.getCode())
+            .collect(Collectors.toList());
 
         rx.getDataUnits().forEach(serviceTokens::init);
 		// Save projects
@@ -270,6 +273,13 @@ public class StartupService {
 		rx.getDataUnits().forEach(this::setEnabledRealm);
 		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
+
+		// Push the list of active realms
+		if(!(realms.size() == 0)) {
+          String realmsJson = JsonUtils.toJson(realms);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		}
+
 	}
 
 //	private void pushProjectsUrlsToDTT(RealmUnit realmUnit) {
@@ -775,7 +785,7 @@ public class StartupService {
 
 //		final List<String> realms = service.getRealms();
 
-		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location
+//		List<String> activeRealms = new ArrayList<String>(); // build up the active realms to put into a single location
 																// in the cache
 			    String realm = realmUnit.getCode();
 
@@ -785,7 +795,6 @@ public class StartupService {
 
 				// push the project to the urls as keys too
 				service.setCurrentRealm(realm);
-				activeRealms.add(realm);
 
 				BaseEntity be = null; // service.findBaseEntityByCode("PRJ_" + realm.toUpperCase(), true);
 				CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -833,14 +842,6 @@ public class StartupService {
 			}
 			//
 //		}
-		// Push the list of active realms
-		Type listType = new TypeToken<List<String>>() {
-		}.getType();
-		Gson gson = new Gson();
-		if(!(activeRealms.size() == 0)) {
-          String realmsJson = JsonUtils.toJson(activeRealms);
-		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
-		}
 	}
 
 
