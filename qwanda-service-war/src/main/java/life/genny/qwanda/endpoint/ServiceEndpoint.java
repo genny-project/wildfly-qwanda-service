@@ -310,6 +310,22 @@ public class ServiceEndpoint {
 		return Response.status(200).entity(results).build();
 	}
 	
+	@POST
+	@Path("/cache/write/{key}")
+	@ApiOperation(value = "cache", notes = "write cache data located at Key")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response cacheWrite(@PathParam("key") final String key,final String data) {
+		String results = null;
+		log.info("Cache Write for key=" + key);
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			log.info("Writing into cache : key = [" + key + "] for realm "+securityService.getRealm());
+			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, service.getToken());
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
+		}
+		return Response.status(200).build();
+	}
+	
 	@GET
 	@Path("/cache/clear")
 	@ApiOperation(value = "cache", notes = "clear all cache data")
