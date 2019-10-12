@@ -51,7 +51,7 @@
 
 		<version.jodatime>2.7</version.jodatime>
 
-		<version.hibernate>5.3.12.Final</version.hibernate>	
+		<version.hibernate>5.3.13.Final</version.hibernate>	
 		<version.hibernate-validator>6.0.17.Final</version.hibernate-validator>
 		<version.hibernate.envers>5.4.6.Final</version.hibernate.envers>
 		<version.hsqldb>2.5.0</version.hsqldb>
