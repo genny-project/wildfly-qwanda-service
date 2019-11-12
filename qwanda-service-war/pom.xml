@@ -34,8 +34,8 @@
 		<genny-verticle.version>${revision}</genny-verticle.version>
 
 
-		<version.org.wildfly>17.0.1.Final</version.org.wildfly>
-		<version.jboss.bom>17.0.1.Final</version.jboss.bom>
+		<version.org.wildfly>18.0.0.Final</version.org.wildfly>
+		<version.jboss.bom>18.0.0.Final</version.jboss.bom>
 
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
 		<compiler-plugin-version>3.1</compiler-plugin-version>
@@ -65,7 +65,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<kie.version>7.28.0.Final</kie.version>
-		<version.keycloak>7.0.0</version.keycloak>
+		<version.keycloak>7.0.1</version.keycloak>
 
 		<version.ee7>1.0.2.Final</version.ee7>
 		<version.resteasy>3.0.10.Final</version.resteasy>
