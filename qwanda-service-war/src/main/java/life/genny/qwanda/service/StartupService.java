@@ -708,6 +708,7 @@ public class StartupService {
 						SecureResources.addRealm(url, keycloakJson);
 					}
 
+					projectBe = service.findBaseEntityByCode(projectBe.getCode());
 					// Save project BE in a consistent place
 					VertxUtils.putObject(realm, "", "PROJECT", JsonUtils.toJson(projectBe),
 							serviceTokens.getServiceToken(realm));
