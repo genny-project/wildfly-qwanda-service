@@ -667,6 +667,7 @@ public class StartupService {
 					String projectCode = "PRJ_" + realm.toUpperCase();
 					BaseEntity projectBe = null;
 
+				//	BaseEntity projectBe2 = service.findBaseEntityByCode(projectCode);
 					projectBe = new BaseEntity(projectCode, name);
 					projectBe = service.upsert(projectBe);
 
@@ -685,7 +686,7 @@ public class StartupService {
 					BatchLoading bl = new BatchLoading(service);
 					String keycloakJson = bl.constructKeycloakJson(realmUnit);
 					projectBe = createAnswer(projectBe, "ENV_KEYCLOAK_JSON", keycloakJson, true);
-
+				//	BaseEntity projectBe3 = service.findBaseEntityByCode(projectBe.getCode());
 					projectBe = service.upsert(projectBe);
 
 					// Set up temp keycloak.json Maps
@@ -708,7 +709,7 @@ public class StartupService {
 						SecureResources.addRealm(url, keycloakJson);
 					}
 
-					projectBe = service.findBaseEntityByCode(projectBe.getCode());
+				//	projectBe = service.findBaseEntityByCode(projectBe.getCode());
 					// Save project BE in a consistent place
 					VertxUtils.putObject(realm, "", "PROJECT", JsonUtils.toJson(projectBe),
 							serviceTokens.getServiceToken(realm));
