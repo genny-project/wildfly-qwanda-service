@@ -47,7 +47,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<version.postgresql>9.4.1207</version.postgresql>
-		<version.mysql-connector-java>8.0.17</version.mysql-connector-java>
+		<version.mysql-connector-java>8.0.18</version.mysql-connector-java>
 
 		<version.jodatime>2.7</version.jodatime>
 
@@ -65,7 +65,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<kie.version>7.29.0.Final</kie.version>
-		<version.keycloak>7.0.1</version.keycloak>
+		<version.keycloak>8.0.0</version.keycloak>
 
 		<version.ee7>1.0.2.Final</version.ee7>
 		<version.resteasy>3.0.10.Final</version.resteasy>
