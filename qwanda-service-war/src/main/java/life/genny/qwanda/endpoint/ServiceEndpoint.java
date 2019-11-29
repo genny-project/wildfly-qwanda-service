@@ -302,30 +302,30 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Reading from cache : key = [" + key + "]");
 			log.info("realm=[" + securityService.getRealm() + "]");
-		//	log.info("token=[" + service.getToken() + "]");
+			// log.info("token=[" + service.getToken() + "]");
 			results = service.readFromDDT(key);
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
 		return Response.status(200).entity(results).build();
 	}
-	
+
 	@POST
 	@Path("/cache/write/{key}")
 	@ApiOperation(value = "cache", notes = "write cache data located at Key")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response cacheWrite(@PathParam("key") final String key,final String data) {
+	public Response cacheWrite(@PathParam("key") final String key, final String data) {
 		String results = null;
 		log.info("Cache Write for key=" + key);
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
-			log.info("Writing into cache : key = [" + key + "] for realm "+securityService.getRealm());
+			log.info("Writing into cache : key = [" + key + "] for realm " + securityService.getRealm());
 			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, service.getToken());
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
 		return Response.status(200).build();
 	}
-	
+
 	@GET
 	@Path("/cache/clear")
 	@ApiOperation(value = "cache", notes = "clear all cache data")
@@ -364,8 +364,7 @@ public class ServiceEndpoint {
 
 				service.insert(answerArray);
 				result = (BaseEntity) em
-						.createQuery(
-								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+						.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
 						.setParameter("code", targetCode).getSingleResult();
 			}
 
@@ -411,8 +410,7 @@ public class ServiceEndpoint {
 	@Path("/gps/{origin}/{destination}/distance/{percentage}")
 	@Produces("application/json")
 	public Response fetchCurrentRouteStatusByPercentageDistance(@PathParam("origin") final String originAddress,
-			@PathParam("destination") final String destinationAddress,
-			@PathParam("percentage") final Double percentage) {
+			@PathParam("destination") final String destinationAddress, @PathParam("percentage") final Double percentage) {
 		String json = null;
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -507,13 +505,11 @@ public class ServiceEndpoint {
 			// Why did I make this mandatory? ACC
 			Properties properties = new Properties();
 			try {
-				properties.load(
-						Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
+				properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
 			} catch (IOException e) {
 
 			}
-			log.info("Sending rulegroup - " + rulegroup + " from "
-					+ securityService.getUserMap().get("prefered_username"));
+			log.info("Sending rulegroup - " + rulegroup + " from " + securityService.getUserMap().get("prefered_username"));
 			QEventSystemMessage event = new QEventSystemMessage("FOCUS_RULE_GROUP", properties, token);
 			event.getData().setValue(rulegroup);
 
@@ -597,12 +593,11 @@ public class ServiceEndpoint {
 									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
 
 									try {
-										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
-												securityService.getRealm(), newUsername, newFirstname, newLastname,
-												newEmail);
+										String keycloakUserId = KeycloakUtils.createUser(serviceToken, securityService.getRealm(),
+												newUsername, newFirstname, newLastname, newEmail);
 										log.info("KEYCLOAK USER ID: " + keycloakUserId);
-										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(),
-												"PRI_KEYCLOAK_UUID", keycloakUserId);
+										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(), "PRI_KEYCLOAK_UUID",
+												keycloakUserId);
 										be.addAnswer(keycloakIdAnswer);
 										service.updateWithAttributes(be);
 									} catch (IOException e) {
@@ -698,7 +693,7 @@ public class ServiceEndpoint {
 	/**
 	 * Calls the synchronizeSheetsToDataBase method in the Service and returns the
 	 * response.
-	 * 
+	 *
 	 * @param table
 	 * @return response of the synchronization
 	 */
@@ -711,7 +706,7 @@ public class ServiceEndpoint {
 
 	/**
 	 * Calls the syncLayouts method in the Service and returns the response.
-	 * 
+	 *
 	 * @param table
 	 * @return response of the synchronization
 	 */
@@ -719,15 +714,15 @@ public class ServiceEndpoint {
 	@Consumes("application/json")
 	@Path("/synchronizelayouts")
 	@Transactional
-//	@TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
+	// @TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
 	public Response synchronizeLayouts(
 			@DefaultValue("https://github.com") @QueryParam("giturl") final String gitserverUrl,
 			@DefaultValue("genny-project") @QueryParam("accountname") final String accountname,
 			@DefaultValue("layouts.git") @QueryParam("project") final String project,
 			@DefaultValue("genny") @QueryParam("realm") final String realm,
 			@DefaultValue("master") @QueryParam("branch") final String branch)
-			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException,
-			RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException, RevisionSyntaxException,
+			AmbiguousObjectException, IncorrectObjectTypeException, IOException {
 
 		String ret = "Synced";
 
@@ -745,8 +740,9 @@ public class ServiceEndpoint {
 
 			// V1
 
-			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, "genny/sublayouts",
-					true); // get common layouts
+			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, "genny/sublayouts", true); // get
+																																																											// common
+																																																											// layouts
 
 			log.info("about to synch sublayouts for genny");
 			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts, false);
@@ -754,8 +750,7 @@ public class ServiceEndpoint {
 			VertxUtils.writeCachedJson(securityService.getRealm(), "GENNY-V1-LAYOUTS", JsonUtils.toJson(v1messages),
 					service.getToken());
 
-			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "/sublayouts",
-					true);
+			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "/sublayouts", true);
 			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts, false);
 			log.info("writing to cache " + realm.toUpperCase() + "-V1-LAYOUTS");
 			VertxUtils.writeCachedJson(securityService.getRealm(), realm.toUpperCase() + "-V1-LAYOUTS",
@@ -773,17 +768,18 @@ public class ServiceEndpoint {
 			// service.saveLayouts( realmLayouts, realm+"-new", "V2", branch);
 
 			List<BaseEntity> layouts = new ArrayList<BaseEntity>();
-//			log.info("genny "+gennyLayouts.size()+" layouts ");
+			// log.info("genny "+gennyLayouts.size()+" layouts ");
 			layouts.addAll(gennyLayouts);
-//			log.info(realm+" "+realmLayouts.size()+" layouts ");
+			// log.info(realm+" "+realmLayouts.size()+" layouts ");
 			layouts.addAll(realmLayouts);
-//			
-//			for (BaseEntity layout : layouts) {
-//				log.info("Loaded Layout " + layout.getCode()+" "+layout.getName()+":"+layout.getValue("PRI_LAYOUT_URI").get().toString());
-//			}
-//
-//			
-//			synchLayouts(layouts,true);   // save the layouts to the database
+			//
+			// for (BaseEntity layout : layouts) {
+			// log.info("Loaded Layout " + layout.getCode()+"
+			// "+layout.getName()+":"+layout.getValue("PRI_LAYOUT_URI").get().toString());
+			// }
+			//
+			//
+			// synchLayouts(layouts,true); // save the layouts to the database
 
 			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(layouts.toArray(new BaseEntity[0]));
 			msg.setParentCode("GRP_LAYOUTS");
@@ -868,8 +864,8 @@ public class ServiceEndpoint {
 					String json = JsonUtils.toJson(newLayout);
 					service.writeToDDT(newLayout.getCode(), json);
 					service.addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0, false); // don't send
-																											// change
-																											// event
+					// change
+					// event
 				} catch (IllegalArgumentException | BadDataException e) {
 					log.error("Could not write layout - " + e.getLocalizedMessage());
 				}
@@ -896,7 +892,7 @@ public class ServiceEndpoint {
 
 	/**
 	 * Returns a CSV export of the realm
-	 * 
+	 *
 	 * @param table
 	 * @return response of the synchronization
 	 */
@@ -905,8 +901,8 @@ public class ServiceEndpoint {
 	@Path("/export/{table}/{realm}")
 	@Transactional
 	public Response exportRealm(@PathParam("table") final String tableStr, @PathParam("realm") final String realmStr)
-			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException,
-			RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException, RevisionSyntaxException,
+			AmbiguousObjectException, IncorrectObjectTypeException, IOException {
 
 		String ret = "";
 		String realm = realmStr.toLowerCase().trim(); // TODO, check if realm is real
@@ -920,20 +916,20 @@ public class ServiceEndpoint {
 
 			case "attribute":
 				// final String code = (String) object.get("code");
-//				final String name = (String) object.get("name");
-//				final String dataType = (String) object.get("datatype");
-//				final String privacy = (String) object.get("privacy");
-//				final String description = (String) object.get("description");
-//				final String help = (String) object.get("help");
-//				final String placeholder = (String) object.get("placeholder");
-//				final String defaultValue = (String) object.get("defaultValue");
+				// final String name = (String) object.get("name");
+				// final String dataType = (String) object.get("datatype");
+				// final String privacy = (String) object.get("privacy");
+				// final String description = (String) object.get("description");
+				// final String help = (String) object.get("help");
+				// final String placeholder = (String) object.get("placeholder");
+				// final String defaultValue = (String) object.get("defaultValue");
 				// BaseEntitys
-				List<Attribute> attributes = em
-						.createQuery("SELECT distinct att FROM Attribute att  where att.realm=:realm")
+				List<Attribute> attributes = em.createQuery("SELECT distinct att FROM Attribute att  where att.realm=:realm")
 						.setParameter("realm", realm).getResultList();
 
-//				code	name	datatype	Hint (Example Associated BaseEntity)	privacy	description	help	placeholder	defaultValue																					
-//				PRI_IS_INTERN	Intern	DTT_BOOLEAN	USER																										
+				// code name datatype Hint (Example Associated BaseEntity) privacy description
+				// help placeholder defaultValue
+				// PRI_IS_INTERN Intern DTT_BOOLEAN USER
 				ret = "\"code\",\"name\",\"datatype\",\"privacy\",\"description\",\"help\",\"placeholder\",\"defaultValue\"\n";
 				for (Attribute att : attributes) {
 					ret += cell(att.getCode()) + cell(att.getName()) + cell(att.getDataType().getClassName())
@@ -981,13 +977,12 @@ public class ServiceEndpoint {
 				List<Validation> vlds = em.createQuery("SELECT vld FROM Validation vld where vld.realm=:realm")
 						.setParameter("realm", realm).getResultList();
 
-//				code	name	regex	group_codes	recursive	multi_allowed																					
-//				VLD_SELECT_EDU_PROVIDER	dropdown	.*	GRP_EDU_PROVIDER_SELECTION	FALSE																						
+				// code name regex group_codes recursive multi_allowed
+				// VLD_SELECT_EDU_PROVIDER dropdown .* GRP_EDU_PROVIDER_SELECTION FALSE
 				ret = "\"code\",\"name\",\"regex\",\"group_codes\",\"recursive\",\"multi_allowed\"\n";
 				for (Validation a : vlds) {
-					ret += cell(a.getCode()) + cell(a.getName()) + cell(a.getRegex())
-							+ cell(a.getSelectionBaseEntityGroupList()) + cell(a.getRecursiveGroup())
-							+ cell(a.getMultiAllowed())
+					ret += cell(a.getCode()) + cell(a.getName()) + cell(a.getRegex()) + cell(a.getSelectionBaseEntityGroupList())
+							+ cell(a.getRecursiveGroup()) + cell(a.getMultiAllowed())
 
 							+ "\n";
 				}
@@ -1040,26 +1035,37 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || securityService.inRole("test")) {
 
 			String realm = securityService.getRealm();
-//select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NULL and q.realm='internmatch' and q.code like 'QUE_%_GRP';
+			// select distinct(q.code) from question q LEFT JOIN question_question qq ON
+			// q.code = qq.sourceCode WHERE qq.sourceCode IS NULL and q.realm='internmatch'
+			// and q.code like 'QUE_%_GRP';
 			try {
-				Query q = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code like 'QUE_%_GRP'and q.code NOT LIKE 'QUE_JOURNAL%'");
+				Query q = em.createNativeQuery(
+						"select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"
+								+ realm + "' and q.code like 'QUE_%_GRP'");
 				List<Object[]> questionCodes = q.getResultList();
-//				Query q2 = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1_GRP' LIMIT 1");
-//				List<Object[]> questionCodes2 = q2.getResultList();
-//				Query q3 = em.createNativeQuery("select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1D1_GRP' LIMIT 1");
-//				List<Object[]> questionCodes3 = q3.getResultList();
-//				
-//				questionCodes.addAll(questionCodes2);
-//				questionCodes.addAll(questionCodes3);
-				
-//				List<String> qqs = em.createQuery(
-//						"SELECT qq.code FROM QuestionQuestion qq where  qq.pk.sourceCode IS NULL  and qq.pk.source.realm=:realm")
-//						.setParameter("realm", realm).getResultList();
+				// Query q2 = em.createNativeQuery("select distinct(q.code) from question q LEFT
+				// JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS
+				// NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1_GRP' LIMIT
+				// 1");
+				// List<Object[]> questionCodes2 = q2.getResultList();
+				// Query q3 = em.createNativeQuery("select distinct(q.code) from question q LEFT
+				// JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS
+				// NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1D1_GRP' LIMIT
+				// 1");
+				// List<Object[]> questionCodes3 = q3.getResultList();
+				//
+				// questionCodes.addAll(questionCodes2);
+				// questionCodes.addAll(questionCodes3);
+
+				// List<String> qqs = em.createQuery(
+				// "SELECT qq.code FROM QuestionQuestion qq where qq.pk.sourceCode IS NULL and
+				// qq.pk.source.realm=:realm")
+				// .setParameter("realm", realm).getResultList();
 				String json = JsonUtils.toJson(questionCodes);
 
 				return Response.status(200).entity(json).build();
 			} catch (Exception e) {
-				log.error("Error in fetching forms for realm "+realm+" "+e.getLocalizedMessage());
+				log.error("Error in fetching forms for realm " + realm + " " + e.getLocalizedMessage());
 				return Response.status(401).entity("Query did not work.").build();
 			}
 
