@@ -221,7 +221,8 @@ public class StartupService {
 	@PostConstruct
 	@Transactional
 	public void inits() {
-	  
+		long startTime = System.nanoTime();
+
 		cacheInterface = new WildflyCache(inDb);
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
@@ -271,7 +272,6 @@ public class StartupService {
 		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
 		String branch = "master";
 		rx.getDataUnits().forEach(this::setEnabledRealm);
-		log.info("---------------- Completed Startup ----------------");
 		securityService.setImportMode(false);
 
 		// Push the list of active realms
@@ -279,6 +279,9 @@ public class StartupService {
           String realmsJson = JsonUtils.toJson(realms);
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 		}
+		double difference = ( System.nanoTime() - startTime) / 1e9; // get s
+
+		log.info("---------------- Completed Startup in "+difference+" sec ----------------");
 
 	}
 
