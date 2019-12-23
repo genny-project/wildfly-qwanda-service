@@ -360,8 +360,8 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	@Transactional
 	public Response findBySearchBE(@Context final UriInfo uriInfo) {
-
-		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+		log.info("securityService.getUserCode() is "+securityService.getUserCode());
+		if (securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode()) 
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 
 		BaseEntity searchBE = new BaseEntity("SER_");
@@ -485,11 +485,11 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(final BaseEntity searchBE) {
 
-		log.info("Search " + searchBE);
+		log.info("Search " + searchBE+" securityService.getUserCode()="+securityService.getUserCode());
 		
 
 		// Force any user that is not admin to have to use their own code
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode()) 
 				|| securityService.inRole("dev")) || searchDevMode) {  // TODO Remove the true!
 			String stakeHolderCode = null;
 			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
