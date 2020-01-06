@@ -1041,7 +1041,7 @@ public class ServiceEndpoint {
 			try {
 				Query q = em.createNativeQuery(
 						"select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"
-								+ realm + "' and q.code like 'QUE_%_GRP'and q.code NOT LIKE 'QUE_JOURNAL%'");
+								+ realm + "' and q.code like 'QUE_%_GRP'");
 				List<Object[]> questionCodes = q.getResultList();
 				// Query q2 = em.createNativeQuery("select distinct(q.code) from question q LEFT
 				// JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS
