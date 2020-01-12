@@ -6,6 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.NoResultException;
@@ -27,17 +28,19 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-import org.json.JSONObject;
 import org.mortbay.log.Log;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import life.genny.qwanda.Answer;
@@ -51,7 +54,6 @@ import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeInteger;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
-import life.genny.qwanda.controller.Controller;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.SearchEntity;
@@ -60,10 +62,10 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataAttributeMessage;
-import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
+import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
@@ -71,11 +73,6 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
-import life.genny.security.SecureResources;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-
-import java.util.concurrent.CompletableFuture;
 
 
 /**
