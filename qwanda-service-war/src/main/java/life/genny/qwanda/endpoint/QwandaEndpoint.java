@@ -242,44 +242,23 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/answers/bulk2")
-	@Transactional
+	@Transactional(dontRollbackOn = { javax.persistence.TransactionRequiredException.class })
 	public Response createBulk2(final QDataAnswerMessage entitys) {
+		log.info(entitys.getItems().length+" Bulk Answers2 ");
+		try {
+			insertAnswers(entitys.getItems());
+				return Response.status(200).build();
+			} catch (javax.persistence.NoResultException e) {
+				return Response.status(404).build();
+			}
+			catch (IllegalArgumentException e) {
+				return Response.status(422).entity(e.getMessage()).build();
+			}
 
-//	public Response createBulk2(final QDataAnswerMessage entitys,@Suspended final AsyncResponse asyncResponse) {
-
-		insertAnswers(entitys.getItems());
-//		 CompletableFuture
-//         .runAsync(() -> {
-//	    	   try {
-//	    			service.insert(entitys.getItems());
-//	    				//return Response.status(200).build();
-//	    			} catch (javax.persistence.NoResultException e) {
-//	    				//return Response.status(404).build();
-//	    			}
-//	    			catch (IllegalArgumentException e) {
-//	    				//return Response.status(422).entity(e.getMessage()).build();
-//	    			}		       })
-//         .thenApply((result) -> asyncResponse.resume(result));
-//		 
-//		   executor.execute(new Runnable() {
-//		       public void run() {
-//		    	   try {
-//		    			service.insert(entitys.getItems());
-//		    				return Response.status(200).build();
-//		    			} catch (javax.persistence.NoResultException e) {
-//		    				return Response.status(404).build();
-//		    			}
-//		    			catch (IllegalArgumentException e) {
-//		    				return Response.status(422).entity(e.getMessage()).build();
-//		    			}		       }
-//		    });
-		    return Response.status(202).build();
-
-		
 
 	}
 	
-	@javax.ejb.Asynchronous
+//	@javax.ejb.Asynchronous
 	void insertAnswers(final Answer[] answers)
 	{
 		 try {
@@ -297,7 +276,8 @@ public class QwandaEndpoint {
 	@POST
 	@Consumes("application/json")
 	@Path("/answers/bulk")
-	@Transactional
+//	@Transactional
+	@Transactional(dontRollbackOn = { javax.persistence.TransactionRequiredException.class })
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
 			log.info(entitys.getItems().length+" Bulk Answers ");
