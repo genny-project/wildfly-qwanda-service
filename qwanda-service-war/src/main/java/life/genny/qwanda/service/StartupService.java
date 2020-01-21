@@ -1,10 +1,8 @@
 package life.genny.qwanda.service;
 
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -12,7 +10,9 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -24,13 +24,12 @@ import javax.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import life.genny.bootxport.bootx.GoogleImportService;
 import life.genny.bootxport.bootx.Realm;
 import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.bootxport.bootx.StateManagement;
 import life.genny.bootxport.bootx.XSSFService;
 //import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.bootxport.bootx.XlsxImport;
@@ -218,6 +217,70 @@ public class StartupService {
 //
 //	}
 
+    private Realm rx;
+
+    public Realm getRealm() {
+        XlsxImport xlsImport;
+        XSSFService service = new  XSSFService();
+        GoogleImportService gs = GoogleImportService.getInstance();
+        if(rx ==null) {
+          Boolean onlineMode = Optional.ofNullable(System.getenv("ONLINE_MODE"))
+              .map(val -> val.toLowerCase())
+              .map(Boolean::getBoolean)
+              .orElse(true);
+          
+          if(onlineMode){
+              xlsImport = new XlsxImportOnline(gs.getService());
+          }else{
+              xlsImport = new XlsxImportOffline(service);
+          }
+          rx = new Realm(xlsImport, 
+              System.getenv("GOOGLE_HOSTING_SHEET_ID"));
+          return rx;
+        } else {
+          return rx;
+        }
+    }
+    
+    public void update(RealmUnit rxUnit) {
+		saveProjectBes(rxUnit);
+		saveServiceBes(rxUnit);
+		pushProjectsUrlsToDTT(rxUnit);
+
+		if (!GennySettings.skipGoogleDocInStartup) {
+			log.info("Starting Transaction for loading #####################");
+
+			persistEnabledProject(rxUnit);
+			log.info("*********************** Finished Google Doc Import ***********************************");
+		} else {
+			log.info("Skipping Google doc loading");
+		}
+
+		// Push BEs to cache
+		if (GennySettings.loadDdtInStartup) {		    
+            log.info("Pushing to DTT  ");
+		    pushToDTT(rxUnit);
+		}
+		pushProjectsUrlsToDTT(rxUnit);
+		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+		setEnabledRealm(rxUnit);
+		securityService.setImportMode(false);
+
+        List<String> realms = rx.getDataUnits().stream()
+            .filter(r-> !r.getDisable())
+            .map(d -> d.getCode())
+            .collect(Collectors.toList());
+
+		// Push the list of active realms
+		if(!(realms.size() == 0)) {
+          String realmsJson = JsonUtils.toJson(realms);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		}
+		
+		
+      
+    }
+
 	@PostConstruct
 	@Transactional
 	public void inits() {
@@ -226,28 +289,14 @@ public class StartupService {
 		cacheInterface = new WildflyCache(inDb);
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
-        GoogleImportService gs = GoogleImportService.getInstance();
     
-        Boolean onlineMode = Optional.ofNullable(System.getenv("ONLINE_MODE"))
-            .map(val -> val.toLowerCase())
-            .map(Boolean::getBoolean)
-            .orElse(true);
-
-        XlsxImport xlsImport;
-        XSSFService service = new  XSSFService();
-        if(onlineMode){
-            xlsImport = new XlsxImportOnline(gs.getService());
-        }else{
-            xlsImport = new XlsxImportOffline(service);
-        }
-        Realm rx = new Realm(xlsImport, 
-            System.getenv("GOOGLE_HOSTING_SHEET_ID"));
-
+        rx =  getRealm();
         List<String> realms = rx.getDataUnits().stream()
             .filter(r-> !r.getDisable())
             .map(d -> d.getCode())
             .collect(Collectors.toList());
 
+        StateManagement.initStateManagement(rx);
         rx.getDataUnits().forEach(serviceTokens::init);
 		// Save projects
 		rx.getDataUnits().forEach(this::saveProjectBes);
@@ -255,7 +304,7 @@ public class StartupService {
 		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
 
 		if (!GennySettings.skipGoogleDocInStartup) {
-			log.info("Starting Transaction for loading");
+			log.info("Starting Transaction for loading *********************");
 
 			rx.getDataUnits().forEach(this::persistEnabledProject);
 			log.info("*********************** Finished Google Doc Import ***********************************");
@@ -283,6 +332,96 @@ public class StartupService {
 
 		log.info("---------------- Completed Startup in "+difference+" sec ----------------");
 
+//		Hazel ha = new Hazel();
+//		ha.init();
+//		System.out.println("####################################################################");
+//		ha.instance.getConfig().getMapConfigs().keySet().forEach(d -> System.out.println("here are the keys " + d));
+//		System.out.println("####################################################################");
+//		ha.instance.getDistributedObjects().stream().forEach(d -> System.out.println("here are the keys " + d.getName()));
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("jenny").keySet().stream().forEach(System.out::println);;
+//        ha.instance.getMap("jenny").clear();
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("internmatch").keySet().stream().forEach(System.out::println);;
+//		ha.instance.getMap("internmatch").clear();
+//		System.out.println("####################################################################");
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("jenny").keySet().stream().forEach(System.out::println);;
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("internmatch").keySet().stream().forEach(System.out::println);;
+//		System.out.println("####################################################################");
+//
+//        rx.getDataUnits().forEach(d -> {
+//          d.getAsks().clear();
+//          d.getAttributeLinks().clear();
+//          d.getDataTypes().clear();
+//          d.getAttributes().clear();
+//          d.getEntityAttributes().clear();
+//          d.getValidations().clear();
+//          d.getQuestions().clear();
+//          d.getQuestionQuestions().clear();
+//          d.getNotifications().clear();
+//          d.getMessages().clear();
+//        });
+//        
+//        rx.getDataUnits().forEach(d -> {
+//          System.out.println("for Realm " + d.getCode());
+//          System.out.println(d.getAsks().size());
+//          System.out.println(d.getAttributeLinks().size());
+//          System.out.println(d.getDataTypes().size());
+//          System.out.println(d.getAttributes().size());
+//          System.out.println(d.getEntityAttributes().size());
+//          System.out.println(d.getValidations().size());
+//          System.out.println(d.getQuestions().size());
+//          System.out.println(d.getQuestionQuestions().size());
+//          System.out.println(d.getNotifications().size());
+//          System.out.println(d.getBaseEntitys().size());
+//          System.out.println(d.getMessages().size());
+//        });
+//        
+//		rx.getDataUnits().forEach(this::saveProjectBes);
+//		rx.getDataUnits().forEach(this::saveServiceBes);
+//		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
+//
+//		if (!GennySettings.skipGoogleDocInStartup) {
+//			log.info("Starting Transaction for loading");
+//
+//			rx.getDataUnits().forEach(this::persistEnabledProject);
+//			log.info("*********************** Finished Google Doc Import ***********************************");
+//		} else {
+//			log.info("Skipping Google doc loading");
+//		}
+//
+//		// Push BEs to cache
+//		if (GennySettings.loadDdtInStartup) {		    
+//            log.info("Pushing to DTT  ");
+//		    rx.getDataUnits().forEach(this::pushToDTT);
+//		}
+//		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
+//		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+//		rx.getDataUnits().forEach(this::setEnabledRealm);
+//		securityService.setImportMode(false);
+//
+//		// Push the list of active realms
+//		if(!(realms.size() == 0)) {
+//          String realmsJson = JsonUtils.toJson(realms);
+//		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+//		}
+//	
+//		System.out.println("####################################################################");
+//		ha.instance.getConfig().getMapConfigs().keySet().forEach(d -> System.out.println("here are the keys " + d));
+//		System.out.println("####################################################################");
+//		ha.instance.getDistributedObjects().stream().forEach(d -> System.out.println("here are the keys " + d.getName()));
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("jenny").keySet().stream().forEach(System.out::println);;
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("internmatch").keySet().stream().forEach(System.out::println);;
+//		System.out.println("####################################################################");
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("jenny").keySet().stream().forEach(System.out::println);;
+//		System.out.println("####################################################################");
+//		ha.instance.getMap("internmatch").keySet().stream().forEach(System.out::println);;
+//		System.out.println("####################################################################");
 	}
 
 //	private void pushProjectsUrlsToDTT(RealmUnit realmUnit) {

@@ -43,6 +43,9 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.bootxport.bootx.StateManagement;
+import life.genny.bootxport.bootx.StateModel;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -69,6 +72,7 @@ import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
 import life.genny.qwanda.service.Service;
+import life.genny.qwanda.service.StartupService;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
@@ -135,6 +139,36 @@ public class QwandaEndpoint {
 				.build();
 	}
 
+
+	@Inject
+	private StartupService startup;
+	@POST
+	@Consumes("application/json")
+	@Path("/syncsheets")
+	@Transactional
+	public Response syncSheets(final StateModel entity) {
+	    System.out.println("Got Here::::::: ");
+	    System.out.println(entity);
+	    StateManagement.setStateModel(entity);
+	    List<RealmUnit> updatedRealmUnits = StateManagement.getUpdatedRealmUnits();
+
+	    updatedRealmUnits.stream().forEach(d -> {
+           System.out.println("data to be updated"+d.getCode());
+           System.out.println("data to be updated"+d.getAsks().size());
+           System.out.println("data to be updated"+d.getBaseEntitys().size());
+           System.out.println("data to be updated"+d.getEntityAttributes().size());
+           System.out.println("data to be updated"+d.getAttributeLinks().size());
+           System.out.println("data to be updated"+d.getAttributes().size());
+           System.out.println("data to be updated"+d.getDataTypes().size());
+           System.out.println("data to be updated"+d.getMessages().size());
+           System.out.println("data to be updated"+d.getNotifications().size());
+           System.out.println("data to be updated"+d.getQuestionQuestions().size());
+           System.out.println("data to be updated"+d.getQuestions().size());
+           System.out.println("data to be updated"+d.getValidations().size());
+         });	
+	    updatedRealmUnits.stream().forEach(startup::update);
+		return Response.status(200).entity(entity).build();
+	}
 	@POST
 	@Consumes("application/json")
 	@Path("/questions")
