@@ -147,25 +147,8 @@ public class QwandaEndpoint {
 	@Path("/syncsheets")
 	@Transactional
 	public Response syncSheets(final StateModel entity) {
-	    System.out.println("Got Here::::::: ");
-	    System.out.println(entity);
 	    StateManagement.setStateModel(entity);
 	    List<RealmUnit> updatedRealmUnits = StateManagement.getUpdatedRealmUnits();
-
-	    updatedRealmUnits.stream().forEach(d -> {
-           System.out.println("data to be updated"+d.getCode());
-           System.out.println("data to be updated"+d.getAsks().size());
-           System.out.println("data to be updated"+d.getBaseEntitys().size());
-           System.out.println("data to be updated"+d.getEntityAttributes().size());
-           System.out.println("data to be updated"+d.getAttributeLinks().size());
-           System.out.println("data to be updated"+d.getAttributes().size());
-           System.out.println("data to be updated"+d.getDataTypes().size());
-           System.out.println("data to be updated"+d.getMessages().size());
-           System.out.println("data to be updated"+d.getNotifications().size());
-           System.out.println("data to be updated"+d.getQuestionQuestions().size());
-           System.out.println("data to be updated"+d.getQuestions().size());
-           System.out.println("data to be updated"+d.getValidations().size());
-         });	
 	    updatedRealmUnits.stream().forEach(startup::update);
 		return Response.status(200).entity(entity).build();
 	}
