@@ -74,6 +74,31 @@ public class StartupService {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+	public void deleteFromEnabledProject(RealmUnit realmUnit) {
+		if (!realmUnit.getDisable()) {
+			log.info("Project: " + realmUnit.getCode());
+
+			Boolean skipGoogleDoc = realmUnit.getSkipGoogleDoc();
+
+			if ((skipGoogleDoc != null)
+					&& !realmUnit.getDisable()) {
+				String realm = realmUnit.getCode();
+				service.setCurrentRealm(realm);
+				log.info("PROJECT " + realm);
+				BatchLoading bl = new BatchLoading(service);
+
+				// save urls to Keycloak maps
+				service.setCurrentRealm(realmUnit.getCode()); // provide overridden realm
+
+                bl.deleteFromProject(realmUnit);
+				String keycloakJson = bl.constructKeycloakJson(realmUnit);
+				bl.upsertKeycloakJson(keycloakJson);
+				bl.upsertProjectUrls((String) realmUnit.getUrlList());
+			}
+		}
+	}
+
+
 	public void persistEnabledProject(RealmUnit realmUnit) {
 		if (!realmUnit.getDisable()) {
 			log.info("Project: " + realmUnit.getCode());
@@ -241,6 +266,41 @@ public class StartupService {
           return rx;
         }
     }
+    public void deleteFromSheets(RealmUnit rxUnit) {
+		saveProjectBes(rxUnit);
+		saveServiceBes(rxUnit);
+		pushProjectsUrlsToDTT(rxUnit);
+
+		if (!GennySettings.skipGoogleDocInStartup) {
+			log.info("Starting Transaction for loading #####################");
+
+			deleteFromEnabledProject(rxUnit);
+			log.info("*********************** Finished Google Doc Import ***********************************");
+		} else {
+			log.info("Skipping Google doc loading");
+		}
+
+		// Push BEs to cache
+		if (GennySettings.loadDdtInStartup) {		    
+            log.info("Pushing to DTT  ");
+		    pushToDTT(rxUnit);
+		}
+		pushProjectsUrlsToDTT(rxUnit);
+		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+		setEnabledRealm(rxUnit);
+		securityService.setImportMode(false);
+
+        List<String> realms = rx.getDataUnits().stream()
+            .filter(r-> !r.getDisable())
+            .map(d -> d.getCode())
+            .collect(Collectors.toList());
+
+		// Push the list of active realms
+		if(!(realms.size() == 0)) {
+          String realmsJson = JsonUtils.toJson(realms);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		}
+    }
     
     public void update(RealmUnit rxUnit) {
 		saveProjectBes(rxUnit);
@@ -276,9 +336,6 @@ public class StartupService {
           String realmsJson = JsonUtils.toJson(realms);
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 		}
-		
-		
-      
     }
 
 	@PostConstruct

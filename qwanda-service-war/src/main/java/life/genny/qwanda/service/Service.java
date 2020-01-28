@@ -69,6 +69,10 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
       // TODO Auto-generated method stub
 
     }
+    @Override
+    public <T> void delete(T entity) {
+      getEntityManager().remove(entity);
+    }
 
 	/**
 	 * Stores logger object.

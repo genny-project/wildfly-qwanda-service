@@ -139,6 +139,16 @@ public class QwandaEndpoint {
 				.build();
 	}
 
+	@DELETE
+	@Consumes("application/json")
+	@Path("/syncsheets")
+	@Transactional
+	public Response syncDeletedRowFromSheets(final StateModel entity) {
+	    StateManagement.setStateModel(entity);
+        List<RealmUnit> deletedRowsFromRealmUnits = StateManagement.getDeletedRowsFromRealmUnits();
+	    deletedRowsFromRealmUnits.stream().forEach(startup::deleteFromSheets);
+		return Response.status(200).entity(entity).build();
+	}
 
 	@Inject
 	private StartupService startup;
