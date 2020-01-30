@@ -750,14 +750,19 @@ public class StartupService {
 	}
 
 	private void pushQuestionsToCache(CriteriaBuilder builder, final String realm) {
-		CriteriaQuery<Question> query = builder.createQuery(Question.class);
-		Root<Question> be = query.from(Question.class);
-		Join<Question, QuestionQuestion> ea = (Join) be.fetch("childQuestions");
-		query.select(be);
-		query.distinct(true);
-		query.where(builder.equal(ea.get("realm"), realm));
+//		CriteriaQuery<Question> query = builder.createQuery(Question.class);
+//		Root<Question> be = query.from(Question.class);
+//		Join<Question, QuestionQuestion> ea = (Join) be.fetch("childQuestions");
+//		query.select(be);
+//		query.distinct(true);
+//		query.where(builder.equal(ea.get("realm"), realm));
+//
+//		List<Question> results = em.createQuery(query).getResultList();
+		
+		final List<Question> results = em
+				.createQuery("SELECT a FROM Question a where a.realm=:realmStr").setParameter("realmStr", realm)
+				.getResultList();
 
-		List<Question> results = em.createQuery(query).getResultList();
 
 		log.info("Pushing " + realm + " : " + results.size() + " Questions to Cache");
 		service.writeQuestionsToDDT(results);
