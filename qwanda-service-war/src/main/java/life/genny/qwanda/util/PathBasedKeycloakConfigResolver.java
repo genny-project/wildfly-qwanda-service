@@ -93,7 +93,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				}
 
 			} catch (final Exception e) {
-				log.error("Error in accessing request.getURI , spi issue?");
+				log.error("Error in accessing request.getURI , spi issue? "+e.getLocalizedMessage());
 			}
 		}
 
