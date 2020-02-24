@@ -167,7 +167,7 @@ public class QwandaEndpoint {
 	@Path("/questions")
 	@Transactional
 	public Response create(final Question entity) {
-		service.insert(entity);
+		service.upsert(entity);
 		return Response
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
 				.build();
