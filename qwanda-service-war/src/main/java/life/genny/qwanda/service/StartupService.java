@@ -871,9 +871,12 @@ public class StartupService {
 					String projectCode = "PRJ_" + realm.toUpperCase();
 					BaseEntity projectBe = null;
 
-				//	BaseEntity projectBe2 = service.findBaseEntityByCode(projectCode);
-					projectBe = new BaseEntity(projectCode, name);
-					projectBe = service.upsert(projectBe);
+                    try{
+				    	projectBe = service.findBaseEntityByCode(projectCode);
+                    }catch(javax.persistence.NoResultException e ){
+					    projectBe = new BaseEntity(projectCode, name);
+					    projectBe = service.upsert(projectBe);
+                    }
 
 					projectBe = createAnswer(projectBe, "PRI_NAME", name, false);
 					projectBe = createAnswer(projectBe, "PRI_CODE", projectCode, false);
