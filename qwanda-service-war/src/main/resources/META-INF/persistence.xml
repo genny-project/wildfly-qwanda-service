@@ -2,8 +2,8 @@
 <persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
-             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
-	version="2.1">
+             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+	version="2.2">
 
 	<persistence-unit name="genny-persistence-unit"
 		transaction-type="JTA">
@@ -54,8 +54,8 @@
 
 		<validation-mode>CALLBACK</validation-mode>
 
-		<!-- <shared-cache-mode>ALL</shared-cache-mode> -->
 		<properties>
+			<property name="shared-cache-mode" value="ALL" />
 			<property name="hibernate.dialect"
 				value="life.genny.qwanda.util.MySQLDialect2" />
 			<property name="hibernate.connection.autocommit"
