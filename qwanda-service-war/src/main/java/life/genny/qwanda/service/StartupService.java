@@ -970,11 +970,15 @@ public class StartupService {
 				attribute = service.findAttributeByCode(attributeCode);
 			} catch (Exception ee) {
 				// Could not find Attribute, create it
-				attribute = new Attribute(attributeCode, attributeCode, new DataType("DTT_TEXT"));
+                DataType dataType = new DataType("DTT_TEXT");
+                dataType.setDttCode("DTT_TEXT");
+				attribute = new Attribute(attributeCode, attributeCode, dataType );
 				service.insert(attribute);
 			}
 			if (attribute == null) {
-				attribute = new Attribute(attributeCode, attributeCode, new DataType("DTT_TEXT"));
+                DataType dataType = new DataType("DTT_TEXT");
+                dataType.setDttCode("DTT_TEXT");
+				attribute = new Attribute(attributeCode, attributeCode, dataType);
 				service.insert(attribute);
 			}
 			answer = new Answer(be, be, attribute, answerValue);
