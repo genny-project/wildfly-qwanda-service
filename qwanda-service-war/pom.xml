@@ -34,8 +34,9 @@
 		<genny-verticle.version>${revision}</genny-verticle.version>
 
 
-		<version.org.wildfly>18.0.1.Final</version.org.wildfly>
-		<version.jboss.bom>18.0.1.Final</version.jboss.bom>
+		<version.org.wildfly>19.0.1.Final</version.org.wildfly>
+		<version.wildfly-dist>19.0.0.Final</version.wildfly-dist>
+		<!--version.jboss.bom>18.0.1.Final</version.jboss.bom-->
 
 		<version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
 		<compiler-plugin-version>3.1</compiler-plugin-version>
@@ -79,7 +80,7 @@
 		<javax-cache.version>1.0.0-PFD</javax-cache.version>
 	</properties>
 
-	<repositories>
+	<!--repositories>
 
 		<repository>
 			<id> Maven repository</id>
@@ -117,7 +118,7 @@
 			<id>life.genny</id>
 			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
 		</repository>
-	</repositories>
+	</repositories-->
 	<dependencies>
 		<dependency>
 			<groupId>io.vertx</groupId>
@@ -762,8 +763,8 @@
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 						<!-- the maven dependency plugin will have already downloaded the server 
 							on /target -->
-						<jboss.home>${project.basedir}/target/wildfly-17.0.1.Final</jboss.home>
-						<module.path>${project.basedir}/target/wildfly-17.0.1.Final/modules</module.path>
+						<jboss.home>${project.basedir}/target/wildfly-19.0.0.Final</jboss.home>
+						<module.path>${project.basedir}/target/wildfly-19.0.0.Final/modules</module.path>
 					</systemPropertyVariables>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 				</configuration>
@@ -847,7 +848,7 @@
 										<artifactItem>
 											<groupId>org.wildfly</groupId>
 											<artifactId>wildfly-dist</artifactId>
-											<version>${version.org.wildfly}</version>
+											<version>${version.wildfly-dist}</version>
 											<type>zip</type>
 											<overWrite>true</overWrite>
 											<outputDirectory>${project.build.directory}</outputDirectory>
