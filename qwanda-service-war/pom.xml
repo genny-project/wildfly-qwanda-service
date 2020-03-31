@@ -80,7 +80,7 @@
 		<javax-cache.version>1.0.0-PFD</javax-cache.version>
 	</properties>
 
-	<!--repositories>
+	<repositories>
 
 		<repository>
 			<id> Maven repository</id>
@@ -118,7 +118,7 @@
 			<id>life.genny</id>
 			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
 		</repository>
-	</repositories-->
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>io.vertx</groupId>
