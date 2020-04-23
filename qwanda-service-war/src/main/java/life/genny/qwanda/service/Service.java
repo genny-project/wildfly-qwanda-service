@@ -2,14 +2,16 @@ package life.genny.qwanda.service;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
@@ -20,6 +22,7 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.message.*;
 import life.genny.qwanda.validation.Validation;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.attribute.Attribute;
@@ -46,12 +49,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 @RequestScoped
 
 public class Service extends BaseEntityService2 implements QwandaRepository {
+    private static final int BATCHSIZE = 500;
 
     @Override
     public void setRealm(String realm) {
@@ -283,103 +282,351 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<Validation> queryValidation(String realm) {
-        return null;
+    public List<Validation> queryValidation(String realm) throws NoResultException {
+        List<Validation> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Validation temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<Attribute> queryAttributes(String realm) {
-        return null;
+        List<Attribute> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Attribute temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Attribute table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<BaseEntity> queryBaseEntitys(String realm) {
-        return null;
+        List<BaseEntity> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM BaseEntity temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query BaseEntity table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<EntityAttribute> queryEntityAttribute(String realm) {
-        return null;
+        List<EntityAttribute> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM EntityAttribute temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query EntityAttribute table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<EntityEntity> queryEntityEntity(String realm) {
-        return null;
+        List<EntityEntity> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM EntityEntity temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query EntityEntity table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<Question> queryQuestion(String realm) {
-        return null;
+        List<Question> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Question temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Question table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<QuestionQuestion> queryQuestionQuestion(String realm) {
-        return null;
+        List<QuestionQuestion> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QuestionQuestion temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query QuestionQuestion table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<Ask> queryAsk(String realm) {
-        return null;
+        List<Ask> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Ask temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Ask table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<QBaseMSGMessageTemplate> queryNotification(String realm) {
-        return null;
+        List<QBaseMSGMessageTemplate> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query QBaseMSGMessageTemplate table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public List<QBaseMSGMessageTemplate> queryMessage(String realm) {
-        return null;
+        List<QBaseMSGMessageTemplate> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query QBaseMSGMessageTemplate table Error:" + e.getMessage());
+        }
+        return result;
     }
 
     @Override
     public void insertValidations(ArrayList<Validation> validationList) {
+        if (validationList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Validation validation : validationList) {
+            em.persist(validation);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Validation Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertAttributes(ArrayList<Attribute> attributeList) {
+        if (attributeList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (Attribute attribute : attributeList) {
+            em.persist(attribute);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Attribute Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
 
     }
 
     @Override
     public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
+        if (entityAttributeList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (EntityAttribute entityAttribute : entityAttributeList) {
+            em.persist(entityAttribute);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("EntityAttribute Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    private void saveToDDT(BaseEntity baseEntity) {
+        String realm = getRealm();
+        assert (realm.equals(baseEntity.getRealm()));
+        String code = baseEntity.getCode();
+//        baseEntity.setRealm(realm);
+        try {
+            String json = JsonUtils.toJson(baseEntity);
+            writeToDDT(baseEntity.getCode(), json);
+        } catch (javax.validation.ConstraintViolationException e) {
+            log.error("Cannot save BaseEntity with code " + code + "," + e.getLocalizedMessage());
+        } catch (final ConstraintViolationException e) {
+            log.error("Entity Already exists - cannot insert" + code);
+        }
     }
 
     @Override
     public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
+        if (baseEntityList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (BaseEntity baseEntity : baseEntityList) {
+            em.persist(baseEntity);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            saveToDDT(baseEntity);
+            index += 1;
+        }
+        transaction.commit();
 
     }
 
     @Override
-    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist) {
+    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList) {
+        if (entityEntityList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (EntityEntity entityEntity : entityEntityList) {
+            em.persist(entityEntity);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("EntityEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
+        if (attributeLinkList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (AttributeLink attributeLink : attributeLinkList) {
+            em.persist(attributeLink);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("AttributeLink Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertQuestions(ArrayList<Question> questionList) {
+        if (questionList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Question question : questionList) {
+            em.persist(question);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Question Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
+        if (questionQuestionList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (QuestionQuestion questionQuestion : questionQuestionList) {
+            em.persist(questionQuestion);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("QuestionQuestion Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertAsks(ArrayList<Ask> askList) {
+        if (askList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Ask ask : askList) {
+            em.persist(ask);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Ask Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
+        if (messageList.size() == 0) return;
+        int index = 1;
+        EntityManager em = getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (QBaseMSGMessageTemplate message : messageList) {
+            em.persist(message);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Template(Message/Notification) Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
