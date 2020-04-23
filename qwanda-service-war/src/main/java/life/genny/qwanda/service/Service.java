@@ -282,52 +282,52 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	}
 
 	@Override
-	public List<Validation> queryValidation(@NotNull String realm) {
+	public List<Validation> queryValidation(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<Attribute> queryAttributes(@NotNull String realm) {
+	public List<Attribute> queryAttributes(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<BaseEntity> queryBaseEntitys(@NotNull String realm) {
+	public List<BaseEntity> queryBaseEntitys(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<EntityAttribute> queryEntityAttribute(@NotNull String realm) {
+	public List<EntityAttribute> queryEntityAttribute(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<EntityEntity> queryEntityEntity(@NotNull String realm) {
+	public List<EntityEntity> queryEntityEntity(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<Question> queryQuestion(@NotNull String realm) {
+	public List<Question> queryQuestion(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<QuestionQuestion> queryQuestionQuestion(@NotNull String realm) {
+	public List<QuestionQuestion> queryQuestionQuestion(String realm) {
 		return null;
 	}
 
 	@Override
-	public List<Ask> queryAsk(@NotNull String realm) {
+	public List<Ask> queryAsk( String realm) {
 		return null;
 	}
 
 	@Override
-	public List<QBaseMSGMessageTemplate> queryNotification(@NotNull String realm) {
+	public List<QBaseMSGMessageTemplate> queryNotification( String realm) {
 		return null;
 	}
 
 	@Override
-	public List<QBaseMSGMessageTemplate> queryMessage(@NotNull String realm) {
+	public List<QBaseMSGMessageTemplate> queryMessage(String realm) {
 		return null;
 	}
 
