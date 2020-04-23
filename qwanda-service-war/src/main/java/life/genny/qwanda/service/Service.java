@@ -13,21 +13,19 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
+
+import life.genny.qwanda.*;
+import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
+import life.genny.qwanda.message.*;
+import life.genny.qwanda.validation.Validation;
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
-import life.genny.qwanda.Answer;
-import life.genny.qwanda.Link;
-import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
-import life.genny.qwanda.message.QDataAttributeMessage;
-import life.genny.qwanda.message.QDataBaseEntityMessage;
-import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
-import life.genny.qwanda.message.QEventLinkChangeMessage;
-import life.genny.qwanda.message.QEventSystemMessage;
 import life.genny.qwanda.util.PersistenceHelper;
 import life.genny.qwanda.util.WildFlyJmsQueueSender;
 import life.genny.qwanda.util.WildflyJms;
@@ -281,6 +279,106 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	@Override
 	public BaseEntity upsert(final BaseEntity baseEntity) {
 		return super.upsert(baseEntity);
+	}
+
+	@Override
+	public List<Validation> queryValidation(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<Attribute> queryAttributes(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<BaseEntity> queryBaseEntitys(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<EntityAttribute> queryEntityAttribute(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<EntityEntity> queryEntityEntity(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<Question> queryQuestion(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<QuestionQuestion> queryQuestionQuestion(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<Ask> queryAsk(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<QBaseMSGMessageTemplate> queryNotification(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public List<QBaseMSGMessageTemplate> queryMessage(@NotNull String realm) {
+		return null;
+	}
+
+	@Override
+	public void insertValidations(ArrayList<Validation> validationList) {
+
+	}
+
+	@Override
+	public void insertAttributes(ArrayList<Attribute> attributeList) {
+
+	}
+
+	@Override
+	public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
+
+	}
+
+	@Override
+	public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
+
+	}
+
+	@Override
+	public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist) {
+
+	}
+
+	@Override
+	public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
+
+	}
+
+	@Override
+	public void insertQuestions(ArrayList<Question> questionList) {
+
+	}
+
+	@Override
+	public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
+
+	}
+
+	@Override
+	public void insertAsks(ArrayList<Ask> askList) {
+
+	}
+
+	@Override
+	public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
+
 	}
 
 	@Override
