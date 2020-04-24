@@ -9,11 +9,17 @@ import javax.ejb.LockType;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
 import life.genny.qwanda.*;
+import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.message.*;
+import life.genny.qwanda.validation.Validation;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.attribute.Attribute;
@@ -26,10 +32,12 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.utils.VertxUtils;
+
 import java.util.List;
 
 import life.genny.bootxport.bootx.QwandaRepository;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.exception.ConstraintViolationException;
 
 @RequestScoped
 
@@ -401,5 +409,86 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             return super.insert(answers);
         }
         return -1L;
+    }
+
+    public List<Validation> queryValidation(String realm) throws NoResultException {
+        return super.queryValidation(realm);
+    }
+
+    public List<Attribute> queryAttributes(String realm) {
+        return super.queryAttributes(realm);
+    }
+
+    public List<BaseEntity> queryBaseEntitys(String realm) {
+        return super.queryBaseEntitys(realm);
+    }
+
+    public List<EntityAttribute> queryEntityAttribute(String realm) {
+        return super.queryEntityAttribute(realm);
+    }
+
+    public List<EntityEntity> queryEntityEntity(String realm) {
+        return super.queryEntityEntity(realm);
+    }
+
+    public List<Question> queryQuestion(String realm) {
+        return super.queryQuestion(realm);
+    }
+
+    public List<QuestionQuestion> queryQuestionQuestion(String realm) {
+        return super.queryQuestionQuestion(realm);
+    }
+
+    public List<Ask> queryAsk(String realm) {
+        return super.queryAsk(realm);
+    }
+
+    public List<QBaseMSGMessageTemplate> queryNotification(String realm) {
+        return super.queryNotification(realm);
+    }
+
+    public List<QBaseMSGMessageTemplate> queryMessage(String realm) {
+        return super.queryMessage(realm);
+    }
+
+    public void insertValidations(ArrayList<Validation> validationList) {
+        super.insertValidations(validationList);
+    }
+
+    public void insertAttributes(ArrayList<Attribute> attributeList) {
+        super.insertAttributes(attributeList);
+    }
+
+    public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
+        super.insertEntityAttribute(entityAttributeList);
+    }
+
+
+    public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
+        super.insertBaseEntitys(baseEntityList);
+    }
+
+    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList) {
+        super.insertEntityEntitys(entityEntityList);
+    }
+
+    public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
+        super.insertAttributeLinks(attributeLinkList);
+    }
+
+    public void insertQuestions(ArrayList<Question> questionList) {
+        super.insertQuestions(questionList);
+    }
+
+    public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
+        super.insertQuestionQuestions(questionQuestionList);
+    }
+
+    public void insertAsks(ArrayList<Ask> askList) {
+        super.insertAsks(askList);
+    }
+
+    public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
+        super.inserTemplate(messageList);
     }
 }
