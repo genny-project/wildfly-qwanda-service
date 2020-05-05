@@ -2,6 +2,7 @@ package life.genny.qwanda.service;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.ejb.Lock;
@@ -10,6 +11,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.NotAuthorizedException;
@@ -20,6 +22,7 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.message.*;
 import life.genny.qwanda.validation.Validation;
+import life.genny.services.BeanNotNullFields;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.attribute.Attribute;
@@ -42,7 +45,7 @@ import org.hibernate.exception.ConstraintViolationException;
 @RequestScoped
 
 public class Service extends BaseEntityService2 implements QwandaRepository {
-    private final int BATCHSIZE = 500;
+    private static final int BATCHSIZE = 500;
 
     @Override
     public void setRealm(String realm) {
@@ -387,7 +390,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<Validation> queryValidation(@NotNull String realm) {
+    public List<Validation> queryValidation(String realm) {
         List<Validation> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM Validation temp where temp.realm=:realmStr");
@@ -400,7 +403,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<Attribute> queryAttributes(@NotNull String realm) {
+    public List<Attribute> queryAttributes(String realm) {
         List<Attribute> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM Attribute temp where temp.realm=:realmStr");
@@ -413,7 +416,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<BaseEntity> queryBaseEntitys(@NotNull String realm) {
+    public List<BaseEntity> queryBaseEntitys(String realm) {
         List<BaseEntity> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM BaseEntity temp where temp.realm=:realmStr");
@@ -426,7 +429,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<EntityAttribute> queryEntityAttribute(@NotNull String realm) {
+    public List<EntityAttribute> queryEntityAttribute(String realm) {
         List<EntityAttribute> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM EntityAttribute temp where temp.realm=:realmStr");
@@ -439,7 +442,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<EntityEntity> queryEntityEntity(@NotNull String realm) {
+    public List<EntityEntity> queryEntityEntity(String realm) {
         List<EntityEntity> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM EntityEntity temp where temp.realm=:realmStr");
@@ -452,7 +455,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<Question> queryQuestion(@NotNull String realm) {
+    public List<Question> queryQuestion(String realm) {
         List<Question> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM Question temp where temp.realm=:realmStr");
@@ -465,7 +468,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<QuestionQuestion> queryQuestionQuestion(@NotNull String realm) {
+    public List<QuestionQuestion> queryQuestionQuestion(String realm) {
         List<QuestionQuestion> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM QuestionQuestion temp where temp.realm=:realmStr");
@@ -478,7 +481,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public List<Ask> queryAsk(@NotNull String realm) {
+    public List<Ask> queryAsk(String realm) {
         List<Ask> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM Ask temp where temp.realm=:realmStr");
@@ -492,7 +495,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
 
     @Override
-    public List<QBaseMSGMessageTemplate> queryMessage(@NotNull String realm) {
+    public List<QBaseMSGMessageTemplate> queryMessage(String realm) {
         List<QBaseMSGMessageTemplate> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
@@ -506,11 +509,10 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
     @Override
     public void insertValidations(ArrayList<Validation> validationList) {
-        if (validationList.size() == 0) return;
+        if (validationList.isEmpty()) return;
+
         EntityManager em = getEntityManager();
         int index = 1;
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (Validation validation : validationList) {
             em.persist(validation);
@@ -521,16 +523,36 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
+    }
+
+    @Override
+    public void updateValidations(ArrayList<Validation> validationList, HashMap<String, Validation> codeValidationMapping) {
+        if (validationList.isEmpty()) return;
+        BeanNotNullFields copyFields = new BeanNotNullFields();
+        for (Validation validation : validationList) {
+            Validation val = codeValidationMapping.get(validation.getCode());
+            if (val == null) {
+                // Should never raise this exception
+                throw new NoResultException(String.format("Can't find validation:%s from database.", validation.getCode()));
+            }
+            try {
+                copyFields.copyProperties(val, validation);
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                log.error(String.format("Failed to copy Properties for validation:%s", val.getCode()));
+            }
+
+            val.setRealm(getRealm());
+            getEntityManager().merge(val);
+        }
     }
 
     @Override
     public void insertAttributes(ArrayList<Attribute> attributeList) {
-        if (attributeList.size() == 0) return;
+        if (attributeList.isEmpty()) return;
+
         EntityManager em = getEntityManager();
         int index = 1;
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (Attribute attribute : attributeList) {
             em.persist(attribute);
@@ -541,16 +563,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
-        if (entityAttributeList.size() == 0) return;
+        if (entityAttributeList.isEmpty()) return;
+
         int index = 1;
         EntityManager em = getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (EntityAttribute entityAttribute : entityAttributeList) {
             em.persist(entityAttribute);
@@ -561,7 +582,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     private void saveToDDT(BaseEntity baseEntity) {
@@ -581,11 +602,10 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
     @Override
     public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
-        if (baseEntityList.size() == 0) return;
+        if (baseEntityList.isEmpty()) return;
+
         EntityManager em = getEntityManager();
         int index = 1;
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (BaseEntity baseEntity : baseEntityList) {
             em.persist(baseEntity);
@@ -597,16 +617,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             saveToDDT(baseEntity);
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList) {
-        if (entityEntityList.size() == 0) return;
+        if (entityEntityList.isEmpty()) return;
+
         EntityManager em = getEntityManager();
         int index = 1;
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (EntityEntity entityEntity : entityEntityList) {
             em.persist(entityEntity);
@@ -617,16 +636,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
-        if (attributeLinkList.size() == 0) return;
+        if (attributeLinkList.isEmpty()) return;
+
         int index = 1;
         EntityManager em = getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (AttributeLink attributeLink : attributeLinkList) {
             em.persist(attributeLink);
@@ -637,16 +655,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void insertQuestions(ArrayList<Question> questionList) {
-        if (questionList.size() == 0) return;
+        if (questionList.isEmpty()) return;
+
         int index = 1;
         EntityManager em = getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (Question question : questionList) {
             em.persist(question);
@@ -657,16 +674,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
-        if (questionQuestionList.size() == 0) return;
+        if (questionQuestionList.isEmpty()) return;
+
         int index = 1;
         EntityManager em = getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (QuestionQuestion questionQuestion : questionQuestionList) {
             em.persist(questionQuestion);
@@ -677,16 +693,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void insertAsks(ArrayList<Ask> askList) {
-        if (askList.size() == 0) return;
+        if (askList.isEmpty()) return;
+
         int index = 1;
         EntityManager em = getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (Ask ask : askList) {
             em.persist(ask);
@@ -697,16 +712,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 
     @Override
     public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
-        if (messageList.size() == 0) return;
+        if (messageList.isEmpty()) return;
+
         int index = 1;
         EntityManager em = getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
 
         for (QBaseMSGMessageTemplate message : messageList) {
             em.persist(message);
@@ -717,6 +731,6 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             }
             index += 1;
         }
-        transaction.commit();
+        em.flush();
     }
 }
