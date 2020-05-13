@@ -389,155 +389,32 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
         return -1L;
     }
 
+
     @Override
-    public List<Validation> queryValidation(String realm) {
+    public <T> List<T> queryTableByRealm(@NotNull String tableName, @NotNull String realm) {
         List<Validation> result = Collections.emptyList();
         try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM Validation temp where temp.realm=:realmStr");
+            Query query = getEntityManager().createQuery(String.format("SELECT temp FROM %s temp where temp.realm=:realmStr", tableName));
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
             log.error("Query Validation table Error:" + e.getMessage());
         }
-        return result;
+        return (List<T>) result;
     }
 
     @Override
-    public List<Attribute> queryAttributes(String realm) {
-        List<Attribute> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM Attribute temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query Attribute table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public List<BaseEntity> queryBaseEntitys(String realm) {
-        List<BaseEntity> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM BaseEntity temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query BaseEntity table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public List<EntityAttribute> queryEntityAttribute(String realm) {
-        List<EntityAttribute> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM EntityAttribute temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query EntityAttribute table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public List<EntityEntity> queryEntityEntity(String realm) {
-        List<EntityEntity> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM EntityEntity temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query EntityEntity table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public List<Question> queryQuestion(String realm) {
-        List<Question> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM Question temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query Question table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public List<QuestionQuestion> queryQuestionQuestion(String realm) {
-        List<QuestionQuestion> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM QuestionQuestion temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query QuestionQuestion table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public List<Ask> queryAsk(String realm) {
-        List<Ask> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM Ask temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query Ask table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-
-    @Override
-    public List<QBaseMSGMessageTemplate> queryMessage(String realm) {
-        List<QBaseMSGMessageTemplate> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query QBaseMSGMessageTemplate table Error:" + e.getMessage());
-        }
-        return result;
-    }
-
-    @Override
-    public void insertValidations(ArrayList<Validation> validationList) {
-        if (validationList.isEmpty()) return;
-
-        EntityManager em = getEntityManager();
-        int index = 1;
-
-        for (Validation validation : validationList) {
-            em.persist(validation);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("Validation Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void updateValidations(ArrayList<Validation> validationList, HashMap<String, Validation> codeValidationMapping) {
-        if (validationList.isEmpty()) return;
+    public void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping) {
+        if (objectList.isEmpty()) return;
         BeanNotNullFields copyFields = new BeanNotNullFields();
-        for (Validation validation : validationList) {
-            Validation val = codeValidationMapping.get(validation.getCode());
+        for (CodedEntity t : objectList) {
+            CodedEntity val = mapping.get(t.getCode());
             if (val == null) {
                 // Should never raise this exception
-                throw new NoResultException(String.format("Can't find validation:%s from database.", validation.getCode()));
+                throw new NoResultException(String.format("Can't find validation:%s from database.", t.getCode()));
             }
             try {
-                copyFields.copyProperties(val, validation);
+                copyFields.copyProperties(val, t);
             } catch (IllegalAccessException | InvocationTargetException ex) {
                 log.error(String.format("Failed to copy Properties for validation:%s", val.getCode()));
             }
@@ -545,44 +422,6 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             val.setRealm(getRealm());
             getEntityManager().merge(val);
         }
-    }
-
-    @Override
-    public void insertAttributes(ArrayList<Attribute> attributeList) {
-        if (attributeList.isEmpty()) return;
-
-        EntityManager em = getEntityManager();
-        int index = 1;
-
-        for (Attribute attribute : attributeList) {
-            em.persist(attribute);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("Attribute Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
-        if (entityAttributeList.isEmpty()) return;
-
-        int index = 1;
-        EntityManager em = getEntityManager();
-
-        for (EntityAttribute entityAttribute : entityAttributeList) {
-            em.persist(entityAttribute);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("EntityAttribute Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
     }
 
     private void saveToDDT(BaseEntity baseEntity) {
@@ -601,134 +440,21 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
-    public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
-        if (baseEntityList.isEmpty()) return;
+    public void bulkInsert(ArrayList<CodedEntity> objectList) {
+        if (objectList.isEmpty()) return;
 
         EntityManager em = getEntityManager();
         int index = 1;
 
-        for (BaseEntity baseEntity : baseEntityList) {
-            em.persist(baseEntity);
+        for (CodedEntity t : objectList) {
+            em.persist(t);
             if (index % BATCHSIZE == 0) {
                 //flush a batch of inserts and release memory:
                 log.debug("BaseEntity Batch is full, flush to database.");
                 em.flush();
             }
-            saveToDDT(baseEntity);
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList) {
-        if (entityEntityList.isEmpty()) return;
-
-        EntityManager em = getEntityManager();
-        int index = 1;
-
-        for (EntityEntity entityEntity : entityEntityList) {
-            em.persist(entityEntity);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("EntityEntity Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
-        if (attributeLinkList.isEmpty()) return;
-
-        int index = 1;
-        EntityManager em = getEntityManager();
-
-        for (AttributeLink attributeLink : attributeLinkList) {
-            em.persist(attributeLink);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("AttributeLink Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void insertQuestions(ArrayList<Question> questionList) {
-        if (questionList.isEmpty()) return;
-
-        int index = 1;
-        EntityManager em = getEntityManager();
-
-        for (Question question : questionList) {
-            em.persist(question);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("Question Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
-        if (questionQuestionList.isEmpty()) return;
-
-        int index = 1;
-        EntityManager em = getEntityManager();
-
-        for (QuestionQuestion questionQuestion : questionQuestionList) {
-            em.persist(questionQuestion);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("QuestionQuestion Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void insertAsks(ArrayList<Ask> askList) {
-        if (askList.isEmpty()) return;
-
-        int index = 1;
-        EntityManager em = getEntityManager();
-
-        for (Ask ask : askList) {
-            em.persist(ask);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("Ask Batch is full, flush to database.");
-                em.flush();
-            }
-            index += 1;
-        }
-        em.flush();
-    }
-
-    @Override
-    public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
-        if (messageList.isEmpty()) return;
-
-        int index = 1;
-        EntityManager em = getEntityManager();
-
-        for (QBaseMSGMessageTemplate message : messageList) {
-            em.persist(message);
-            if (index % BATCHSIZE == 0) {
-                //flush a batch of inserts and release memory:
-                log.debug("Template(Message/Notification) Batch is full, flush to database.");
-                em.flush();
-            }
+            //TODO, saveToDTT for some obj
+//            saveToDDT(baseEntity);
             index += 1;
         }
         em.flush();
