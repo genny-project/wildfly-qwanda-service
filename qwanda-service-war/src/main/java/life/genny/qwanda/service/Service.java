@@ -459,4 +459,14 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
         }
         em.flush();
     }
+
+    @Override
+    public void bulkInsertAsk(ArrayList<Ask> objectList) {
+
+    }
+
+    @Override
+    public void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping) {
+
+    }
 }
