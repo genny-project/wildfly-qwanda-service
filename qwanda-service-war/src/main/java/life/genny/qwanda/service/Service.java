@@ -391,16 +391,16 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
 
     @Override
-    public <T> List<T> queryTableByRealm(@NotNull String tableName, @NotNull String realm) {
-        List<Validation> result = Collections.emptyList();
+    public <T> List<T> queryTableByRealm(String tableName, String realm) {
+        List<T> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery(String.format("SELECT temp FROM %s temp where temp.realm=:realmStr", tableName));
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
         }
-        return (List<T>) result;
+        return result;
     }
 
     @Override
