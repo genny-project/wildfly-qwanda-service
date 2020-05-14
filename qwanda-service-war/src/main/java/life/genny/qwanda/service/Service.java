@@ -406,21 +406,35 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     @Override
     public void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping) {
         if (objectList.isEmpty()) return;
+
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity t : objectList) {
-            CodedEntity val = mapping.get(t.getCode());
-            if (val == null) {
-                // Should never raise this exception
-                throw new NoResultException(String.format("Can't find validation:%s from database.", t.getCode()));
-            }
-            try {
-                copyFields.copyProperties(val, t);
-            } catch (IllegalAccessException | InvocationTargetException ex) {
-                log.error(String.format("Failed to copy Properties for validation:%s", val.getCode()));
-            }
+            if (t instanceof QuestionQuestion) {
+                QuestionQuestion qq = (QuestionQuestion) t;
+                String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
+                QuestionQuestion existing = (QuestionQuestion) mapping.get(uniqCode.toUpperCase());
+                existing.setMandatory(qq.getMandatory());
+                existing.setWeight(qq.getWeight());
+                existing.setReadonly(qq.getReadonly());
+                getEntityManager().merge(existing);
+            } else if (t instanceof QBaseMSGMessageTemplate) {
+                t.setRealm(getRealm());
+                getEntityManager().merge((QBaseMSGMessageTemplate) t);
+            } else {
+                CodedEntity val = mapping.get(t.getCode());
+                if (val == null) {
+                    // Should never raise this exception
+                    throw new NoResultException(String.format("Can't find %s from database.", t.getCode()));
+                }
+                try {
+                    copyFields.copyProperties(val, t);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    log.error(String.format("Failed to copy Properties for %s", val.getCode()));
+                }
 
-            val.setRealm(getRealm());
-            getEntityManager().merge(val);
+                val.setRealm(getRealm());
+                getEntityManager().merge(val);
+            }
         }
     }
 
