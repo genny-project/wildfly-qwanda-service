@@ -409,15 +409,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity t : objectList) {
-            if (t instanceof QuestionQuestion) {
-                QuestionQuestion qq = (QuestionQuestion) t;
-                String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
-                QuestionQuestion existing = (QuestionQuestion) mapping.get(uniqCode.toUpperCase());
-                existing.setMandatory(qq.getMandatory());
-                existing.setWeight(qq.getWeight());
-                existing.setReadonly(qq.getReadonly());
-                getEntityManager().merge(existing);
-            } else if (t instanceof QBaseMSGMessageTemplate) {
+            if (t instanceof QBaseMSGMessageTemplate) {
                 t.setRealm(getRealm());
                 getEntityManager().merge((QBaseMSGMessageTemplate) t);
             } else {
@@ -467,8 +459,6 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
                 log.debug("BaseEntity Batch is full, flush to database.");
                 em.flush();
             }
-            //TODO, saveToDTT for some obj
-//            saveToDDT(baseEntity);
             index += 1;
         }
         em.flush();
@@ -482,5 +472,36 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     @Override
     public void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping) {
 
+    }
+
+    @Override
+    public void bulkInsertQuestionQuestion(ArrayList<QuestionQuestion> objectList) {
+        if (objectList.isEmpty()) return;
+
+        EntityManager entityManager = getEntityManager();
+        int index = 1;
+
+        for (QuestionQuestion t : objectList) {
+            entityManager.persist(t);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                entityManager.flush();
+            }
+            index += 1;
+        }
+        entityManager.flush();
+    }
+
+    @Override
+    public void bulkUpdateQuestionQuestion(ArrayList<QuestionQuestion> objectList, HashMap<String, QuestionQuestion> mapping) {
+        for (QuestionQuestion qq : objectList) {
+            String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
+            QuestionQuestion existing = mapping.get(uniqCode.toUpperCase());
+            existing.setMandatory(qq.getMandatory());
+            existing.setWeight(qq.getWeight());
+            existing.setReadonly(qq.getReadonly());
+            getEntityManager().merge(existing);
+        }
     }
 }
