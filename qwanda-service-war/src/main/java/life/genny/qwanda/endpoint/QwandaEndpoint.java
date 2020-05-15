@@ -524,7 +524,7 @@ public class QwandaEndpoint {
 			Long total = -1L;
 
 			try {
-				total = iL;
+				total = 1L;
 				//total = service.findBySearchBECount(searchBE);
 				log.info("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
 
