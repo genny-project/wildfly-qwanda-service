@@ -525,7 +525,7 @@ public class QwandaEndpoint {
 
 			try {
 				//total = 1L;
-				total = service.findBySearchBECount(searchBE);
+				//total = service.findBySearchBECount(searchBE);
 				log.info("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
 
 			} catch (Exception e) {
@@ -598,7 +598,7 @@ public class QwandaEndpoint {
 
 			try {
 				//total = 1L;
-				total = service.findBySearchBECount(searchBE);
+				//total = service.findBySearchBECount(searchBE);
 				log.info("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 
 			} catch (Exception e) {
