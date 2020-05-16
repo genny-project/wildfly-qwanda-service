@@ -3,9 +3,15 @@ package life.genny.qwanda.endpoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -77,6 +83,7 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.utils.VertxUtils;
 
 
 /**
@@ -474,6 +481,45 @@ public class QwandaEndpoint {
 			BaseEntity[] beArr = new BaseEntity[results.size()];
 			beArr = results.toArray(beArr);
 			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, "GRP_ROOT", null);
+			msg.setTotal(0L);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/search22/{hql}")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchEA22(@PathParam("hql") final String hql) {
+		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
+		String hql2 = new String(decodedBytes);
+		log.info("Search " + hql2);
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+
+			List<EntityAttribute> results = service.findBySearchEA22(hql2);
+			Map<String,BaseEntity> beMap = new HashMap<String,BaseEntity>();
+			for (EntityAttribute ea : results) {
+				BaseEntity be = beMap.get(ea.getBaseEntityCode());
+				if (be == null) {
+					BaseEntity originalBe = VertxUtils.readFromDDT(securityService.getRealm(), ea.getBaseEntityCode(), securityService.getToken());
+					be = originalBe;
+					be.setBaseEntityAttributes(new HashSet<EntityAttribute>()); // we only want to send the returned eas
+				}
+				try {
+					be.addAttribute(ea);
+				} catch (BadDataException e) {
+					e.printStackTrace();
+				}
+				beMap.put(ea.getBaseEntityCode(), be);
+			}
+			BaseEntity[] beArr = new BaseEntity[beMap.keySet().size()];
+			beArr = beMap.values().toArray(beArr);
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr);
 			msg.setTotal(0L);
 			String json = JsonUtils.toJson(msg);
 			return Response.status(200).entity(json).build();
