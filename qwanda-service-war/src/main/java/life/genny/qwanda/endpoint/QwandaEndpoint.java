@@ -554,7 +554,7 @@ public class QwandaEndpoint {
 		}
 
 		// Force any user that is not admin to have to use their own code
-		if (!(isAllowed || securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode())
+		if (!(true || isAllowed || securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode())
 				|| securityService.inRole("dev")) || searchDevMode ) {  // TODO Remove the true!
 			String stakeHolderCode = null;
 			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
