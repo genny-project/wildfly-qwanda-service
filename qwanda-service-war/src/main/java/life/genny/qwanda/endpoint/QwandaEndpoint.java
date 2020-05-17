@@ -499,7 +499,14 @@ public class QwandaEndpoint {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
 		log.info("Search " + hql2);
-		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
 			List<EntityAttribute> results = service.findBySearchEA22(hql2);
@@ -538,10 +545,17 @@ public class QwandaEndpoint {
 
 		log.info("Search " + searchBE+" securityService.getUserCode()="+securityService.getUserCode());
 
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean isAllowed = false;
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			isAllowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
 
 		// Force any user that is not admin to have to use their own code
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode())
-				|| securityService.inRole("dev")) || searchDevMode) {  // TODO Remove the true!
+		if (!(isAllowed || securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode())
+				|| securityService.inRole("dev")) || searchDevMode ) {  // TODO Remove the true!
 			String stakeHolderCode = null;
 			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 
