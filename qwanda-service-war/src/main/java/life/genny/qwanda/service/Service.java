@@ -5,6 +5,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
+import javax.ejb.Asynchronous;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.enterprise.context.RequestScoped;
@@ -69,6 +70,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 import life.genny.bootxport.bootx.QwandaRepository;
+import life.genny.models.GennyToken;
+
 import org.apache.commons.lang3.StringUtils;
 
 @RequestScoped
@@ -441,14 +444,15 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		return -1L;
 	}
 	
-	public Integer loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword)
+	@Asynchronous
+	public Integer loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, GennyToken userToken)
 	{
 		Boolean recursive = true;
 		Map<String,BaseEntity> ruleBes = new HashMap<String,BaseEntity>();
 
 		try {
 			for (String gitProjectUrl : gitProjectUrlList) {
-				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, "v3.1.0", realm, gitUsername, gitPassword, recursive));
+				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, "v3.1.0", realm, gitUsername, gitPassword, recursive,userToken));
 			}
 		} catch (RevisionSyntaxException | BadDataException | GitAPIException | IOException e) {
 			// TODO Auto-generated catch block
@@ -459,15 +463,16 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
 		Root<BaseEntity> root = query.from(BaseEntity.class);
 
-		query = query.select(root).where(cb.like(root.get("code"), "RUL_%" + realm.toUpperCase()),
+		query = query.select(root).where(cb.like(root.get("code"), "RUL_%"),
 				cb.equal(root.get("realm"), realm));
 
 		List<BaseEntity> existingBes = new ArrayList<>();
-		List<String> newBes = new ArrayList<>();
-		List<BaseEntity> orphanedBes = null;
+		List<BaseEntity> orphanedBes = new ArrayList<>();
 		try {
 			existingBes = helper.getEntityManager().createQuery(query).getResultList();
-			Collections.copy(orphanedBes, existingBes);  // big List, but finite rules
+			orphanedBes.addAll(existingBes);
+			//Collections.copy(orphanedBes, existingBes);  // big List, but finite rules
+			
 		} catch (NoResultException nre) {
 
 		}
@@ -484,13 +489,30 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		for (String ruleBe : ruleBes.keySet()) {
 			if (existingBeMap.keySet().contains(ruleBe)) {
 				// Update the be
-				BaseEntity existingBe = existingBeMap.get(ruleBe);
+				BaseEntity existingBe = existingBeMap.get(ruleBe);	
+				BaseEntity newBe = ruleBes.get(ruleBe);
 				orphanedBes.remove(existingBe);
-				existingBe.merge(ruleBes.get(ruleBe));		
+				Integer hashCode = existingBe.getValue("PRI_HASHCODE",0);
+				String newRuleContent = newBe.getValue("PRI_KIE_TEXT", "");
+				Integer newHashCode = newRuleContent.hashCode();
+				if (newHashCode != hashCode) {
+					existingBe.merge(newBe);	
+					try {
+						existingBe.setValue(RulesUtils.getAttribute("PRI_MSG", userToken.getToken()), "");
+						existingBe.setValue(RulesUtils.getAttribute("PRI_ASKS", userToken.getToken()), "");
+						existingBe.setValue(RulesUtils.getAttribute("PRI_FRM", userToken.getToken()), "");
+
+					} catch (BadDataException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					helper.getEntityManager().merge(existingBe);
+				}
 				
 			//TODO: clear the MSG and ASKS attribute
 				
-				helper.getEntityManager().merge(existingBe);
+				
 			} else {
 				helper.getEntityManager().persist(ruleBe);
 			}

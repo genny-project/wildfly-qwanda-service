@@ -80,6 +80,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import life.genny.models.GennyToken;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.GPSLocation;
 import life.genny.qwanda.GPSRoute;
@@ -1086,6 +1087,7 @@ public class ServiceEndpoint {
 	@Consumes("application/json")
 	@Path("/synchronizerules")
 	@Transactional
+	
 	// @TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
 	public Response synchronizeRules(
 			@DefaultValue("https://github.com/genny-project/prj_genny.git") @QueryParam("giturls") final String giturls,
@@ -1108,13 +1110,14 @@ public class ServiceEndpoint {
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
+			GennyToken userToken = new GennyToken(securityService.getToken());
 			List<String> gitProjectUrlList = new ArrayList<>();
 			String[] giturlsArray = giturls.split(";");
 			for (String gitUrl : giturlsArray) {
 				gitProjectUrlList.add(gitUrl);
 			}
 			
-			service.loadRulesFromGit(realm, gitProjectUrlList, gitusername, gitpassword)	;																											// common
+			service.loadRulesFromGit(realm, gitProjectUrlList, gitusername, gitpassword,userToken)	;																											// common
 		
 
 		}
