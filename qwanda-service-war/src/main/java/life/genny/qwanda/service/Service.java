@@ -410,8 +410,14 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity t : objectList) {
             if (t instanceof QBaseMSGMessageTemplate) {
-                t.setRealm(getRealm());
-                getEntityManager().merge((QBaseMSGMessageTemplate) t);
+                QBaseMSGMessageTemplate msg = (QBaseMSGMessageTemplate) mapping.get(t.getCode());
+                msg.setName(t.getName());
+                msg.setDescription(((QBaseMSGMessageTemplate) t).getDescription());
+                msg.setEmail_templateId(((QBaseMSGMessageTemplate) t).getEmail_templateId());
+                msg.setSms_template(((QBaseMSGMessageTemplate) t).getSms_template());
+                msg.setSubject(((QBaseMSGMessageTemplate) t).getSubject());
+                msg.setToast_template(((QBaseMSGMessageTemplate) t).getToast_template());
+                getEntityManager().merge(msg);
             } else {
                 CodedEntity val = mapping.get(t.getCode());
                 if (val == null) {
