@@ -10,10 +10,17 @@ import javax.ejb.LockType;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Answer;
@@ -38,6 +45,7 @@ import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
+import life.genny.utils.RulesUtils;
 import life.genny.utils.VertxUtils;
 
 import java.io.IOException;
@@ -50,10 +58,13 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -429,4 +440,72 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		}
 		return -1L;
 	}
+	
+	public Integer loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword)
+	{
+		Boolean recursive = true;
+		Map<String,BaseEntity> ruleBes = new HashMap<String,BaseEntity>();
+
+		try {
+			for (String gitProjectUrl : gitProjectUrlList) {
+				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, "v3.1.0", realm, gitUsername, gitPassword, recursive));
+			}
+		} catch (RevisionSyntaxException | BadDataException | GitAPIException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		CriteriaBuilder cb = helper.getEntityManager().getCriteriaBuilder();
+		CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+		Root<BaseEntity> root = query.from(BaseEntity.class);
+
+		query = query.select(root).where(cb.like(root.get("code"), "RUL_%" + realm.toUpperCase()),
+				cb.equal(root.get("realm"), realm));
+
+		List<BaseEntity> existingBes = new ArrayList<>();
+		List<String> newBes = new ArrayList<>();
+		List<BaseEntity> orphanedBes = null;
+		try {
+			existingBes = helper.getEntityManager().createQuery(query).getResultList();
+			Collections.copy(orphanedBes, existingBes);  // big List, but finite rules
+		} catch (NoResultException nre) {
+
+		}
+
+		// Ugly
+		Map<String,BaseEntity> existingBeMap = new ConcurrentHashMap<>();
+		for (BaseEntity existingBe : existingBes) {
+			existingBeMap.put(existingBe.getCode(), existingBe);
+		}
+		
+		EntityTransaction tx = helper.getEntityManager().getTransaction();
+		tx.begin();
+		// Now write the rules to the database
+		for (String ruleBe : ruleBes.keySet()) {
+			if (existingBeMap.keySet().contains(ruleBe)) {
+				// Update the be
+				BaseEntity existingBe = existingBeMap.get(ruleBe);
+				orphanedBes.remove(existingBe);
+				existingBe.merge(ruleBes.get(ruleBe));		
+				
+			//TODO: clear the MSG and ASKS attribute
+				
+				helper.getEntityManager().merge(existingBe);
+			} else {
+				helper.getEntityManager().persist(ruleBe);
+			}
+		}
+		
+		// Noe ddelete the old ones
+		for (BaseEntity orphanAnnie : orphanedBes)
+		{
+			helper.getEntityManager().remove(orphanAnnie);
+		}
+		
+		tx.commit();
+		
+
+		return ruleBes.keySet().size();
+	}
+	
 }

@@ -41,6 +41,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.json.JSONObject;
+
+import life.genny.utils.RulesUtils;
 import life.genny.utils.VertxUtils;
 
 import org.apache.logging.log4j.Logger;
@@ -1073,4 +1075,52 @@ public class ServiceEndpoint {
 		return Response.status(401).entity("You need to be a test.").build();
 
 	}
+	
+	/**
+	 * Calls the syncRules method in the Service and returns the response.
+	 *
+	 * @param table
+	 * @return response of the synchronization
+	 */
+	@GET
+	@Consumes("application/json")
+	@Path("/synchronizerules")
+	@Transactional
+	// @TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
+	public Response synchronizeRules(
+			@DefaultValue("https://github.com/genny-project/prj_genny.git") @QueryParam("giturls") final String giturls,
+			@DefaultValue("git") @QueryParam("gitusername") final String gitusername,
+			@DefaultValue("") @QueryParam("gitpassword") final String gitpassword,
+			@DefaultValue("master") @QueryParam("branch") final String branch)
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException, RevisionSyntaxException,
+			AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+
+		String ret = "Synced";
+
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		String realm = securityService.getRealm();
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+
+			List<String> gitProjectUrlList = new ArrayList<>();
+			String[] giturlsArray = giturls.split(";");
+			for (String gitUrl : giturlsArray) {
+				gitProjectUrlList.add(gitUrl);
+			}
+			
+			service.loadRulesFromGit(realm, gitProjectUrlList, gitusername, gitpassword)	;																											// common
+		
+
+		}
+		return Response.status(200).entity(ret).build();
+	}
+	
+	
+	
 }
