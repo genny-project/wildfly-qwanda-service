@@ -1087,8 +1087,7 @@ public class ServiceEndpoint {
 	@Consumes("application/json")
 	@Path("/synchronizerules")
 	@Transactional
-	
-	// @TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
+	@TransactionTimeout(value = 1000, unit = TimeUnit.SECONDS)
 	public Response synchronizeRules(
 			@DefaultValue("https://github.com/genny-project/prj_genny.git") @QueryParam("giturls") final String giturls,
 			@DefaultValue("git") @QueryParam("gitusername") final String gitusername,

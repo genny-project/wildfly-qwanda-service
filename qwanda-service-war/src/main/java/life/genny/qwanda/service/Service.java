@@ -11,15 +11,19 @@ import javax.ejb.LockType;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
+import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 import org.apache.logging.log4j.Logger;
+import org.drools.core.impl.EnvironmentFactory;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
@@ -28,6 +32,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -69,6 +74,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.kie.api.runtime.EnvironmentName;
+
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.models.GennyToken;
 
@@ -334,6 +341,17 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 			if (!StringUtils.isBlank(PRI_MSG)) {
 				VertxUtils.writeCachedJson(be.getRealm(),be.getCode().substring("RUL_".length()) + "_MSG", PRI_MSG, getToken());
 			}
+			String PRI_POJO = be.getValue("PRI_POJO","");
+			if (!StringUtils.isBlank(PRI_POJO)) {
+				VertxUtils.writeCachedJson(be.getRealm(),be.getCode().substring("RUL_".length()), PRI_POJO, getToken());
+			}
+
+		} else 	if (be.getCode().startsWith("RUL_THM_")) {
+			// write themes and frames and ASKS ands MSG
+			String PRI_POJO = be.getValue("PRI_POJO","");
+			if (!StringUtils.isBlank(PRI_POJO)) {
+				VertxUtils.writeCachedJson(be.getRealm(),be.getCode().substring("RUL_".length()), PRI_POJO, getToken());
+			}
 
 		}
 	}
@@ -444,8 +462,9 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		return -1L;
 	}
 	
-	@Asynchronous
-	public Integer loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, GennyToken userToken)
+	//@Asynchronous
+	//@Transactional
+	public void loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, GennyToken userToken)
 	{
 		Boolean recursive = true;
 		Map<String,BaseEntity> ruleBes = new HashMap<String,BaseEntity>();
@@ -458,76 +477,101 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+//		EntityManagerFactory emf = null;
+//		
+//		try {
+//			emf = Persistence.createEntityManagerFactory("qwanda-service-war");
+//		} catch (Exception e) {
+//			log.warn("No persistence enabled, are you running wildfly-qwanda-service?");
+//		}
+
+		EntityManager em = helper.getEntityManager(); //emf.createEntityManager();
 		
-		CriteriaBuilder cb = helper.getEntityManager().getCriteriaBuilder();
-		CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
-		Root<BaseEntity> root = query.from(BaseEntity.class);
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaDelete<EntityAttribute> criteriaDelete = cb.createCriteriaDelete(EntityAttribute.class);
 
-		query = query.select(root).where(cb.like(root.get("code"), "RUL_%"),
-				cb.equal(root.get("realm"), realm));
+		    Root<EntityAttribute> root = criteriaDelete.from(EntityAttribute.class);
+		    criteriaDelete.where(cb.like(root.get("baseEntityCode"), "RUL_%"),
+					cb.equal(root.get("realm"), realm));
+		    em.createQuery(criteriaDelete).executeUpdate();
+		    
+			CriteriaDelete<BaseEntity> criteriaDeleteBE = cb.createCriteriaDelete(BaseEntity.class);
 
-		List<BaseEntity> existingBes = new ArrayList<>();
-		List<BaseEntity> orphanedBes = new ArrayList<>();
-		try {
-			existingBes = helper.getEntityManager().createQuery(query).getResultList();
-			orphanedBes.addAll(existingBes);
-			//Collections.copy(orphanedBes, existingBes);  // big List, but finite rules
-			
-		} catch (NoResultException nre) {
+		    Root<BaseEntity> rootBE = criteriaDeleteBE.from(BaseEntity.class);
+		    criteriaDeleteBE.where(cb.like(rootBE.get("code"), "RUL_%"),
+					cb.equal(rootBE.get("realm"), realm));
+		    em.createQuery(criteriaDeleteBE).executeUpdate();
+		    log.info("All rules deleted");
+//		CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+//		Root<BaseEntity> root = query.from(BaseEntity.class);
 
-		}
+//		query = query.select(root).where(cb.like(root.get("code"), "RUL_%"),
+//				cb.equal(root.get("realm"), realm));
+
+//		List<BaseEntity> existingBes = new ArrayList<>();
+//		List<BaseEntity> orphanedBes = new ArrayList<>();
+//		try {
+//			existingBes = em.createQuery(query).getResultList();
+//			orphanedBes.addAll(existingBes);
+//			//Collections.copy(orphanedBes, existingBes);  // big List, but finite rules
+//			
+//		} catch (NoResultException nre) {
+//
+//		}
 
 		// Ugly
-		Map<String,BaseEntity> existingBeMap = new ConcurrentHashMap<>();
-		for (BaseEntity existingBe : existingBes) {
-			existingBeMap.put(existingBe.getCode(), existingBe);
-		}
+//		Map<String,BaseEntity> existingBeMap = new ConcurrentHashMap<>();
+//		for (BaseEntity existingBe : existingBes) {
+//			existingBeMap.put(existingBe.getCode(), existingBe);
+//		}
 		
-		EntityTransaction tx = helper.getEntityManager().getTransaction();
-		tx.begin();
+//		EntityTransaction tx = em.getTransaction();
+//		tx.begin();
 		// Now write the rules to the database
 		for (String ruleBe : ruleBes.keySet()) {
-			if (existingBeMap.keySet().contains(ruleBe)) {
-				// Update the be
-				BaseEntity existingBe = existingBeMap.get(ruleBe);	
-				BaseEntity newBe = ruleBes.get(ruleBe);
-				orphanedBes.remove(existingBe);
-				Integer hashCode = existingBe.getValue("PRI_HASHCODE",0);
-				String newRuleContent = newBe.getValue("PRI_KIE_TEXT", "");
-				Integer newHashCode = newRuleContent.hashCode();
-				if (newHashCode != hashCode) {
-					existingBe.merge(newBe);	
-					try {
-						existingBe.setValue(RulesUtils.getAttribute("PRI_MSG", userToken.getToken()), "");
-						existingBe.setValue(RulesUtils.getAttribute("PRI_ASKS", userToken.getToken()), "");
-						existingBe.setValue(RulesUtils.getAttribute("PRI_FRM", userToken.getToken()), "");
-
-					} catch (BadDataException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					helper.getEntityManager().merge(existingBe);
-				}
-				
-			//TODO: clear the MSG and ASKS attribute
-				
-				
-			} else {
-				helper.getEntityManager().persist(ruleBe);
-			}
+//			if (existingBeMap.keySet().contains(ruleBe)) {
+//				// Update the be
+//				BaseEntity existingBe = existingBeMap.get(ruleBe);	
+//				BaseEntity newBe = ruleBes.get(ruleBe);
+//				orphanedBes.remove(existingBe);
+//				Integer hashCode = existingBe.getValue("PRI_HASHCODE",0);
+//				String newRuleContent = newBe.getValue("PRI_KIE_TEXT", "");
+//				Integer newHashCode = newRuleContent.hashCode();
+//				String existingContent = existingBe.getValueAsString("PRI_KIE_TEXT");
+//				if (!newRuleContent.equals(existingContent)) {  //(newHashCode != hashCode) {
+//					existingBe.merge(newBe);
+//					try {
+//						existingBe.setValue(RulesUtils.getAttribute("PRI_HASHCODE", userToken.getToken()), newRuleContent.hashCode());
+////						existingBe.setValue(RulesUtils.getAttribute("PRI_MSG", userToken.getToken()), "");
+////						existingBe.setValue(RulesUtils.getAttribute("PRI_ASKS", userToken.getToken()), "");
+////						existingBe.setValue(RulesUtils.getAttribute("PRI_FRM", userToken.getToken()), "");
+//
+//					} catch (BadDataException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//					
+//					em.merge(existingBe);
+//				}
+//				
+//			//TODO: clear the MSG and ASKS attribute
+//				
+//				
+//			} else {
+				em.persist(ruleBes.get(ruleBe));
+//			}
 		}
 		
-		// Noe ddelete the old ones
-		for (BaseEntity orphanAnnie : orphanedBes)
-		{
-			helper.getEntityManager().remove(orphanAnnie);
-		}
-		
-		tx.commit();
-		
-
-		return ruleBes.keySet().size();
+		// Noe delete the old ones
+//		for (BaseEntity orphanAnnie : orphanedBes)
+//		{
+//			em.remove(orphanAnnie);
+//		}
+//		
+	//	tx.commit();
+		//em.close();
+		log.info("All rules saved");
+		return;
 	}
 	
 }
