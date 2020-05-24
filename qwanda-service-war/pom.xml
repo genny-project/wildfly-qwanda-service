@@ -874,7 +874,7 @@
                 <dependency>
                     <groupId>org.wildfly</groupId>
                     <artifactId>wildfly-arquillian-container-remote</artifactId>
-                    <version>${version.org.wildfly}</version>
+                    <version>8.2.1.Final</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
