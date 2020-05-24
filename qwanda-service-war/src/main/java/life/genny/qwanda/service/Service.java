@@ -19,6 +19,7 @@ import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
@@ -356,7 +357,58 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		}
 	}
 	
+	public Integer pushBEsToCache(final String realm) {
+		CriteriaBuilder builder = this.helper.getEntityManager().getCriteriaBuilder();
 
+		CriteriaQuery<BaseEntity> query = builder.createQuery(BaseEntity.class);
+		Root<BaseEntity> be = query.from(BaseEntity.class);
+		Join<BaseEntity, EntityAttribute> ea = (Join) be.fetch("baseEntityAttributes");
+		query.select(be);
+		query.distinct(true);
+		query.where(builder.equal(ea.get("realm"), realm));
+
+		List<BaseEntity> results = this.helper.getEntityManager().createQuery(query).getResultList();
+
+		log.info("Pushing " + realm + " : " + results.size() + " Basentitys to Cache");
+		writeToDDT(results);
+		log.info("Pushed " + realm + " : " + results.size() + " Basentitys to Cache");
+		return results.size();
+	}
+	
+	public Integer pushRulesToCache(final String realm) {
+		CriteriaBuilder cb = this.helper.getEntityManager().getCriteriaBuilder();
+
+		CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+		Root<BaseEntity> be = query.from(BaseEntity.class);
+		Join<BaseEntity, EntityAttribute> ea = (Join) be.fetch("baseEntityAttributes");
+		query.select(be);
+		query.distinct(true);
+		query.where(cb.equal(ea.get("realm"), realm),cb.like(be.get("code"), "RUL_%"));
+
+		List<BaseEntity> results = this.helper.getEntityManager().createQuery(query).getResultList();
+
+		log.info("Pushing " + realm + " : " + results.size() + " Baseentity Rules to Cache");
+		writeToDDT(results);
+		log.info("Pushed " + realm + " : " + results.size() + " Baseentity Rules to Cache");
+		return results.size();
+	}
+	
+	
+	public Integer pushQuestionsToCache(final String realm) {
+		CriteriaBuilder cb = this.helper.getEntityManager().getCriteriaBuilder();
+
+		final List<Question> results = this.helper.getEntityManager()
+				.createQuery("SELECT a FROM Question a where a.realm=:realmStr").setParameter("realmStr", realm)
+				.getResultList();
+
+
+		log.info("Pushing " + realm + " : " + results.size() + " Questions to Cache");
+		writeQuestionsToDDT(results);
+		log.info("Pushed " + realm + " : " + results.size() + " Questions to Cache");
+		return results.size();
+	}
+	
+	
 	public void clearCache() {
 		VertxUtils.clearCache(getRealm(),getToken());
 	}
@@ -464,14 +516,17 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	
 	//@Asynchronous
 	//@Transactional
-	public void loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, GennyToken userToken)
+	public void loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, final String gitBranch,GennyToken userToken)
 	{
 		Boolean recursive = true;
 		Map<String,BaseEntity> ruleBes = new HashMap<String,BaseEntity>();
-
+		
+		log.info("Loading Rules from Git : "+realm+" using username: "+gitUsername);
+		log.info("Loading Rules from Git Locations : "+gitProjectUrlList);
+		log.info("Loading Rules from Git branch : "+gitBranch);
 		try {
 			for (String gitProjectUrl : gitProjectUrlList) {
-				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, "v3.1.0", realm, gitUsername, gitPassword, recursive,userToken));
+				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, gitBranch, realm, gitUsername, gitPassword, recursive,userToken));
 			}
 		} catch (RevisionSyntaxException | BadDataException | GitAPIException | IOException e) {
 			// TODO Auto-generated catch block
@@ -585,7 +640,27 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	//	tx.commit();
 		//em.close();
 		log.info("All rules saved");
+		pushRulesToCache(realm) ;
+		
 		return;
+	}
+	
+	public Boolean doRulesExistInDatabase(final String realm) {
+		Boolean ret = false;
+			CriteriaBuilder cb = this.helper.getEntityManager().getCriteriaBuilder();
+
+			CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+			Root<BaseEntity> be = query.from(BaseEntity.class);
+			Join<BaseEntity, EntityAttribute> ea = (Join) be.fetch("baseEntityAttributes");
+			query.select(be);
+			query.distinct(true);
+			query.where(cb.equal(ea.get("realm"), realm),cb.like(be.get("code"), "RUL_%"));
+
+			List<BaseEntity> results = this.helper.getEntityManager().createQuery(query).getResultList();
+			ret = results.isEmpty();
+
+
+		return ret;
 	}
 	
 }

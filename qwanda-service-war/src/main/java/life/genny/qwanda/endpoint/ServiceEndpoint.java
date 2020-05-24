@@ -137,7 +137,6 @@ public class ServiceEndpoint {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	String bridgeApi = System.getenv("REACT_APP_VERTX_SERVICE_API");
 
 	@PersistenceContext
 	private EntityManager em;
@@ -518,7 +517,7 @@ public class ServiceEndpoint {
 
 			try {
 				String json = JsonUtils.toJson(event);
-				QwandaUtils.apiPostEntity(bridgeApi, json, token);
+				QwandaUtils.apiPostEntity(GennySettings.bridgeServiceUrl, json, token);
 			} catch (Exception e) {
 				log.error("Error in posting link Change to JMS:" + event);
 			}
@@ -1035,35 +1034,22 @@ public class ServiceEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getForms() {
 
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || securityService.inRole("test")) {
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		String realm = securityService.getRealm();
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
-			String realm = securityService.getRealm();
-			// select distinct(q.code) from question q LEFT JOIN question_question qq ON
-			// q.code = qq.sourceCode WHERE qq.sourceCode IS NULL and q.realm='internmatch'
-			// and q.code like 'QUE_%_GRP';
 			try {
 				Query q = em.createNativeQuery(
 						"select distinct(q.code) from question q LEFT JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS NOT NULL and q.realm='"
 								+ realm + "' and q.code like 'QUE_%_GRP'");
 				List<Object[]> questionCodes = q.getResultList();
-				// Query q2 = em.createNativeQuery("select distinct(q.code) from question q LEFT
-				// JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS
-				// NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1_GRP' LIMIT
-				// 1");
-				// List<Object[]> questionCodes2 = q2.getResultList();
-				// Query q3 = em.createNativeQuery("select distinct(q.code) from question q LEFT
-				// JOIN question_question qq ON q.code = qq.sourceCode WHERE qq.sourceCode IS
-				// NOT NULL and q.realm='"+realm+"' and q.code LIKE 'QUE_JOURNAL_W1D1_GRP' LIMIT
-				// 1");
-				// List<Object[]> questionCodes3 = q3.getResultList();
-				//
-				// questionCodes.addAll(questionCodes2);
-				// questionCodes.addAll(questionCodes3);
-
-				// List<String> qqs = em.createQuery(
-				// "SELECT qq.code FROM QuestionQuestion qq where qq.pk.sourceCode IS NULL and
-				// qq.pk.source.realm=:realm")
-				// .setParameter("realm", realm).getResultList();
 				String json = JsonUtils.toJson(questionCodes);
 
 				return Response.status(200).entity(json).build();
@@ -1076,6 +1062,7 @@ public class ServiceEndpoint {
 		return Response.status(401).entity("You need to be a test.").build();
 
 	}
+	
 	
 	/**
 	 * Calls the syncRules method in the Service and returns the response.
@@ -1116,13 +1103,40 @@ public class ServiceEndpoint {
 				gitProjectUrlList.add(gitUrl);
 			}
 			
-			service.loadRulesFromGit(realm, gitProjectUrlList, gitusername, gitpassword,userToken)	;																											// common
-		
+			service.loadRulesFromGit(realm, gitProjectUrlList, gitusername, gitpassword,branch,userToken)	;																											// common
+			service.pushRulesToCache(securityService.getRealm());
 
 		}
 		return Response.status(200).entity(ret).build();
 	}
 	
-	
+	/**
+	 * Calls the syncRules method in the Service and returns the response.
+	 *
+	 * @param table
+	 * @return response of the synchronization
+	 */
+	@GET
+	@Consumes("application/json")
+	@Path("/refreshcache")
+	public Response refreshCache()
+	{
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		String realm = securityService.getRealm();
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+			service.pushBEsToCache(securityService.getRealm());
+			service.pushQuestionsToCache(securityService.getRealm());
+		}
+		return Response.status(200).build();
+	}
+
+
 	
 }
