@@ -81,6 +81,8 @@ import org.kie.api.runtime.EnvironmentName;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.models.GennyToken;
 
+import javax.persistence.Query;
+
 
 
 
@@ -524,6 +526,13 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		log.info("Loading Rules from Git : "+realm+" using username: "+gitUsername);
 		log.info("Loading Rules from Git Locations : "+gitProjectUrlList);
 		log.info("Loading Rules from Git branch : "+gitBranch);
+		
+		
+		if (StringUtils.isBlank(gitPassword)) {
+			log.error("No GIT ACCOUNT SET!");
+			return;
+		}
+		
 		try {
 			for (String gitProjectUrl : gitProjectUrlList) {
 				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, gitBranch, realm, gitUsername, gitPassword, recursive,userToken));
@@ -663,4 +672,109 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		return ret;
 	}
 	
+
+    @Override
+    public <T> List<T> queryTableByRealm(String tableName, String realm) {
+        List<T> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery(String.format("SELECT temp FROM %s temp where temp.realm=:realmStr", tableName));
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
+        }
+        return result;
+    }
+
+    @Override
+    public void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping) {
+        if (objectList.isEmpty()) return;
+
+        BeanNotNullFields copyFields = new BeanNotNullFields();
+        for (CodedEntity t : objectList) {
+            if (t instanceof QBaseMSGMessageTemplate) {
+                QBaseMSGMessageTemplate msg = (QBaseMSGMessageTemplate) mapping.get(t.getCode());
+                msg.setName(t.getName());
+                msg.setDescription(((QBaseMSGMessageTemplate) t).getDescription());
+                msg.setEmail_templateId(((QBaseMSGMessageTemplate) t).getEmail_templateId());
+                msg.setSms_template(((QBaseMSGMessageTemplate) t).getSms_template());
+                msg.setSubject(((QBaseMSGMessageTemplate) t).getSubject());
+                msg.setToast_template(((QBaseMSGMessageTemplate) t).getToast_template());
+                getEntityManager().merge(msg);
+            } else {
+                CodedEntity val = mapping.get(t.getCode());
+                if (val == null) {
+                    // Should never raise this exception
+                    throw new NoResultException(String.format("Can't find %s from database.", t.getCode()));
+                }
+                try {
+                    copyFields.copyProperties(val, t);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    log.error(String.format("Failed to copy Properties for %s", val.getCode()));
+                }
+
+                val.setRealm(getRealm());
+                getEntityManager().merge(val);
+            }
+        }
+    }
+    @Override
+    public void bulkInsert(ArrayList<CodedEntity> objectList) {
+        if (objectList.isEmpty()) return;
+
+        EntityManager em = getEntityManager();
+        int index = 1;
+
+        for (CodedEntity t : objectList) {
+            em.persist(t);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        em.flush();
+    }
+
+    @Override
+    public void bulkInsertAsk(ArrayList<Ask> objectList) {
+
+    }
+
+    @Override
+    public void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping) {
+
+    }
+
+    @Override
+    public void bulkInsertQuestionQuestion(ArrayList<QuestionQuestion> objectList) {
+        if (objectList.isEmpty()) return;
+
+        EntityManager entityManager = getEntityManager();
+        int index = 1;
+
+        for (QuestionQuestion t : objectList) {
+            entityManager.persist(t);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                entityManager.flush();
+            }
+            index += 1;
+        }
+        entityManager.flush();
+    }
+
+    @Override
+    public void bulkUpdateQuestionQuestion(ArrayList<QuestionQuestion> objectList, HashMap<String, QuestionQuestion> mapping) {
+        for (QuestionQuestion qq : objectList) {
+            String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
+            QuestionQuestion existing = mapping.get(uniqCode.toUpperCase());
+            existing.setMandatory(qq.getMandatory());
+            existing.setWeight(qq.getWeight());
+            existing.setReadonly(qq.getReadonly());
+            getEntityManager().merge(existing);
+        }
+    }
 }
