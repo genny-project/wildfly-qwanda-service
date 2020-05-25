@@ -666,7 +666,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 			query.where(cb.equal(ea.get("realm"), realm),cb.like(be.get("code"), "RUL_%"));
 
 			List<BaseEntity> results = this.helper.getEntityManager().createQuery(query).getResultList();
-			ret = results.isEmpty();
+			ret = !results.isEmpty();
 
 
 		return ret;
