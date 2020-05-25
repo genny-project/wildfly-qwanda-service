@@ -426,7 +426,8 @@ public class StartupService {
 			log.info("Project: " + realm);
 
 			Boolean realmRulesLoaded = service.doRulesExistInDatabase(realm);
-			
+
+			// no rules exist
 			if (!realmRulesLoaded) {
 				GennyToken serviceToken = new GennyToken("SERVICE",serviceTokens.getServiceToken(realm));
 				String[] projectUrlArray = GennySettings.gitProjectUrls.split(";");

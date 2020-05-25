@@ -653,11 +653,12 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		
 		return;
 	}
-	
-	public Boolean doRulesExistInDatabase(final String realm) {
-		Boolean ret = false;
-			CriteriaBuilder cb = this.helper.getEntityManager().getCriteriaBuilder();
 
+	/*
+		return True if rules exist in database, else False
+	 */
+	public Boolean doRulesExistInDatabase(final String realm) {
+			CriteriaBuilder cb = this.helper.getEntityManager().getCriteriaBuilder();
 			CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
 			Root<BaseEntity> be = query.from(BaseEntity.class);
 			Join<BaseEntity, EntityAttribute> ea = (Join) be.fetch("baseEntityAttributes");
@@ -666,10 +667,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 			query.where(cb.equal(ea.get("realm"), realm),cb.like(be.get("code"), "RUL_%"));
 
 			List<BaseEntity> results = this.helper.getEntityManager().createQuery(query).getResultList();
-			ret = results.isEmpty();
-
-
-		return ret;
+			return !results.isEmpty();
 	}
 	
 
