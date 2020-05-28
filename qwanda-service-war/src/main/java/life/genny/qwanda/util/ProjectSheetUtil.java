@@ -21,6 +21,12 @@ public class ProjectSheetUtil {
     }
 
     public static Map<String, List<String>> getBranchToProjectUrlsMapping(String repoUrls) throws InvalidGithubUrlException {
+        if (repoUrls == null || repoUrls.equals("")) {
+            String info = repoUrls == null ? "null" : "empty string";
+            log.error(String.format("GitHub repoUrls from sheet is %s, use gitProjectUrls in GennySettings!", info));
+            repoUrls = GennySettings.gitProjectUrls;
+        }
+
         HashMap<String, List<String>> branchToProjectUrlsMapping = new HashMap<>();
         String[] repoUrlArray = repoUrls.replace("\n", "").split(";");
         for (String item : repoUrlArray) {
@@ -45,8 +51,9 @@ public class ProjectSheetUtil {
 
     public static String getGitUserName(RealmUnit realmUnit) {
         String gitUserName = realmUnit.getGithubUserName();
-        if (gitUserName.equals("")) {
-            log.error("GitHub user name from sheet is empty string, use gitUsername in GennySettings!");
+        if (gitUserName == null || gitUserName.equals("")) {
+            String info = gitUserName == null ? "null" : "empty string";
+            log.error(String.format("GitHub user name from sheet is %s, use gitUsername in GennySettings!", info));
             gitUserName = GennySettings.gitUsername;
         }
         return gitUserName;
@@ -54,8 +61,9 @@ public class ProjectSheetUtil {
 
     public static String getGitPassword(RealmUnit realmUnit) {
         String gitPassword = realmUnit.getGithubPassword();
-        if (gitPassword.equals("")) {
-            log.error("GitHub user password from sheet is empty string, use gitPassword in GennySettings!");
+        if (gitPassword == null || gitPassword.equals("")) {
+            String info = gitPassword == null ? "null" : "empty string";
+            log.error(String.format("GitHub user password from sheet is %s, use gitPassword in GennySettings!", info));
             gitPassword = GennySettings.gitPassword;
         }
         return gitPassword;
