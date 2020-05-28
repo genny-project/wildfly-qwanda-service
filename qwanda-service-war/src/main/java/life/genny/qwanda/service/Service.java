@@ -520,20 +520,19 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	//@Transactional
 	public void loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, final String gitBranch,GennyToken userToken)
 	{
-		boolean recursive = true;
-		Map<String,BaseEntity> ruleBes = new HashMap<>();
-		
-		log.info(String.format("Loading Rules from GitHub, Realm:%s, GitHub UserName:%s", realm, gitUsername));
-		log.info(String.format("Loading Rules from Git Locations : %s, Branch: %s", gitProjectUrlList, gitBranch));
-
 		if (StringUtils.isBlank(gitPassword)) {
 			log.error("No GIT ACCOUNT SET!");
 			return;
 		}
-		
+
+		boolean recursive = true;
+		Map<String,BaseEntity> ruleBes = new HashMap<>();
+
 		try {
+			log.info(String.format("Loading Rules from GitHub, Realm:%s, GitHub UserName:%s", realm, gitUsername));
 			for (String gitProjectUrl : gitProjectUrlList) {
-				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, gitBranch, realm, gitUsername, gitPassword, recursive,userToken));
+				log.info(String.format("Loading Rules from Git Locations : %s, Branch: %s", gitProjectUrl, gitBranch));
+				ruleBes.putAll(RulesUtils.getRulesFromGit(gitProjectUrl, gitBranch, realm, gitUsername, gitPassword, recursive, userToken));
 			}
 		} catch (RevisionSyntaxException | BadDataException | GitAPIException | IOException e) {
 			// TODO Auto-generated catch block
@@ -548,25 +547,22 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 //		}
 
 		EntityManager em = helper.getEntityManager(); //emf.createEntityManager();
-		
+
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaDelete<EntityAttribute> criteriaDelete = cb.createCriteriaDelete(EntityAttribute.class);
 
-		    Root<EntityAttribute> root = criteriaDelete.from(EntityAttribute.class);
-		    criteriaDelete.where(cb.like(root.get("baseEntityCode"), "RUL_%"),
-					cb.equal(root.get("realm"), realm));
-		    em.createQuery(criteriaDelete).executeUpdate();
-		    
-			CriteriaDelete<BaseEntity> criteriaDeleteBE = cb.createCriteriaDelete(BaseEntity.class);
+		Root<EntityAttribute> root = criteriaDelete.from(EntityAttribute.class);
+		criteriaDelete.where(cb.like(root.get("baseEntityCode"), "RUL_%"), cb.equal(root.get("realm"), realm));
+		em.createQuery(criteriaDelete).executeUpdate();
 
-		    Root<BaseEntity> rootBE = criteriaDeleteBE.from(BaseEntity.class);
-		    criteriaDeleteBE.where(cb.like(rootBE.get("code"), "RUL_%"),
-					cb.equal(rootBE.get("realm"), realm));
-		    em.createQuery(criteriaDeleteBE).executeUpdate();
-		    log.info("All rules deleted");
+		CriteriaDelete<BaseEntity> criteriaDeleteBE = cb.createCriteriaDelete(BaseEntity.class);
 
-		    
-		    CriteriaQuery<Attribute> query = cb.createQuery(Attribute.class);
+		Root<BaseEntity> rootBE = criteriaDeleteBE.from(BaseEntity.class);
+		criteriaDeleteBE.where(cb.like(rootBE.get("code"), "RUL_%"), cb.equal(rootBE.get("realm"), realm));
+		em.createQuery(criteriaDeleteBE).executeUpdate();
+		log.info("All rules deleted");
+
+		CriteriaQuery<Attribute> query = cb.createQuery(Attribute.class);
 		Root<Attribute> rootAttribute = query.from(Attribute.class);
 
 		query = query.select(rootAttribute).where(cb.equal(rootAttribute.get("realm"), realm));
@@ -575,7 +571,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 		try {
 			attributes = em.createQuery(query).getResultList();
 		} catch (NoResultException nre) {
-
+			log.error(String.format("Can't find records from Attribute table for realm:%s", realm));
 		}
 
 		// Ugly
