@@ -3,10 +3,7 @@ package life.genny.qwanda.service;
 import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -23,6 +20,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+
+import life.genny.qwanda.util.ProjectSheetUtil;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
@@ -159,13 +158,13 @@ public class StartupService {
               .map(val -> val.toLowerCase())
               .map(Boolean::getBoolean)
               .orElse(true);
-          
+
           if(onlineMode){
               xlsImport = new XlsxImportOnline(gs.getService());
           }else{
               xlsImport = new XlsxImportOffline(service);
           }
-          rx = new Realm(xlsImport, 
+          rx = new Realm(xlsImport,
               System.getenv("GOOGLE_HOSTING_SHEET_ID"));
           return rx;
         } else {
@@ -188,7 +187,7 @@ public class StartupService {
 		}
 
 		// Push BEs to cache
-		if (GennySettings.loadDdtInStartup) {		    
+		if (GennySettings.loadDdtInStartup) {
             log.info("Pushing to DTT  ");
 		    pushToDTT(rxUnit);
 		}
@@ -208,12 +207,12 @@ public class StartupService {
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 		}
     }
-    
+
     public void update(RealmUnit rxUnit) {
 		saveProjectBes(rxUnit);
-		saveServiceBes(rxUnit);	
+		saveServiceBes(rxUnit);
 		pushProjectsUrlsToDTT(rxUnit);
-	
+
 
 		if (!GennySettings.skipGoogleDocInStartup) {
 			log.info("Starting Transaction for loading #####################");
@@ -225,7 +224,7 @@ public class StartupService {
 		}
 
 		// Push BEs to cache
-		if (GennySettings.loadDdtInStartup) {		    
+		if (GennySettings.loadDdtInStartup) {
             log.info("Pushing to DTT  ");
 		    pushToDTT(rxUnit);
 		}
@@ -255,7 +254,7 @@ public class StartupService {
 		cacheInterface = new WildflyCache(inDb);
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
-    
+
         rx =  getRealm();
         List<String> realms = rx.getDataUnits().stream()
             .filter(r-> !r.getDisable())
@@ -266,7 +265,7 @@ public class StartupService {
         rx.getDataUnits().forEach(serviceTokens::init);
 		// Save projects
 		rx.getDataUnits().forEach(this::saveProjectBes);
-		rx.getDataUnits().forEach(this::saveServiceBes);		
+		rx.getDataUnits().forEach(this::saveServiceBes);
 		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
 
 		if (!GennySettings.skipGoogleDocInStartup) {
@@ -278,9 +277,9 @@ public class StartupService {
 			log.info("Skipping Google doc loading");
 		}
 
-		
+
 		// Push BEs to cache
-		if (GennySettings.loadDdtInStartup) {		    
+		if (GennySettings.loadDdtInStartup) {
             log.info("Pushing to DTT  ");
 		    rx.getDataUnits().forEach(this::pushToDTT);
 		}
@@ -327,7 +326,7 @@ public class StartupService {
 		log.info("Pushed " + entitys.size() + " attributes to cache");
 
 		String realmCode = realmUnit.getCode();
-	
+
 			if ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase())) {
 
 				service.setCurrentRealm(realmCode);
@@ -418,25 +417,35 @@ public class StartupService {
 	}
 
 	private void loadRulesFromGit(RealmUnit realmUnit) {
-		log.info("Updating Project Rules ");
-		if ("FALSE".equals((String) realmUnit.getDisable().toString().toUpperCase())) {
-
-		    String realm = realmUnit.getCode();
+		String realm = realmUnit.getCode();
+		if ("FALSE".equalsIgnoreCase(realmUnit.getDisable().toString())) {
 			service.setCurrentRealm(realm);
-			log.info("Project: " + realm);
+			log.info(String.format("Updating Project Rules, Realm:%s", realm));
 
-			Boolean realmRulesLoaded = service.doRulesExistInDatabase(realm);
-
+			boolean realmRulesLoaded = service.doRulesExistInDatabase(realm);
 			// no rules exist
 			if (!realmRulesLoaded) {
+				log.info("No rule in database, start loading rules from Github!!!!");
+
 				GennyToken serviceToken = new GennyToken("SERVICE",serviceTokens.getServiceToken(realm));
-				String[] projectUrlArray = GennySettings.gitProjectUrls.split(";");
-				List<String> projectUrlList = Arrays.asList(projectUrlArray);
-				service.loadRulesFromGit(realm,projectUrlList , GennySettings.gitUsername, GennySettings.gitPassword, GennySettings.gitRulesBranch,serviceToken);
+				String gitUserName = ProjectSheetUtil.getGitUserName(realmUnit);
+				String gitPassword = ProjectSheetUtil.getGitPassword(realmUnit);
+
+				try {
+					Map<String, List<String>> branchToProjectUrlsMapping = ProjectSheetUtil.getBranchToProjectUrlsMapping(realmUnit.getGithubRepoUrls());
+					branchToProjectUrlsMapping.keySet().forEach(branchName -> {
+						List<String> projectUrlList = branchToProjectUrlsMapping.get(branchName);
+						service.loadRulesFromGit(realm, projectUrlList, gitUserName, gitPassword, branchName, serviceToken);
+					});
+				} catch (Exception e) {
+					log.error(String.format("Error occurred cause:%s, message:%s when load rules from Github", e.getCause(), e.getMessage()));
+				}
 			}
+		} else {
+			log.info(String.format("Skip loading Project Rules from GitHub, realm:%s disabled.", realm));
 		}
 	}
-	
+
 	private void saveProjectBes(RealmUnit realmUnit) {
 		log.info("Updating Project BaseEntitys ");
 
@@ -651,5 +660,5 @@ public class StartupService {
 	}
 
 
-	
+
 }

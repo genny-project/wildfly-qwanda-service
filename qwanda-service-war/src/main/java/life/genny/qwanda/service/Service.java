@@ -520,14 +520,12 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	//@Transactional
 	public void loadRulesFromGit(final String realm, List<String> gitProjectUrlList, final String gitUsername, final String gitPassword, final String gitBranch,GennyToken userToken)
 	{
-		Boolean recursive = true;
-		Map<String,BaseEntity> ruleBes = new HashMap<String,BaseEntity>();
+		boolean recursive = true;
+		Map<String,BaseEntity> ruleBes = new HashMap<>();
 		
-		log.info("Loading Rules from Git : "+realm+" using username: "+gitUsername);
-		log.info("Loading Rules from Git Locations : "+gitProjectUrlList);
-		log.info("Loading Rules from Git branch : "+gitBranch);
-		
-		
+		log.info(String.format("Loading Rules from GitHub, Realm:%s, GitHub UserName:%s", realm, gitUsername));
+		log.info(String.format("Loading Rules from Git Locations : %s, Branch: %s", gitProjectUrlList, gitBranch));
+
 		if (StringUtils.isBlank(gitPassword)) {
 			log.error("No GIT ACCOUNT SET!");
 			return;
