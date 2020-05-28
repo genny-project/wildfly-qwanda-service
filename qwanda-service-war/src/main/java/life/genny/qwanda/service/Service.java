@@ -657,7 +657,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 	/*
 		return True if rules exist in database, else False
 	 */
-	public Boolean doRulesExistInDatabase(final String realm) {
+	public boolean doRulesExistInDatabase(final String realm) {
 			CriteriaBuilder cb = this.helper.getEntityManager().getCriteriaBuilder();
 			CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
 			Root<BaseEntity> be = query.from(BaseEntity.class);
@@ -669,8 +669,6 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 			List<BaseEntity> results = this.helper.getEntityManager().createQuery(query).getResultList();
 
 			return !results.isEmpty();
-
-
 	}
 	
 
