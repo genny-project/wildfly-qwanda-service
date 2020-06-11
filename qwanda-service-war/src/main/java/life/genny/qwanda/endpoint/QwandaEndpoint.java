@@ -74,6 +74,7 @@ import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwanda.message.QDataQSTMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
+import life.genny.qwanda.message.QSearchBeResult;
 import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.service.SecurityService;
@@ -495,10 +496,21 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/search22/{hql}")
 	@Produces("application/json")
 	@Transactional
-	public Response findBySearchEA22(@PathParam("hql") final String hql) {
+	public Response findBySearchEA23(@PathParam("hql") final String hql) {
+		return findBySearchEA22(hql,0,2000);
+	}
+	
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/search23/{hql}/{pageStart}/{pageSize}")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchEA22(@PathParam("hql") final String hql,
+			@PathParam("pageStart") final Integer pageStart,
+			@PathParam("pageSize") final Integer pageSize) {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
-		log.info("Search " + hql2);
+		log.info("Search " + hql2 + " pageStart="+pageStart+" , pageSize="+pageSize);
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
@@ -509,7 +521,7 @@ public class QwandaEndpoint {
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
-			List<EntityAttribute> results = service.findBySearchEA22(hql2);
+			List<EntityAttribute> results = service.findBySearchEA22(hql2,pageStart,pageSize);
 			Map<String,BaseEntity> beMap = new HashMap<String,BaseEntity>();
 			for (EntityAttribute ea : results) {
 				BaseEntity be = beMap.get(ea.getBaseEntityCode());
@@ -535,7 +547,73 @@ public class QwandaEndpoint {
 			return Response.status(401).build();
 		}
 	}
+	
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/search24/{hql}/{pageStart}/{pageSize}")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchEA24(@PathParam("hql") final String hql,
+			@PathParam("pageStart") final Integer pageStart,
+			@PathParam("pageSize") final Integer pageSize) {
+		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
+		String hql2 = new String(decodedBytes);
+		log.info("Search " + hql2 + " pageStart="+pageStart+" , pageSize="+pageSize);
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
+			QSearchBeResult result = service.findBySearchEA24(hql2,pageStart,pageSize);
+//			String countStr = service.readFromDDT(hql2);
+//			Long count = 1964L;
+//			if (countStr == null) {
+//					count = service.findBySearchEA24Count(hql2);
+//					service.writeToDDT(hql, count+"");					
+//			} else {
+//				count = Long.parseLong(countStr);
+//			}
+//			result.setTotal(count);
+//			
+			
+			return Response.status(200).entity(result).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
+	@GET
+	@Consumes("application/json")
+	@Path("/baseentitys/search24/{hql}")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearchEA24Count(@PathParam("hql") final String hql) {
+		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
+		String hql2 = new String(decodedBytes);
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+
+			Long count = service.findBySearchEA24Count(hql2);
+			
+			return Response.status(200).entity(count).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
+	
 	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys/search")

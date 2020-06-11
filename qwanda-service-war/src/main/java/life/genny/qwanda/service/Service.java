@@ -41,6 +41,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.jpa.QueryHints;
 
 @RequestScoped
 
@@ -510,4 +511,6 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             getEntityManager().merge(existing);
         }
     }
+    
+ 
 }
