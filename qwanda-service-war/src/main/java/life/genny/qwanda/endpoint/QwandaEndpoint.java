@@ -571,14 +571,14 @@ public class QwandaEndpoint {
 
 			QSearchBeResult result = service.findBySearchEA24(hql2,pageStart,pageSize);
 //			String countStr = service.readFromDDT(hql2);
-//			Long count = 1964L;
+			Long count = 1964L;
 //			if (countStr == null) {
-//					count = service.findBySearchEA24Count(hql2);
-//					service.writeToDDT(hql, count+"");					
+					count = service.findBySearchEA24Count(hql2);
+//					service.writeToDDT(hql, count+"");
 //			} else {
 //				count = Long.parseLong(countStr);
 //			}
-//			result.setTotal(count);
+			result.setTotal(count);
 //			
 			
 			return Response.status(200).entity(result).build();
