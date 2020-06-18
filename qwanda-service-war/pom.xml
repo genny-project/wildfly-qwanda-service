@@ -36,8 +36,7 @@
 
         <version.org.wildfly>19.1.0.Final</version.org.wildfly>
         <version.wildfly-dist>19.1.0.Final</version.wildfly-dist>
-        <!--version.jboss.bom>18.0.1.Final</version.jboss.bom-->
-
+ 
         <version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
         <compiler-plugin-version>3.1</compiler-plugin-version>
         <version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
@@ -48,7 +47,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <version.postgresql>9.4.1207</version.postgresql>
-        <version.mysql-connector-java>8.0.18</version.mysql-connector-java>
+        <version.mysql-connector-java>8.0.20</version.mysql-connector-java>
 
         <version.jodatime>2.7</version.jodatime>
 

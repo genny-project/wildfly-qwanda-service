@@ -57,31 +57,33 @@
 		<properties>
 			<property name="shared-cache-mode" value="ALL" />
 			<property name="hibernate.dialect"
-				value="life.genny.qwanda.util.MySQLDialect2" />
+				value="org.hibernate.dialect.MySQL8Dialect" />
+			<property name="hibernate.connection.driver_class" value="com.mysql.cj.jdbc.Driver" />
+				
 			<property name="hibernate.connection.autocommit"
 				value="true" />
 			<property name="hibernate.max_fetch_depth" value="3" />
 			<property name="hibernate.hbm2ddl.auto" value="update" />
-			<property name="hibernate.show_sql" value="false" />
+			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.connection.release_mode"
-				value="after_transaction" />
+				value="on_close" />
 
 			<!-- BZ 841786: AS7/EAP 6/Hib 4 uses new (sequence) generators which seem 
 				to cause problems -->
 			<property name="hibernate.id.new_generator_mappings"
 				value="true" />
-			<!-- <property name="hibernate.connection.handling_mode" value="DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION"/> -->
+			<property name="hibernate.connection.handling_mode" value="DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION"/>
 			<property name="hibernate.transaction.jta.platform"
 				value="org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform" />
 			<property name="hibernate.order_updates" value="true" />
 			<property name="hibernate.connection.isolation" value="2" />
 			<property name="hibernate.order_inserts" value="true" />
 			<property name="hibernate.order_updates" value="true" />
+			<property name="current_session_context_class" value="thread" />
 			<property
 				name="hibernate.discriminator.ignore_explicit_for_joined"
 				value="false" />
 			<property name="hibernate.generate_statistics" value="false" />
-			<property name="hibernate.show_sql" value="false" />
 			<!-- <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.MySQLSpatial56Dialect" 
 				/> -->
 			<!-- Infinispan -->
@@ -109,6 +111,8 @@
 			<property name="hibernate.c3p0.max_statements" value="75" />
 			<property name="hibernate.c3p0.idle_test_period"
 				value="5000" />
+			<property name="hibernate.c3p0.testConnectionOnCheckout" value="true" />
+				
 		</properties>
 	</persistence-unit>
 </persistence>
