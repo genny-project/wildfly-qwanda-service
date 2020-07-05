@@ -589,7 +589,7 @@ public class QwandaEndpoint {
 
 	@GET
 	@Consumes("application/json")
-	@Path("/baseentitys/search24/{hql}")
+	@Path("/baseentitys/count24/{hql}")
 	@Produces("application/json")
 	@Transactional
 	public Response findBySearchEA24Count(@PathParam("hql") final String hql) {
