@@ -64,7 +64,8 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					}
 					try {
 						username = (String) jsonObj.get("preferred_username");
-						realm = (String) jsonObj.get("azp");
+		                String[] issArray = jsonObj.get("iss").toString().split("/");
+		                realm = issArray[issArray.length-1];
 						key = realm + ".json";
 					} catch (final JSONException e1) {
 						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
