@@ -19,7 +19,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.javamoney.moneta.Money;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -50,10 +50,10 @@ public class ApiTest {
 	/**
 	 * Stores logger object.
 	 */
-//	protected static final Logger log = org.apache.logging.log4j.LogManager
-//			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	protected static final Logger log = org.apache.log4j.Logger.getLogger(ApiTest.class);
+//	protected static final Logger log = org.apache.log4j.Logger.getLogger(ApiTest.class);
 	@Test
 	public void searchTest() {
 		if (GennySettings.devMode) { // only run when in eclipse dev mode
