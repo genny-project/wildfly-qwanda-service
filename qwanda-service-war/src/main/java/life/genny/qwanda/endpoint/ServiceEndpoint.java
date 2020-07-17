@@ -1073,4 +1073,63 @@ public class ServiceEndpoint {
 		return Response.status(401).entity("You need to be a test.").build();
 
 	}
+	
+	@GET
+	@Consumes("application/json")
+	@Path("/executehql/{hql}")
+	@Produces("application/json")
+	@Transactional
+	public Response executeHQL(@PathParam("hql") final String hql) {
+
+		log.info("Execute " + hql);
+		if (securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
+			Long result = 0L;
+			String realm = securityService.getRealm();
+
+			try {
+				result = (long) em
+
+						.createQuery(hql).executeUpdate();
+			} catch (Exception e)
+			{
+				log.error("Error in executing hql for realm " + realm + " " + e.getLocalizedMessage());
+				return Response.status(401).entity("Query did not work.").build();
+				
+			}
+
+			return Response.status(200).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+	
+	@GET
+	@Consumes("application/json")
+	@Path("/executesql/{sql}")
+	@Produces("application/json")
+	@Transactional
+	public Response executeSQL(@PathParam("sql") final String sql) {
+
+		log.info("Execute " + sql);
+		if (securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
+			Long result = 0L;
+
+			String realm = securityService.getRealm();
+			try {
+				Query q = em.createNativeQuery(
+						sql);
+				List<Object[]> questionCodes = q.getResultList();
+				return Response.status(200).build();
+			} catch (Exception e) {
+				log.error("Error in executing sql for realm " + realm + " " + e.getLocalizedMessage());
+				return Response.status(401).entity("Query did not work.").build();
+			}
+	
+		} else {
+			return Response.status(401).build();
+		}
+	}
+	
 }
