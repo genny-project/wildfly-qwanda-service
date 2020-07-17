@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.TimeZone;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -1086,11 +1089,12 @@ public class ServiceEndpoint {
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 			Long result = 0L;
 			String realm = securityService.getRealm();
-
+			String hql2 =URLDecoder.decode(hql);
+	
 			try {
 				result = (long) em
 
-						.createQuery(hql).executeUpdate();
+						.createQuery(hql2).executeUpdate();
 			} catch (Exception e)
 			{
 				log.error("Error in executing hql for realm " + realm + " " + e.getLocalizedMessage());
@@ -1111,16 +1115,17 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response executeSQL(@PathParam("sql") final String sql) {
 
-		log.info("Execute " + sql);
+		
 		if (securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 			Long result = 0L;
-
+			String sql2 = URLDecoder.decode(sql);
 			String realm = securityService.getRealm();
 			try {
+				log.info("Execute " + sql2);
 				Query q = em.createNativeQuery(
-						sql);
-				List<Object[]> questionCodes = q.getResultList();
+						sql2);
+				result = (long) q.executeUpdate();
 				return Response.status(200).build();
 			} catch (Exception e) {
 				log.error("Error in executing sql for realm " + realm + " " + e.getLocalizedMessage());
