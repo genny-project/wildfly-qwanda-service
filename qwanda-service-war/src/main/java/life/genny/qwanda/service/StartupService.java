@@ -912,6 +912,8 @@ public class StartupService {
 					SecureResources.addRealm("localhost", keycloakJson);
 					SecureResources.addRealm("localhost:8080", keycloakJson);
 					for (String url : urls) {
+						// Remove space in url
+						url = url.replaceAll("\\s","");
 						SecureResources.addRealm(url + ".json", keycloakJson);
 						SecureResources.addRealm(url, keycloakJson);
 					}
