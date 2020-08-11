@@ -912,6 +912,8 @@ public class StartupService {
 					SecureResources.addRealm("localhost", keycloakJson);
 					SecureResources.addRealm("localhost:8080", keycloakJson);
 					for (String url : urls) {
+						// Remove space in url
+						url = url.replaceAll("\\s","");
 						SecureResources.addRealm(url + ".json", keycloakJson);
 						SecureResources.addRealm(url, keycloakJson);
 					}
@@ -1040,7 +1042,7 @@ public class StartupService {
 					URL aURL = null;
 					try {
 						if (!((url.startsWith("http:")) || (url.startsWith("https:")))) {
-							url = "http://" + url; // hack
+							url = "http://" + url.replaceAll("\\s",""); // hack
 						}
 						aURL = new URL(url);
 						final String cleanUrl = aURL.getHost();
