@@ -12,7 +12,7 @@
     <parent>
         <groupId>life.genny</groupId>
         <artifactId>wildfly-qwanda-service</artifactId>
-        <version>${revision}</version>
+        <version>7.1.0</version>
     </parent>
 
     <licenses>
