@@ -1,6 +1,8 @@
 #!/bin/bash
 echo "Setting up Realms ****"
 
+unset JAVA_OPTS
+
 # change the package.json file
 function escape_slashes {
     /usr/bin/sed 's/\//\\\//g'
