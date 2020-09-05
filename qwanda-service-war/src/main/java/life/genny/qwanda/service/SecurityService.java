@@ -20,6 +20,7 @@ import org.keycloak.representations.AccessToken;
 
 import life.genny.qwanda.CoreEntity;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.models.GennyToken;
 
 /**
  * Transactional Security Service
@@ -61,8 +62,10 @@ public class SecurityService implements Serializable {
 	@PostConstruct
 	public void init() {
 		if (!importMode) {
-			user.put("username", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext()
-					.getToken().getPreferredUsername());
+			String token = ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getTokenString();
+			  GennyToken gennyToken = new GennyToken(token);
+			  
+			user.put("username",gennyToken.getUsername());
 			user.put("realm", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm());
 			user.put("email", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken()
 					.getEmail());

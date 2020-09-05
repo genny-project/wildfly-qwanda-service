@@ -1612,11 +1612,11 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,@PathParam("attributeCode") final String attributeCode) {
 
-		String username = (String) securityService.getUserMap().get("preferred_username");
-		String userCode = QwandaUtils.getNormalisedUsername(username);
+//		String username = (String) securityService.getUserMap().get("preferred_username");
+//		String userCode = QwandaUtils.getNormalisedUsername(username);
 
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || userCode.equalsIgnoreCase(baseEntityCode)) {  // TODO Remove the true!
+				|| securityService.inRole("dev")) ) {  // TODO Remove the true!
 
 		service.removeEntityAttribute(baseEntityCode, attributeCode);
 		return Response.status(200).build();
