@@ -101,7 +101,8 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
         // Send a vertx message broadcasting an attribute value Change
         log.info(String.format("!!ATTRIBUTE CHANGE EVENT ->%s", event.getBe().getCode()));
-        VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
+      //  VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
+        VertxUtils.writeMsg("events", JsonUtils.toJson(event));
     }
 
     @Override
