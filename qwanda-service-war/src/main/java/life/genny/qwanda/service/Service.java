@@ -132,7 +132,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
                 this.sendQEventAttributeValueChangeMessage(targetEvent);
 
             }
-            VertxUtils.publish(getUser(), "events", JsonUtils.toJson(event));
+            VertxUtils.writeMsg("events", JsonUtils.toJson(event));
             log.info(String.format("!!LINK CHANGE EVENT ->%s", event));
         } catch (Exception e) {
             log.error(String.format("Error in posting link Change to JMS:%s.", e.getLocalizedMessage()));
