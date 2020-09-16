@@ -516,7 +516,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
     @Override
     public void cleanAsk(String realm) {
-        String qlString= String.format("delete from ask where realm = '%s';", realm);
+        String qlString= String.format("delete from ask where realm = '%s'", realm);
         Query query = getEntityManager().createQuery(qlString);
         query.executeUpdate();
     }
@@ -526,7 +526,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
         String qlString= "delete from baseentity_attribute " +
                 "where baseEntityCode like \'RUL_FRM%_GRP\' " +
                 "and attributeCode = \'PRI_ASKS\' " +
-                "and realm = \'" + realm + "\';";
+                "and realm = \'" + realm + "\'";
         Query query = getEntityManager().createQuery(qlString);
         query.executeUpdate();
     }
