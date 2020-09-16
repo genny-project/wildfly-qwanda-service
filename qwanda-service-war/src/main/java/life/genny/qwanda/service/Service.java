@@ -513,6 +513,21 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             getEntityManager().merge(existing);
         }
     }
-    
- 
+
+    @Override
+    public void cleanAsk(String realm) {
+        String qlString= String.format("delete from ask where realm = '%s';", realm);
+        Query query = getEntityManager().createQuery(qlString);
+        query.executeUpdate();
+    }
+
+    @Override
+    public void cleanFrameFromBaseentityAttribute(String realm) {
+        String qlString= "delete from baseentity_attribute " +
+                "where baseEntityCode like \'RUL_FRM%_GRP\' " +
+                "and attributeCode = \'PRI_ASKS\' " +
+                "and realm = \'" + realm + "\';";
+        Query query = getEntityManager().createQuery(qlString);
+        query.executeUpdate();
+    }
 }
