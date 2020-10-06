@@ -21,6 +21,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+
+import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
@@ -1022,7 +1024,8 @@ public class StartupService {
 				try {
 					be = em.createQuery(query).getSingleResult();
 				} catch (NoResultException nre) {
-
+				    log.error("NoResultException occurred for baseentity code:" + "PRJ_" + realm.toUpperCase()
+							+ " realm:" + realm);
 				}
 //				Session session = em.unwrap(org.hibernate.Session.class);
 //				Criteria criteria = session.createCriteria(BaseEntity.class);
@@ -1038,27 +1041,42 @@ public class StartupService {
 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
+				log.info(String.format("DEBUG, Realm: %s has %d urls, they are:%s", GennySettings.GENNY_REALM, urls.length, urls));
 				for (String url : urls) {
-					URL aURL = null;
 					try {
 						if (!((url.startsWith("http:")) || (url.startsWith("https:")))) {
 							url = "http://" + url.replaceAll("\\s",""); // hack
 						}
-						aURL = new URL(url);
-						final String cleanUrl = aURL.getHost();
+						final String cleanUrl = new URL(url).getHost();
 						log.info("Writing to Cache: " + GennySettings.GENNY_REALM + ":" + cleanUrl.toUpperCase());
-						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(),
-								JsonUtils.toJson(be));
-						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);
+						String keyString =  cleanUrl.toUpperCase();
+						String gennyRealm = GennySettings.GENNY_REALM;
+						VertxUtils.writeCachedJson(gennyRealm, keyString, JsonUtils.toJson(be));
+						JsonObject jsonOb = VertxUtils.readCachedJson(gennyRealm, keyString);
+						if (!checkWriteCache(jsonOb, JsonUtils.toJson(be))) {
+							log.error(String.format("Realm:%s, Key:%s not cached properly!",
+									GennySettings.GENNY_REALM,  cleanUrl.toUpperCase()));
+						}
+
+						keyString = "TOKEN" + cleanUrl.toUpperCase();
+						VertxUtils.writeCachedJson(gennyRealm, keyString, token);
+						jsonOb = VertxUtils.readCachedJson(gennyRealm, keyString);
+						if (!checkWriteCache(jsonOb, token)) {
+							log.error(String.format("Realm:%s, Key:%s not cached properly!",
+									GennySettings.GENNY_REALM,  cleanUrl.toUpperCase()));
+						}
 					} catch (MalformedURLException e) {
 						log.error("Bad URL for realm " + be.getRealm() + "=" + url);
 					}
 				}
 			}
-			//
-//		}
 	}
 
-
-	
+	private boolean checkWriteCache(JsonObject jsonOb, String jsonString) {
+		if ((jsonOb == null) || ("error".equals(jsonOb.getString("status")))) {
+		    return false;
+		} else {
+			return jsonOb.getString("value").equals(jsonString);
+		}
+	}
 }
