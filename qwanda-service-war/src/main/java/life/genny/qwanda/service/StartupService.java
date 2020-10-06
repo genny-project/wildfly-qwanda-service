@@ -3,6 +3,7 @@ package life.genny.qwanda.service;
 import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -1041,7 +1042,7 @@ public class StartupService {
 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
-				log.info(String.format("DEBUG, Realm: %s has %d urls, they are:%s", GennySettings.GENNY_REALM, urls.length, urls));
+				log.info(String.format("DEBUG, Realm: %s has %d urls, they are:%s", realm, urls.length, Arrays.toString(urls)));
 				for (String url : urls) {
 					try {
 						if (!((url.startsWith("http:")) || (url.startsWith("https:")))) {
