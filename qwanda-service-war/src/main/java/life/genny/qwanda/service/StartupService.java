@@ -1,5 +1,8 @@
 package life.genny.qwanda.service;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,9 +14,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -22,11 +23,10 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
-
-import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
+import io.vertx.core.json.JsonObject;
 import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import life.genny.bootxport.bootx.GoogleImportService;
@@ -43,7 +43,6 @@ import life.genny.bootxport.xlsimport.BatchLoading;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.Layout;
 import life.genny.qwanda.Question;
-import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
@@ -76,6 +75,8 @@ public class StartupService {
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+	static final String ABN_KEY_FILE_PATH = "/tmp/abn-key";
 
 	public void deleteFromEnabledProject(RealmUnit realmUnit) {
 		if (!realmUnit.getDisable()) {
@@ -1070,6 +1071,14 @@ public class StartupService {
 						log.error("Bad URL for realm " + be.getRealm() + "=" + url);
 					}
 				}
+
+                be.findEntityAttribute("ENV_ABN_API_KEY").ifPresent(abnKey -> {
+                  try (PrintWriter writer= new PrintWriter(ABN_KEY_FILE_PATH, "UTF-8");){
+                    writer.println(abnKey.getValueString());
+                  } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                  }
+                });;
 			}
 	}
 
