@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>life.genny</groupId>
 		<artifactId>wildfly-qwanda-service</artifactId>
-        <version>7.2.0</version>
+        <version>v7.2.0</version>
 	</parent>
 	<artifactId>qwanda-service-ear</artifactId>
 	<packaging>ear</packaging>
