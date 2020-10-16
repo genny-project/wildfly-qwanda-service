@@ -1607,15 +1607,15 @@ public class QwandaEndpoint {
 
 	@DELETE
 	@Consumes("application/json")
-	@Path("/baseentitys/{baseEntityCode}/{attributeCode}")
+	@Path("/baseentitys/delete/{baseEntityCode}/{attributeCode}")
 	@Produces("application/json")
 	@Transactional
 	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,@PathParam("attributeCode") final String attributeCode) {
 
 //		String username = (String) securityService.getUserMap().get("preferred_username");
 //		String userCode = QwandaUtils.getNormalisedUsername(username);
-
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+		log.info("Deleting code "+baseEntityCode+":"+attributeCode);
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev")) ) {  // TODO Remove the true!
 
 		service.removeEntityAttribute(baseEntityCode, attributeCode);
@@ -1635,7 +1635,7 @@ public class QwandaEndpoint {
 		String username = (String) securityService.getUserMap().get("preferred_username");
 		String userCode = QwandaUtils.getNormalisedUsername(username);
 
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev"))) {  // TODO Remove the true!
 
 		service.removeEntityAttributes(attributeCode);
