@@ -1,4 +1,4 @@
-FROM gennyproject/wildfly:v7.0.0 
+FROM gennyproject/wildfly:7.3.0 
 RUN apk update && apk add git 
 
 USER root

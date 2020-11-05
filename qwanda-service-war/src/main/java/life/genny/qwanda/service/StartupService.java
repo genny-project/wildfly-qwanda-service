@@ -1,8 +1,12 @@
 package life.genny.qwanda.service;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -10,9 +14,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -24,6 +26,7 @@ import javax.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
+import io.vertx.core.json.JsonObject;
 import io.vertx.resourceadapter.examples.mdb.EventBusBean;
 import io.vertx.resourceadapter.examples.mdb.WildflyCache;
 import life.genny.bootxport.bootx.GoogleImportService;
@@ -40,7 +43,6 @@ import life.genny.bootxport.xlsimport.BatchLoading;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.Layout;
 import life.genny.qwanda.Question;
-import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
@@ -73,6 +75,8 @@ public class StartupService {
 	 */
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+	static final String ABN_KEY_FILE_PATH = "/tmp/abn-key";
 
 	public void deleteFromEnabledProject(RealmUnit realmUnit) {
 		if (!realmUnit.getDisable()) {
@@ -1022,7 +1026,8 @@ public class StartupService {
 				try {
 					be = em.createQuery(query).getSingleResult();
 				} catch (NoResultException nre) {
-
+				    log.error("NoResultException occurred for baseentity code:" + "PRJ_" + realm.toUpperCase()
+							+ " realm:" + realm);
 				}
 //				Session session = em.unwrap(org.hibernate.Session.class);
 //				Criteria criteria = session.createCriteria(BaseEntity.class);
@@ -1038,27 +1043,50 @@ public class StartupService {
 				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
+				log.info(String.format("DEBUG, Realm: %s has %d urls, they are:%s", realm, urls.length, Arrays.toString(urls)));
 				for (String url : urls) {
-					URL aURL = null;
 					try {
 						if (!((url.startsWith("http:")) || (url.startsWith("https:")))) {
 							url = "http://" + url.replaceAll("\\s",""); // hack
 						}
-						aURL = new URL(url);
-						final String cleanUrl = aURL.getHost();
+						final String cleanUrl = new URL(url).getHost();
 						log.info("Writing to Cache: " + GennySettings.GENNY_REALM + ":" + cleanUrl.toUpperCase());
-						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, cleanUrl.toUpperCase(),
-								JsonUtils.toJson(be));
-						VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + cleanUrl.toUpperCase(), token);
+						String keyString =  cleanUrl.toUpperCase();
+						String gennyRealm = GennySettings.GENNY_REALM;
+						VertxUtils.writeCachedJson(gennyRealm, keyString, JsonUtils.toJson(be));
+						JsonObject jsonOb = VertxUtils.readCachedJson(gennyRealm, keyString);
+						if (!checkWriteCache(jsonOb, JsonUtils.toJson(be))) {
+							log.error(String.format("Realm:%s, Key:%s not cached properly!",
+									GennySettings.GENNY_REALM,  cleanUrl.toUpperCase()));
+						}
+
+						keyString = "TOKEN" + cleanUrl.toUpperCase();
+						VertxUtils.writeCachedJson(gennyRealm, keyString, token);
+						jsonOb = VertxUtils.readCachedJson(gennyRealm, keyString);
+						if (!checkWriteCache(jsonOb, token)) {
+							log.error(String.format("Realm:%s, Key:%s not cached properly!",
+									GennySettings.GENNY_REALM,  cleanUrl.toUpperCase()));
+						}
 					} catch (MalformedURLException e) {
 						log.error("Bad URL for realm " + be.getRealm() + "=" + url);
 					}
 				}
+
+                be.findEntityAttribute("ENV_ABN_API_KEY").ifPresent(abnKey -> {
+                  try (PrintWriter writer= new PrintWriter(ABN_KEY_FILE_PATH, "UTF-8");){
+                    writer.println(abnKey.getValueString());
+                  } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                  }
+                });;
 			}
-			//
-//		}
 	}
 
-
-	
+	private boolean checkWriteCache(JsonObject jsonOb, String jsonString) {
+		if ((jsonOb == null) || ("error".equals(jsonOb.getString("status")))) {
+		    return false;
+		} else {
+			return jsonOb.getString("value").equals(jsonString);
+		}
+	}
 }

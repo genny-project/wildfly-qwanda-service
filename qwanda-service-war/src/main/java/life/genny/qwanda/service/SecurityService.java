@@ -66,6 +66,7 @@ public class SecurityService implements Serializable {
 			  GennyToken gennyToken = new GennyToken(token);
 			  
 			user.put("username",gennyToken.getUsername());
+			user.put("code",gennyToken.getUserCode());
 			user.put("realm", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getRealm());
 			user.put("email", ((KeycloakPrincipal) request.getUserPrincipal()).getKeycloakSecurityContext().getToken()
 					.getEmail());
@@ -118,11 +119,12 @@ public class SecurityService implements Serializable {
 
 	public String getUserCode()
 	{
-		String username = (String)getUserMap().get("username");
-		if (username == null) {
+		String userCode = (String)getUserMap().get("code");
+		if (userCode == null) {
 			return "PER_SERVICE";  // TODO - Test this out!
 		} else {
-			return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
+			return userCode;
+			// return "PER_"+QwandaUtils.getNormalisedUsername(username).toUpperCase();
 		}
 	}
 	

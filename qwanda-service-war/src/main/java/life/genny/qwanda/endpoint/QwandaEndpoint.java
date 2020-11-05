@@ -1607,15 +1607,15 @@ public class QwandaEndpoint {
 
 	@DELETE
 	@Consumes("application/json")
-	@Path("/baseentitys/{baseEntityCode}/{attributeCode}")
+	@Path("/baseentitys/delete/{baseEntityCode}/{attributeCode}")
 	@Produces("application/json")
 	@Transactional
 	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,@PathParam("attributeCode") final String attributeCode) {
 
 //		String username = (String) securityService.getUserMap().get("preferred_username");
 //		String userCode = QwandaUtils.getNormalisedUsername(username);
-
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+		log.info("Deleting code "+baseEntityCode+":"+attributeCode);
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev")) ) {  // TODO Remove the true!
 
 		service.removeEntityAttribute(baseEntityCode, attributeCode);
@@ -1635,7 +1635,7 @@ public class QwandaEndpoint {
 		String username = (String) securityService.getUserMap().get("preferred_username");
 		String userCode = QwandaUtils.getNormalisedUsername(username);
 
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev"))) {  // TODO Remove the true!
 
 		service.removeEntityAttributes(attributeCode);
@@ -1810,6 +1810,18 @@ public class QwandaEndpoint {
 	}
 
 	@GET
+	@Path("/entityentitys/{sourceCode}/children")
+	@ApiOperation(value = "baseentitys/{sourceCode}/children", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchChildLinks(@PathParam("sourceCode") final String sourceCode) {
+		final List<Link> items = service.findChildLinks(sourceCode);
+		Link[] array = items.toArray(new Link[0]);
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
+	}
+
+	@GET
 	@Path("/entityentitys/{sourceCode}/linkcodes/{linkCode}/children")
 	@ApiOperation(value = "baseentitys/{sourceCode}/linkcodes/{linkCode}/children", notes = "Links")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -1831,6 +1843,18 @@ public class QwandaEndpoint {
 			@PathParam("linkCode") final String linkCode, @PathParam("linkValue") final String linkValue) {
 		final List<Link> items = service.findChildLinks(sourceCode, linkCode, linkValue);
 
+		Link[] array = items.toArray(new Link[0]);
+		String json = JsonUtils.toJson(array);
+		return Response.status(200).entity(json).build();
+	}
+
+	@GET
+	@Path("/entityentitys/{targetCode}/parents")
+	@ApiOperation(value = "baseentitys/{targetCode}/parents", notes = "Links")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response fetchParentLinks(@PathParam("targetCode") final String targetCode) {
+		final List<Link> items = service.findParentLinks(targetCode);
 		Link[] array = items.toArray(new Link[0]);
 		String json = JsonUtils.toJson(array);
 		return Response.status(200).entity(json).build();
