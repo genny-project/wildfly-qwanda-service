@@ -18,7 +18,6 @@ import io.vavr.Tuple2;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.resourceadapter.inflow.VertxListener;
-import io.vertx.rxjava.core.Vertx;
 
 import life.genny.qwanda.entity.User;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;

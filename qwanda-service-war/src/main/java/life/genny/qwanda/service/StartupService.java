@@ -77,6 +77,7 @@ public class StartupService {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	static final String ABN_KEY_FILE_PATH = "/tmp/abn-key";
+	static final String GOOGLE_MAP_KEY_FILE_PATH = "/tmp/google-map-key";
 
 	public void deleteFromEnabledProject(RealmUnit realmUnit) {
 		if (!realmUnit.getDisable()) {
@@ -1071,6 +1072,14 @@ public class StartupService {
 						log.error("Bad URL for realm " + be.getRealm() + "=" + url);
 					}
 				}
+
+                be.findEntityAttribute("ENV_GOOGLE_MAPS_APIKEY").ifPresent(googleMapKey -> {
+                  try (PrintWriter writer= new PrintWriter(GOOGLE_MAP_KEY_FILE_PATH, "UTF-8");){
+                    writer.println(googleMapKey.getValueString());
+                  } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                  }
+                });
 
                 be.findEntityAttribute("ENV_ABN_API_KEY").ifPresent(abnKey -> {
                   try (PrintWriter writer= new PrintWriter(ABN_KEY_FILE_PATH, "UTF-8");){
