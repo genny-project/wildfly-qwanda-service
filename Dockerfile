@@ -1,5 +1,6 @@
-FROM gennyproject/wildfly:7.3.0 
-RUN apk update && apk add git 
+ARG CODE_VERSION=latest
+FROM gennyproject/wildfly:${CODE_VERSION}
+RUN apk update && apk add git
 
 USER root
 
