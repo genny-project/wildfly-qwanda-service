@@ -7,7 +7,7 @@
 	<assembly-descriptor>
 		<r:resource-adapter-binding>
 			<ejb-name>*</ejb-name>
-			<r:resource-adapter-name>qwanda-service-ear.ear#vertx-jca-adapter-3.5.4.rar
+			<r:resource-adapter-name>qwanda-service-ear.ear#vertx-jca-adapter-3.9.3.rar
 			</r:resource-adapter-name>
 		</r:resource-adapter-binding>
 	</assembly-descriptor>
