@@ -75,7 +75,7 @@
         <version.org.jboss.arquillian>1.1.5.Final</version.org.jboss.arquillian>
         <version.junit>4.13.1</version.junit>
 
-        <hazelcast.version>3.8.2</hazelcast.version>
+        <hazelcast.version>3.12.2</hazelcast.version>
         <javax-cache.version>1.0.0-PFD</javax-cache.version>
     </properties>
 
@@ -496,7 +496,7 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-hibernate</artifactId>
-            <version>3.8.2</version>
+            <version>3.8.4</version>
             <type>pom</type>
             <scope>provided</scope>
         </dependency>
