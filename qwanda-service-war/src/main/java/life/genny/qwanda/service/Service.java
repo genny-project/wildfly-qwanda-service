@@ -510,6 +510,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             existing.setWeight(qq.getWeight());
             existing.setReadonly(qq.getReadonly());
             existing.setDependency(qq.getDependency());
+            existing.setIcon(qq.getIcon());
             getEntityManager().merge(existing);
         }
     }
