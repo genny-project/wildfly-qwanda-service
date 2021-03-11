@@ -26,6 +26,6 @@ if [[ $DEBUG == "TRUE" ]]; then
 #--server-config=standalone-full-ha.xml
 else
    echo "Debug is False";
-   /opt/jboss/wildfly/bin/standalone.sh -Djboss.bind.address.private=$myip  -bmanagement=0.0.0.0 -b 0.0.0.0 -Dadmin.username=${ADMIN_USERNAME} -Dadmin.password=${ADMIN_PASSWORD} -Dpublic.host=${myip}  -Djboss.as.management.blocking.timeout=r810000  --server-config=standalone-full-ha.xml
+   /opt/jboss/wildfly/bin/standalone.sh -Djboss.bind.address.private=$myip  -Djboss.tx.node.id=${hostname} -bmanagement=0.0.0.0 -b 0.0.0.0 -Dadmin.username=${ADMIN_USERNAME} -Dadmin.password=${ADMIN_PASSWORD} -Dpublic.host=${myip}  -Djboss.as.management.blocking.timeout=r810000  --server-config=standalone-full-ha.xml
  #  -DHIBERNATE_SHOW_SQL=$HIBERNATE_SHOW_SQL -DHIBERNATE_HBM2DDL=$HIBERNATE_HBM2DDL -DMYSQL_USER=$MYSQL_USER -DMYSQL_PASSWORD=$MYSQL_PASSWORD -Djava.security.auth.login.config=''
 fi

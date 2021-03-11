@@ -1,31 +1,27 @@
 package life.genny.qwanda.service;
 
 
+
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.JoinConfig;
-import com.hazelcast.config.NetworkConfig;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 
-//import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.config.EvictionPolicy;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MaxSizeConfig;
-import com.hazelcast.config.MaxSizeConfig.MaxSizePolicy;
-import com.hazelcast.config.MultiMapConfig;
-import com.hazelcast.config.SemaphoreConfig;
-//import com.hazelcast.core.Hazelcast;
-//import com.hazelcast.core.HazelcastInstance;
-//import com.hazelcast.client.HazelcastClient;
-import life.genny.qwandautils.GennySettings;
+import com.hazelcast.core.HazelcastInstance;
 
 import org.apache.logging.log4j.Logger;
-import java.lang.invoke.MethodHandles;
+import org.infinispan.client.hotrod.DefaultTemplate;
+import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.infinispan.client.hotrod.impl.ConfigurationProperties;
+import org.infinispan.commons.api.CacheContainerAdmin;
+
+import life.genny.qwandautils.GennySettings;
 
 @Singleton
 public class Hazel {
@@ -47,8 +43,18 @@ public class Hazel {
 //        return mapBaseEntitys;
 //    }
 
-    public IMap getMapBaseEntitys(final String realm) {
-        return  instance.getMap(realm);
+    private Set<String> realms = new HashSet<String>();
+
+    private Map<String, RemoteCache> caches= new HashMap<>();
+    public RemoteCache<String, String> getMapBaseEntitys(final String realm) {
+      if(realms.contains(realm)){
+       return caches.get(realm); 
+      }else{
+	      cacheManager.administration().withFlags(CacheContainerAdmin.AdminFlag.VOLATILE).getOrCreateCache(realm, DefaultTemplate.DIST_SYNC);
+        realms.add(realm);
+        caches.put(realm,cacheManager.getCache(realm));
+        return caches.get(realm); 
+      }
     }
 
 //    /**
@@ -66,25 +72,35 @@ public class Hazel {
 //        HazelcastInstance haInst = HazelcastClient.newHazelcastClient(cfg);
 //        return haInst;
 //    }
-    public static HazelcastInstance getHazelcastServerInstance(){
-        Config cfg = new Config();
-        cfg.getGroupConfig().setName(GennySettings.username);
-        cfg.getGroupConfig().setPassword(GennySettings.username);
+    //public static HazelcastInstance getHazelcastServerInstance(){
+        //Config cfg = new Config();
+        //cfg.getGroupConfig().setName(GennySettings.username);
+        //cfg.getGroupConfig().setPassword(GennySettings.username);
 
-        return Hazelcast.newHazelcastInstance(cfg);
-    }
-
+        //return Hazelcast.newHazelcastInstance(cfg);
+    //}
+	  private  RemoteCacheManager cacheManager ;
     @PostConstruct
     public void init() {
-
-        if(GennySettings.isCacheServer){
-        	log.info("Is A Cache Server");
-            instance = getHazelcastServerInstance();
-        }else{
-        	log.error("This service is configured to run only as a Cache Server");
-//            instance = getHazelcastClientInstance();
-//
-        }
+	      ConfigurationBuilder builder = new ConfigurationBuilder();
+	      builder.addServer()
+	               .host(GennySettings.cacheServerName)
+	               .port(ConfigurationProperties.DEFAULT_HOTROD_PORT)
+	             .security().authentication()
+	               //Add user credentials.
+	               .username(System.getenv("INFINISPAN_USERNAME"))
+	               .password(System.getenv("INFINISPAN_PASSWORD"))
+	               .realm("default")
+	               .saslMechanism("DIGEST-MD5");
+        cacheManager = new RemoteCacheManager(builder.build());
+        //if(GennySettings.isCacheServer){
+          //log.info("Is A Cache Server");
+            //instance = getHazelcastServerInstance();
+        //}else{
+          //log.error("This service is configured to run only as a Cache Server");
+////            instance = getHazelcastClientInstance();
+////
+        //}
 
  //       mapBaseEntitys = instance.getMap(GennySettings.mainrealm); // To fix
     }
