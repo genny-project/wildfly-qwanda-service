@@ -21,8 +21,8 @@
 		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
 		<antrun-plugin-version>1.7</antrun-plugin-version>
 		<vertx.version>3.8.3</vertx.version>
-		<source.version>1.8</source.version>
-		<target.version>1.8</target.version>
+		<source.version>11</source.version>
+		<target.version>11</target.version>
 	</properties>
 
 	<dependencyManagement>
