@@ -345,6 +345,7 @@ public class StartupService {
 
 	@PostConstruct
 	@Transactional
+	@TransactionTimeout(value = 80000, unit = TimeUnit.SECONDS)
 	public void inits() {
 		long startTime = System.nanoTime();
 

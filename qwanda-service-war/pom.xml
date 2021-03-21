@@ -12,7 +12,7 @@
     <parent>
         <groupId>life.genny</groupId>
         <artifactId>wildfly-qwanda-service</artifactId>
-        <version>7.23.0</version>
+        <version>7.24.0</version>
     </parent>
 
     <licenses>
@@ -34,8 +34,8 @@
         <genny-verticle.version>${revision}</genny-verticle.version>
 
 
-        <version.org.wildfly>21.0.0.Final</version.org.wildfly>
-        <version.wildfly-dist>21.0.0.Final</version.wildfly-dist>
+        <version.org.wildfly>22.0.0.Final</version.org.wildfly>
+        <version.wildfly-dist>22.0.0.Final</version.wildfly-dist>
  
         <version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
         <compiler-plugin-version>3.1</compiler-plugin-version>
@@ -43,8 +43,8 @@
         <version.maven-source-plugin>3.1.0</version.maven-source-plugin>
 
 
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
         <version.postgresql>9.4.1207</version.postgresql>
         <version.mysql-connector-java>8.0.21</version.mysql-connector-java>
