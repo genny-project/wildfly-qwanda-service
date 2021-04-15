@@ -16,4 +16,4 @@ EXPOSE 8080
 
 ENTRYPOINT [ "/opt/jboss/docker-entrypoint2.sh" ]
 #ADD realm /opt/realm
-ADD qwanda-service-ear/target/qwanda-service-ear.ear $JBOSS_HOME/standalone/deployments/qwanda-service-ear.ear
+ADD qwanda-service-war/target/qwanda-service-war.war $JBOSS_HOME/standalone/deployments/qwanda-service-war.war

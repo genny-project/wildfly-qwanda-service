@@ -25,10 +25,10 @@
 
     <properties>
         <ear.name>z-ear.ear</ear.name>
-        <rar.name>vertx-jca-adapter</rar.name>
-        <rar.version>3.5.1</rar.version>
-        <rar.file.name>${rar.name}-${rar.version}.rar</rar.file.name>
-        <vertx.version>3.9.3</vertx.version>
+        <!--<rar.name>vertx-jca-adapter</rar.name>-->
+        <!--<rar.version>3.5.1</rar.version>-->
+        <!--<rar.file.name>${rar.name}-${rar.version}.rar</rar.file.name>-->
+        <!--<vertx.version>3.9.3</vertx.version>-->
 
         <qwanda-services.version>${revision}</qwanda-services.version>
         <genny-verticle.version>${revision}</genny-verticle.version>
@@ -119,11 +119,17 @@
         </repository-->
     </repositories>
     <dependencies>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>io.vertx</groupId>-->
+            <!--<artifactId>vertx-core</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
+			<dependency>
+				<groupId>io.vertx</groupId>
+				<artifactId>vertx-core</artifactId>
+				<version>3.9.3</version>
+				<!--<scope>provided</scope>-->
+			</dependency>
         <dependency>
             <groupId>org.apache.xmlbeans</groupId>
             <artifactId>xmlbeans</artifactId>
@@ -159,26 +165,26 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-hazelcast</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-jca-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>io.vertx</groupId>-->
+            <!--<artifactId>vertx-hazelcast</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>io.vertx</groupId>-->
+            <!--<artifactId>vertx-jca-api</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.jboss.ejb3</groupId>
             <artifactId>jboss-ejb3-ext-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-jca-adapter</artifactId>
-            <version>${vertx.version}</version>
-            <type>rar</type>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>io.vertx</groupId>-->
+            <!--<artifactId>vertx-jca-adapter</artifactId>-->
+            <!--<version>${vertx.version}</version>-->
+            <!--<type>rar</type>-->
+        <!--</dependency>-->
 
 
         <!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-ejb-client-bom -->
@@ -524,6 +530,32 @@
             </exclusions>
 
         </dependency>
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>smallrye-reactive-messaging-provider</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>smallrye-reactive-messaging-kafka</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>mutiny-reactive-streams-operators</artifactId>
+            <version>0.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.config</groupId>
+            <artifactId>smallrye-config</artifactId>
+            <version>1.10.0</version>
+        </dependency> 
+        <dependency>
+            <groupId>org.jboss.weld.se</groupId>
+            <artifactId>weld-se-core</artifactId>
+            <version>3.1.3.Final</version>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>

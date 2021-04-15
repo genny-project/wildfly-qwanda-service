@@ -12,10 +12,14 @@ import org.apache.logging.log4j.Logger;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 import life.genny.eventbus.EventBusInterface;
+import javax.inject.Inject;
+
 
 @ApplicationScoped
 public class EventBusBean implements EventBusInterface {
 
+	@Inject 
+	Producer producer;
 	/**
 	 * Stores logger object.
 	 */
@@ -23,77 +27,61 @@ public class EventBusBean implements EventBusInterface {
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
   
 
-	public void write(final String channel, final Object msg) throws NamingException 
-	{
+	public void write(final String channel, final Object msg)
+	{ 
 		String json = msg.toString();
 		JsonObject event = new JsonObject(json);
-		
-		   javax.naming.InitialContext ctx = null;
-		    io.vertx.resourceadapter.VertxConnection conn = null;
-		    try {
-		      ctx = new javax.naming.InitialContext();
-		      io.vertx.resourceadapter.VertxConnectionFactory connFactory =
-		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
-		              .lookup("java:/eis/VertxConnectionFactory");
-		      conn = connFactory.getVertxConnection();
-		    //  log.info("Publishing Vertx Bus Message on channel "+channel+":");
 
-		      conn.vertxEventBus().publish(channel, event);
-		    //  log.info("Published Vertx Bus Message on channel "+channel);
-		    } catch (Exception e) {
-		      e.printStackTrace();
-		    } finally {
-		      if (ctx != null) {
-		        ctx.close();
-		      }
-		      if (conn != null) {
-		    	  try {
-		        conn.close();
-		    	  } catch (ResourceException e) {
-		    		  e.printStackTrace();
-		    	  }
-		      }
-		    }
+		if(channel.equals("events"))
+		{
+			producer.getToEvents().send(event.toString());;
+		}
+		else if(channel.equals("data"))
+		{
+			producer.getToData().send(event.toString());;
+		}
+		else if(channel.equals("webdata"))
+		{
+			producer.getToWebData().send(event.toString());;
+		}
+		else if(channel.equals("webcmds"))
+		{
+			producer.getToWebCmds().send(event.toString());;
+		}
+		else if(channel.equals("cmds"))
+		{
+			producer.getToCmds().send(event.toString());
+		}
+		else if(channel.equals("social"))
+		{
+			producer.getToSocial().send(event.toString());
+		}
+		else if(channel.equals("signals"))
+		{
+			producer.getToSignals().send(event.toString());
+		}
+		else if(channel.equals("statefulmessages"))
+		{
+			producer.getToStatefulMessages().send(event.toString());
+		}
+		else if(channel.equals("health"))
+		{
+			producer.getToHealth().send(event.toString());
+		}
+		if(channel.equals("messages"))
+		{
+			producer.getToMessages().send(event.toString());;
+		}
+		if(channel.equals("services"))
+		{
+			producer.getToServices().send(event.toString());;
+		}
 
 	}
-  
 
-	public void send(final String channel, final Object msg) throws NamingException 
+	public void send(final String channel, final Object msg) 
 	{
-		//String msgStr = JsonUtils.toJson(msg);
-	   //   JsonObject event = new JsonObject(msgStr);
-		String json = msg.toString();
-		JsonObject event = new JsonObject(json);  // TODO, change this to use an original JsonObject
-	      
-
-		   javax.naming.InitialContext ctx = null;
-		    io.vertx.resourceadapter.VertxConnection conn = null;
-		    try {
-		      ctx = new javax.naming.InitialContext();
-		      io.vertx.resourceadapter.VertxConnectionFactory connFactory =
-		          (io.vertx.resourceadapter.VertxConnectionFactory) ctx
-		              .lookup("java:/eis/VertxConnectionFactory");
-		     // log.info("Sending Vertx Bus Message on channel "+channel+":");
-		      DeliveryOptions options = new DeliveryOptions();
-		      conn = connFactory.getVertxConnection();
-
-		      conn.vertxEventBus().send(channel, event,options);
-		     // log.info("Sent Vertx Bus Message on channel "+channel);
-		    } catch (Exception e) {
-		      e.printStackTrace();
-		    } finally {
-		      if (ctx != null) {
-		        ctx.close();
-		      }
-		      if (conn != null) {
-		    	  try {
-		        conn.close();
-		    	  } catch (ResourceException e) {
-		    		  e.printStackTrace();
-		    	  }
-		      }
-		    }
-
+		write(channel,msg);
 	}
  
 
