@@ -11,7 +11,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 
-import com.hazelcast.core.HazelcastInstance;
+//import com.hazelcast.core.HazelcastInstance;
 
 import org.apache.logging.log4j.Logger;
 import org.infinispan.client.hotrod.DefaultTemplate;
@@ -32,7 +32,7 @@ public class Hazel {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-    HazelcastInstance instance;
+    //HazelcastInstance instance;
 
 //    private IMap mapBaseEntitys;
 

@@ -9,13 +9,11 @@
 	<name>wildfly-qwanda-service</name>
 
 	<modules>
-		<module>qwanda-service-ear</module>
 		<module>qwanda-service-war</module>
 	</modules>
 
 	<properties>
         <revision>${project.version}</revision>
-		<ear-plugin-version>2.9</ear-plugin-version>
 		<ejb-plugin-version>2.3</ejb-plugin-version>
 		<ejb-spec-version>3.0</ejb-spec-version>
 		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
@@ -36,21 +34,21 @@
 			<dependency>
 				<groupId>io.vertx</groupId>
 				<artifactId>vertx-core</artifactId>
-				<version>${vertx.version}</version>
-				<scope>provided</scope>
+				<version>3.9.3</version>
+				<!--<scope>provided</scope>-->
 			</dependency>
-			<dependency>
-				<groupId>io.vertx</groupId>
-				<artifactId>vertx-hazelcast</artifactId>
-				<version>${vertx.version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.vertx</groupId>
-				<artifactId>vertx-jca-api</artifactId>
-				<version>${vertx.version}</version>
-				<scope>provided</scope>
-			</dependency>
+			<!--<dependency>-->
+				<!--<groupId>io.vertx</groupId>-->
+				<!--<artifactId>vertx-hazelcast</artifactId>-->
+				<!--<version>${vertx.version}</version>-->
+				<!--<scope>provided</scope>-->
+			<!--</dependency>-->
+			<!--<dependency>-->
+				<!--<groupId>io.vertx</groupId>-->
+				<!--<artifactId>vertx-jca-api</artifactId>-->
+				<!--<version>${vertx.version}</version>-->
+				<!--<scope>provided</scope>-->
+			<!--</dependency>-->
 			<dependency>
 				<groupId>org.jboss.spec</groupId>
 				<artifactId>jboss-javaee-6.0</artifactId>
@@ -98,21 +96,21 @@
 						<packagingExcludes>WEB-INF/lib/vertx-jca-${vert.version}.jar</packagingExcludes>
 					</configuration>
 				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-ejb-plugin</artifactId>
-					<version>${ejb-plugin-version}</version>
-					<configuration>
-						<ejbVersion>${ejb-spec-version}</ejbVersion>
-						<archive>
-							<manifestEntries>
-								<Dependency>deployment.vertx-jca-adapter-${vertx.version}.rar</Dependency>
-							</manifestEntries>
-							<manifest>
-							</manifest>
-						</archive>
-					</configuration>
-				</plugin>
+				<!--<plugin>-->
+					<!--<groupId>org.apache.maven.plugins</groupId>-->
+					<!--<artifactId>maven-ejb-plugin</artifactId>-->
+					<!--<version>${ejb-plugin-version}</version>-->
+					<!--<configuration>-->
+						<!--<ejbVersion>${ejb-spec-version}</ejbVersion>-->
+						<!--<archive>-->
+							<!--<manifestEntries>-->
+								<!--<Dependency>deployment.vertx-jca-adapter-${vertx.version}.rar</Dependency>-->
+							<!--</manifestEntries>-->
+							<!--<manifest>-->
+							<!--</manifest>-->
+						<!--</archive>-->
+					<!--</configuration>-->
+				<!--</plugin>-->
 				<plugin>
 					<groupId>org.wildfly.plugins</groupId>
 					<artifactId>wildfly-maven-plugin</artifactId>
