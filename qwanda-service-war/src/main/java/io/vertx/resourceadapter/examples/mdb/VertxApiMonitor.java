@@ -41,7 +41,7 @@ package io.vertx.resourceadapter.examples.mdb;
 //@MessageDriven(name = "VertxApiMonitor", messageListenerInterface = VertxListener.class, activationConfig = { @ActivationConfigProperty(propertyName = "address", propertyValue = "api"), })
 
 //public class VertxApiMonitor implements VertxListener {
-public class VertxApiMonitor {
+public class VertxApiMonitor  {
 	
 
 //@Inject
