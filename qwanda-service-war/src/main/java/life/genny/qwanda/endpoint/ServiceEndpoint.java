@@ -302,7 +302,7 @@ public class ServiceEndpoint {
 	public Response cacheRead(@PathParam("key") final String key) {
 		String results = null;
 		log.info("Cache Fetch for key=" + key);
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("superadmin") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Reading from cache : key = [" + key + "]");
 			log.info("realm=[" + securityService.getRealm() + "]");
 			// log.info("token=[" + service.getToken() + "]");
@@ -320,7 +320,7 @@ public class ServiceEndpoint {
 	public Response cacheWrite(@PathParam("key") final String key, final String data) {
 		String results = null;
 		log.info("Cache Write for key=" + key);
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Writing into cache : key = [" + key + "] for realm " + securityService.getRealm());
 			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, service.getToken());
 		} else {
@@ -337,7 +337,7 @@ public class ServiceEndpoint {
 	public Response cacheClear() {
 
 		log.info("Cache Clear");
-		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("superadmin") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			service.clearCache();
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
