@@ -1115,13 +1115,15 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response executeSQL(@PathParam("sql") final String sql) {
 
-		
+		log.info("Roles "+(securityService.inRole("service")?"SERVICE":"NOT SERVICE"));
 		if (securityService.inRole("service") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
-			Long result = 0L;
-			String sql2 = URLDecoder.decode(sql,"UTF-8");
 			String realm = securityService.getRealm();
 			try {
+				Long result = 0L;
+				String sql2 = URLDecoder.decode(sql,"UTF-8");
+				
+
 				log.info("Execute " + sql2);
 				Query q = em.createNativeQuery(
 						sql2);
@@ -1133,6 +1135,7 @@ public class ServiceEndpoint {
 			}
 	
 		} else {
+			log.warn("Disallowed role");
 			return Response.status(401).build();
 		}
 	}
