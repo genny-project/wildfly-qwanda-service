@@ -337,7 +337,7 @@ public class ServiceEndpoint {
 	public Response cacheClear() {
 
 		log.info("Cache Clear");
-		if (securityService.inRole("superadmin") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			service.clearCache();
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
@@ -1116,10 +1116,10 @@ public class ServiceEndpoint {
 	public Response executeSQL(@PathParam("sql") final String sql) {
 
 		
-		if (securityService.inRole("superadmin")
+		if (securityService.inRole("service") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
 			Long result = 0L;
-			String sql2 = URLDecoder.decode(sql);
+			String sql2 = URLDecoder.decode(sql,"UTF-8");
 			String realm = securityService.getRealm();
 			try {
 				log.info("Execute " + sql2);
