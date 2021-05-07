@@ -312,6 +312,25 @@ public class ServiceEndpoint {
 		}
 		return Response.status(200).entity(results).build();
 	}
+	
+	@GET
+	@Path("/cache/read/{realm}/{key}")
+	@ApiOperation(value = "cache", notes = "read cache data located at Key for realm")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response cacheRealmRead(@PathParam("realm") final String realm,@PathParam("key") final String key) {
+		String results = null;
+		log.info("Cache Fetch for key=" + key+" at realm "+realm);
+		if (securityService.inRole("service") || securityService.inRole("test") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			log.info("Reading from cache : key = [" + key + "]");
+			log.info("realm=[" + realm + "]");
+			// log.info("token=[" + service.getToken() + "]");
+			results = VertxUtils.readCachedJson(realm,key,service.getToken()).toString();
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
+		}
+		return Response.status(200).entity(results).build();
+	}
 
 	@POST
 	@Path("/cache/write/{key}")
@@ -323,6 +342,22 @@ public class ServiceEndpoint {
 		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Writing into cache : key = [" + key + "] for realm " + securityService.getRealm());
 			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, service.getToken());
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
+		}
+		return Response.status(200).build();
+	}
+	
+	@POST
+	@Path("/cache/write/{realm}/{key}")
+	@ApiOperation(value = "cache", notes = "write cache data located at Key for realm")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response cacheRealmWrite(@PathParam("realm") final String realm,@PathParam("key") final String key, final String data) {
+		String results = null;
+		log.info("Cache Write for key=" + key+" at realm "+realm);
+		if (securityService.inRole("test") ||securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			log.info("Writing into cache : key = [" + key + "] for realm " + realm);
+			VertxUtils.writeCachedJson(realm, key, data, service.getToken());
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
