@@ -587,6 +587,35 @@ public class QwandaEndpoint {
 		}
 	}
 
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/search25")
+	@Produces("application/json")
+	@Transactional
+	public Response findBySearch25(final SearchEntity searchBE) {
+
+		log.info("Search " + searchBE.getCode());
+
+		// Force any user that is not admin to have to use their own code
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+
+
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), searchBE);
+			return Response.status(200).entity(result).build();
+		} else {
+			return Response.status(401).build();
+		}
+
+	}
+
 	@GET
 	@Consumes("application/json")
 	@Path("/baseentitys/count24/{hql}")
