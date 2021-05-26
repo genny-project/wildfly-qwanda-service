@@ -56,14 +56,15 @@
 		<properties>
 			<property name="shared-cache-mode" value="ALL" />
 			<property name="hibernate.dialect"
-				value="org.hibernate.dialect.MySQL8Dialect" />
+				value="life.genny.qwanda.util.MySQL8DialectGenny" />
 			<property name="hibernate.connection.driver_class" value="com.mysql.cj.jdbc.Driver" />
 				
 			<property name="hibernate.connection.autocommit"
 				value="true" />
 			<property name="hibernate.max_fetch_depth" value="3" />
 			<property name="hibernate.hbm2ddl.auto" value="update" />
-			<property name="hibernate.show_sql" value="false" />
+			<property name="hibernate.show_sql" value="true" />
+			<property name="hibernate.jdbc.batch_size" value="20" />
 			<property name="hibernate.connection.release_mode"
 				value="on_close" />
 
