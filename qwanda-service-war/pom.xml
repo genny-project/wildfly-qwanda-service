@@ -34,8 +34,8 @@
         <genny-verticle.version>${revision}</genny-verticle.version>
 
 
-        <version.org.wildfly>22.0.1.Final</version.org.wildfly>
-        <version.wildfly-dist>22.0.1.Final</version.wildfly-dist>
+        <version.org.wildfly>23.0.2.Final</version.org.wildfly>
+        <version.wildfly-dist>23.0.2.Final</version.wildfly-dist>
  
         <version.wildfly.maven.plugin>1.2.1.Final</version.wildfly.maven.plugin>
         <compiler-plugin-version>3.1</compiler-plugin-version>
