@@ -616,7 +616,7 @@ public class QwandaEndpoint {
 
 	}
 
-	@GET
+	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys/count25")
 	@Produces("application/json")
