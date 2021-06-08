@@ -608,7 +608,7 @@ public class QwandaEndpoint {
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
 
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), searchBE, false);
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false);
 			return Response.status(200).entity(result).build();
 		} else {
 			return Response.status(401).build();
@@ -637,7 +637,7 @@ public class QwandaEndpoint {
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
 
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), searchBE, true);
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, true);
 			Long count = result.getTotal();
 			return Response.status(200).entity(count).build();
 		} else {
