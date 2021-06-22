@@ -21,8 +21,6 @@ public class AnswerListener {
 	@Incoming("answer")
 	@Merge
 	public CompletionStage<Void> fromAnswers(Message<String>  message) {
-		System.out.println("Here receive from answer channel");
-
 		JsonObject json = new JsonObject(message.getPayload());
 		String token = json.getString("token");
 		json.remove("token");
