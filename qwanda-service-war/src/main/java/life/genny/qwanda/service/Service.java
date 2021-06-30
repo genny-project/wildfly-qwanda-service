@@ -22,7 +22,7 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.message.*;
 import life.genny.qwanda.validation.Validation;
-import life.genny.services.BeanNotNullFields;
+import life.genny.qwandautils.BeanNotNullFields;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.attribute.Attribute;
