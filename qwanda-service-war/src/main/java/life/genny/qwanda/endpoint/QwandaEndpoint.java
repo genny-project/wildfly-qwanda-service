@@ -104,7 +104,7 @@ public class QwandaEndpoint {
 	/**
 	 * Stores logger object.
 	 */
-	protected static final Logger log = org.apache.logging.log4j.LogManager
+	protected static final java.util.logging.Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	Boolean searchDevMode = "TRUE".equals(System.getenv("SEARCHDEV"));
@@ -604,10 +604,11 @@ public class QwandaEndpoint {
 		} else {
 			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
 		}
-		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+		log.info("findBySearch25 - about to check roles");
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")|| securityService.inRole("true")
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
-
+			log.info("findBySearch25 - allowed to search25");
 			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false);
 			return Response.status(200).entity(result).build();
 		} else {
