@@ -13,10 +13,17 @@ import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Answer;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
+import org.apache.logging.log4j.Logger;
+import java.lang.invoke.MethodHandles;
 
 @ApplicationScoped
 public class AnswerListener {
 
+	/**
+	 * Stores logger object.
+	 */
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	@Incoming("answer")
 	@Merge
@@ -27,6 +34,7 @@ public class AnswerListener {
 		Answer answer = JsonUtils.fromJson(json.toString(),Answer.class);
 
 		try {
+			log.info("Kafka Answer Listener "+answer.getTargetCode());
 			QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
 					JsonUtils.toJson(answer), token, null);
 		} catch (IOException e) {

@@ -281,7 +281,7 @@ public class QwandaEndpoint {
 	public Response createBulk2(final QDataAnswerMessage entitys) {
 		log.info(entitys.getItems().length+" Bulk Answers2 ");
 		try {
-			insertAnswers(entitys.getItems());
+			service.insert(entitys.getItems());
 				return Response.status(200).build();
 			} catch (javax.persistence.NoResultException e) {
 				return Response.status(404).build();
@@ -294,7 +294,7 @@ public class QwandaEndpoint {
 	}
 
 //	@javax.ejb.Asynchronous
-	void insertAnswers(final Answer[] answers)
+	void ns(final Answer[] answers)
 	{
 		 try {
  			service.insert(answers);
