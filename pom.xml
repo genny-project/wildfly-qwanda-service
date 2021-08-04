@@ -18,7 +18,7 @@
 		<ejb-spec-version>3.0</ejb-spec-version>
 		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
 		<antrun-plugin-version>1.7</antrun-plugin-version>
-		<vertx.version>3.9.8</vertx.version>
+		<vertx.version>3.9.3</vertx.version>
 		<source.version>11</source.version>
 		<target.version>11</target.version>
 	</properties>
@@ -34,7 +34,7 @@
 			<dependency>
 				<groupId>io.vertx</groupId>
 				<artifactId>vertx-core</artifactId>
-				<version>3.9.8</version>
+				<version>3.9.3</version>
 				<!--<scope>provided</scope>-->
 			</dependency>
 			<!--<dependency>-->
