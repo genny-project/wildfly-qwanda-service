@@ -302,7 +302,7 @@ public class ServiceEndpoint {
 					.getResultList();
 			service.writeQuestionsToDDT(results);
 			log.info("Synced " + results.size() + " Questions to cache.");
-			return Response.status(200).entity("Synced" + results.size() + " Questions to cache.").build();
+			return Response.status(200).entity("Synced " + results.size() + " Questions to cache.").build();
 		} else {
 			return Response.status(401).entity("You need to be a dev.").build();
 		}
