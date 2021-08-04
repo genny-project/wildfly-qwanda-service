@@ -26,6 +26,8 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
+
+import life.genny.qwanda.*;
 import org.jboss.ejb3.annotation.TransactionTimeout;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.Consumes;
@@ -81,12 +83,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import life.genny.qwanda.Answer;
-import life.genny.qwanda.GPSLocation;
-import life.genny.qwanda.GPSRoute;
-import life.genny.qwanda.GPSRouteStatus;
-import life.genny.qwanda.Layout;
-import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
@@ -115,8 +111,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-
-import life.genny.qwanda.AnswerLink;
 
 /**
  * JAX-RS endpoint
@@ -292,6 +286,26 @@ public class ServiceEndpoint {
 		}
 		log.info(results.size() + " BaseEntitys written to cache.");
 		return Response.status(200).entity(results.size() + " BaseEntitys written to cache.").build();
+	}
+
+	@GET
+	@Path("/synchronize/cache/questions")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	@TransactionTimeout(value = 1500, unit = TimeUnit.SECONDS)
+	public Response synchronizeCacheQuestion() {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			String realm = service.getCurrentRealm();
+			log.info("Syncing Questions to cache for realm:" + realm);
+			List<Question> results = em
+					.createQuery("SELECT a FROM Question a where a.realm=:realmStr").setParameter("realmStr", realm)
+					.getResultList();
+			service.writeQuestionsToDDT(results);
+			log.info("Synced " + results.size() + " Questions to cache.");
+			return Response.status(200).entity("Synced" + results.size() + " Questions to cache.").build();
+		} else {
+			return Response.status(401).entity("You need to be a dev.").build();
+		}
 	}
 
 	@GET
