@@ -335,7 +335,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
         msg.setToken(securityService.getToken());
         String json = JsonUtils.toJson(msg);
         writeToDDT("attributes", json);
-
+        log.info("Synced " + atArr.length + " attributes for realm:" + getRealm());
     }
 
     public String getServiceToken(String realm) {
