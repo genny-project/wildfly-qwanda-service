@@ -25,6 +25,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
 import life.genny.qwanda.*;
@@ -272,20 +276,16 @@ public class ServiceEndpoint {
 	@Transactional
 	@TransactionTimeout(value = 1500, unit = TimeUnit.SECONDS)
 	public Response synchronizeCacheBEs() {
-
-		List<BaseEntity> results = new ArrayList<BaseEntity>();
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info(" Writing BaseEntitys to cache.");
-			results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ")
-					.getResultList();
-			for (BaseEntity be : results) {
-				service.writeToDDT(be);
-			}
+			List<BaseEntity> results = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea group by be.id").getResultList();
+			log.info("Get " + results.size() + " baseentitys");
+			service.writeToDDT(results);
+			log.info(results.size() + " BaseEntitys written to cache.");
+			return Response.status(200).entity(results.size() + " BaseEntitys written to cache.").build();
 		} else {
 			return Response.status(401).entity("You need to be a dev.").build();
 		}
-		log.info(results.size() + " BaseEntitys written to cache.");
-		return Response.status(200).entity(results.size() + " BaseEntitys written to cache.").build();
 	}
 
 	@GET
