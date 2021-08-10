@@ -353,22 +353,6 @@ public class StartupService {
 		VertxUtils.init(eventBus, cacheInterface);
 		securityService.setImportMode(true); // ugly way of getting past security
 		
-		// Check if bootxport and cache startups cn be skipped
-		Boolean noskip = true;
-		JsonObject skipJson = VertxUtils.readCachedJson("JENNY", "SKIPBOOTXPORT");
-		if (skipJson.containsKey("status")) {
-			if ("ok".equalsIgnoreCase(skipJson.getString("status"))) {
-				String val = skipJson.getString("value");
-				if ("TRUE".equalsIgnoreCase(val)) {
-					noskip = false;
-				}
-			}
-		}
-		log.info("SKIPBOOTXPORT JENNY JSON = "+skipJson.toString());
-
-		
-		
-    
         rx =  getRealm();
         List<String> realms = rx.getDataUnits().stream()
             .filter(r-> !r.getDisable())
@@ -381,28 +365,6 @@ public class StartupService {
 		rx.getDataUnits().forEach(this::saveProjectBes);
 		rx.getDataUnits().forEach(this::saveServiceBes);
 		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
-
-		if ((!GennySettings.skipGoogleDocInStartup)&&(noskip)) {
-			log.info("Starting Transaction for loading *********************");
-
-			rx.getDataUnits().forEach(this::persistEnabledProject);
-			log.info("*********************** Finished Google Doc Import ***********************************");
-		} else {
-			log.info("Skipping Google doc loading SKIPBOOTXPORT="+(noskip?"NO SKIP":"SKIP"));
-		}
-
-		// Push BEs to cache if noskipping
-		if (GennySettings.loadDdtInStartup /*&& noskip*/) {		    
-            log.info("Pushing to DTT  ");
-		    rx.getDataUnits().forEach(this::pushToDTT);
-		} else {
-			if (!noskip) {
-				log.info("Skipping the pushing of baseentities into cache due to SKIPBOOTXPORT");
-			}
-		}
-		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
-		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
-		String branch = "master";
 		rx.getDataUnits().forEach(this::setEnabledRealm);
 		securityService.setImportMode(false);
 

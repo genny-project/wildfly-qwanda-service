@@ -80,45 +80,6 @@
         <httpclient.version>4.5.13</httpclient.version>
     </properties>
 
-    <repositories>
-
-        <repository>
-            <id>Maven repository</id>
-            <url>https://mvnrepository.com/artifact/org.wildfly.arquillian/wildfly-arquillian-container-managed/</url>
-        </repository>
-        <repository>
-            <id>Apache repository</id>
-            <url>https://mvnrepository.com/artifact/org.apache.commons/commons-lang3</url>
-        </repository>
-        <repository>
-            <id>Maven repository2</id>
-            <url>https://mvnrepository.com/artifact/org.wildfly/wildfly-dist/</url>
-        </repository>
-        <repository>
-            <id>Maven repository3</id>
-            <url>https://mvnrepository.com/artifact/org.jboss.logging/jboss-logging/</url>
-        </repository>
-        <repository>
-            <id>Maven repository4</id>
-            <url>https://mvnrepository.com/artifact/org.jboss.remoting/jboss-remoting/</url>
-        </repository>
-        <repository>
-            <id>Maven repository5</id>
-            <url>https://mvnrepository.com/artifact/org.wildfly.common/wildfly-common/</url>
-        </repository>
-        <repository>
-            <id>Maven repository6</id>
-            <url>https://mvnrepository.com/artifact/org.jboss.xnio/xnio-api/</url>
-        </repository>
-        <repository>
-            <id>JBoss repository</id>
-            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-        </repository>
-        <!--repository>
-            <id>life.genny</id>
-            <url>https://nexus.outcome-hub.com/repository/life.genny/</url>
-        </repository-->
-    </repositories>
     <dependencies>
         <!--<dependency>-->
             <!--<groupId>io.vertx</groupId>-->
