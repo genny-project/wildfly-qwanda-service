@@ -1616,6 +1616,7 @@ public class QwandaEndpoint {
 		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
 		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
 		be.setName(baseEntity.getName());
+		be.setStatus(baseEntity.getStatus());
 		be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
 		Long result = service.update(be);
 
