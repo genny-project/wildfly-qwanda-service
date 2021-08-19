@@ -608,7 +608,39 @@ public class QwandaEndpoint {
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
 
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false);
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false, false);
+			return Response.status(200).entity(result).build();
+		} else {
+			return Response.status(401).build();
+		}
+
+	}
+
+	@POST
+	@Consumes("application/json")
+	@Path("/baseentitys/fetch25")
+	@Produces("application/json")
+	@Transactional
+	public Response findByFetch25(final SearchEntity searchBE) {
+		/*
+		 * Basically an endpoint that fetches entities for you instead of returning only a codes
+		 */
+
+		log.info("Fetch " + searchBE.getCode());
+
+		// Force any user that is not admin to have to use their own code
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		Boolean allowed = false;
+		if (user == null) {
+			return Response.status(401).build();
+		} else {
+			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+		}
+		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+
+
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false, true);
 			return Response.status(200).entity(result).build();
 		} else {
 			return Response.status(401).build();
@@ -637,7 +669,7 @@ public class QwandaEndpoint {
 				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
 
 
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, true);
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, true, false);
 			Long count = result.getTotal();
 			return Response.status(200).entity(count).build();
 		} else {
