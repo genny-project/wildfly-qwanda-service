@@ -641,7 +641,10 @@ public class QwandaEndpoint {
 
 
 			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false, true);
-			return Response.status(200).entity(result).build();
+			// QDataBaseEntityMessage msg = new QDataBaseEntityMessage(result.getEntities());
+			// msg.setTotal(result.getTotal());
+			String json = JsonUtils.toJson(result);
+			return Response.status(200).entity(json).build();
 		} else {
 			return Response.status(401).build();
 		}
