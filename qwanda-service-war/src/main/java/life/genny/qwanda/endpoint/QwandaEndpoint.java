@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -86,7 +87,6 @@ import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.utils.VertxUtils;
 
-
 /**
  * JAX-RS endpoint
  *
@@ -114,8 +114,6 @@ public class QwandaEndpoint {
 
 	@Inject
 	private SecurityService securityService;
-
-
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -152,24 +150,26 @@ public class QwandaEndpoint {
 	@Path("/syncsheets")
 	@Transactional
 	public Response syncDeletedRowFromSheets(final StateModel entity) {
-	    StateManagement.setStateModel(entity);
-        List<RealmUnit> deletedRowsFromRealmUnits = StateManagement.getDeletedRowsFromRealmUnits();
-	    deletedRowsFromRealmUnits.stream().forEach(startup::deleteFromSheets);
+		StateManagement.setStateModel(entity);
+		List<RealmUnit> deletedRowsFromRealmUnits = StateManagement.getDeletedRowsFromRealmUnits();
+		deletedRowsFromRealmUnits.stream().forEach(startup::deleteFromSheets);
 		return Response.status(200).entity(entity).build();
 	}
 
 	@Inject
 	private StartupService startup;
+
 	@POST
 	@Consumes("application/json")
 	@Path("/syncsheets")
 	@Transactional
 	public Response syncSheets(final StateModel entity) {
-	    StateManagement.setStateModel(entity);
-	    List<RealmUnit> updatedRealmUnits = StateManagement.getUpdatedRealmUnits();
-	    updatedRealmUnits.stream().forEach(startup::update);
+		StateManagement.setStateModel(entity);
+		List<RealmUnit> updatedRealmUnits = StateManagement.getUpdatedRealmUnits();
+		updatedRealmUnits.stream().forEach(startup::update);
 		return Response.status(200).entity(entity).build();
 	}
+
 	@POST
 	@Consumes("application/json")
 	@Path("/questions")
@@ -192,7 +192,6 @@ public class QwandaEndpoint {
 				.created(UriBuilder.fromResource(QwandaEndpoint.class).path(String.valueOf(entity.getId())).build())
 				.build();
 	}
-
 
 	// TODO: should be POST
 	@GET
@@ -279,34 +278,29 @@ public class QwandaEndpoint {
 	@Path("/answers/bulk2")
 	@Transactional(dontRollbackOn = { javax.persistence.TransactionRequiredException.class })
 	public Response createBulk2(final QDataAnswerMessage entitys) {
-		log.info(entitys.getItems().length+" Bulk Answers2 ");
+		log.info(entitys.getItems().length + " Bulk Answers2 ");
 		try {
 			insertAnswers(entitys.getItems());
-				return Response.status(200).build();
-			} catch (javax.persistence.NoResultException e) {
-				return Response.status(404).build();
-			}
-			catch (IllegalArgumentException e) {
-				return Response.status(422).entity(e.getMessage()).build();
-			}
-
+			return Response.status(200).build();
+		} catch (javax.persistence.NoResultException e) {
+			return Response.status(404).build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(422).entity(e.getMessage()).build();
+		}
 
 	}
 
 //	@javax.ejb.Asynchronous
-	void insertAnswers(final Answer[] answers)
-	{
-		 try {
- 			service.insert(answers);
- 				//return Response.status(200).build();
- 			} catch (javax.persistence.NoResultException e) {
- 				//return Response.status(404).build();
- 			}
- 			catch (IllegalArgumentException e) {
- 				//return Response.status(422).entity(e.getMessage()).build();
- 			}
+	void insertAnswers(final Answer[] answers) {
+		try {
+			service.insert(answers);
+			// return Response.status(200).build();
+		} catch (javax.persistence.NoResultException e) {
+			// return Response.status(404).build();
+		} catch (IllegalArgumentException e) {
+			// return Response.status(422).entity(e.getMessage()).build();
+		}
 	}
-
 
 	@POST
 	@Consumes("application/json")
@@ -315,17 +309,15 @@ public class QwandaEndpoint {
 	@Transactional(dontRollbackOn = { javax.persistence.TransactionRequiredException.class })
 	public Response createBulk(final QDataAnswerMessage entitys) {
 
-			log.info(entitys.getItems().length+" Bulk Answers ");
-			try {
-				service.insert(entitys.getItems());
-					return Response.status(200).build();
-				} catch (javax.persistence.NoResultException e) {
-					return Response.status(404).build();
-				}
-				catch (IllegalArgumentException e) {
-					return Response.status(422).entity(e.getMessage()).build();
-				}
-
+		log.info(entitys.getItems().length + " Bulk Answers ");
+		try {
+			service.insert(entitys.getItems());
+			return Response.status(200).build();
+		} catch (javax.persistence.NoResultException e) {
+			return Response.status(404).build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(422).entity(e.getMessage()).build();
+		}
 
 	}
 
@@ -336,16 +328,14 @@ public class QwandaEndpoint {
 	public Response create(final Answer entity) {
 		QDataAnswerMessage answerMsg = new QDataAnswerMessage(entity);
 
-
 		try {
 			service.insert(answerMsg.getItems());
-				return Response.status(200).build();
-			} catch (javax.persistence.NoResultException e) {
-				return Response.status(404).build();
-			}
-			catch (IllegalArgumentException e) {
-				return Response.status(422).entity(e.getMessage()).build();
-			}
+			return Response.status(200).build();
+		} catch (javax.persistence.NoResultException e) {
+			return Response.status(404).build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(422).entity(e.getMessage()).build();
+		}
 
 	}
 
@@ -372,55 +362,56 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	@Transactional
 	public Response findBySearchBE(@Context final UriInfo uriInfo) {
-		log.info("securityService.getUserCode() is "+securityService.getUserCode());
-		if (securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode())
-				|| securityService.inRole("dev") || GennySettings.devMode) {
+		log.info("securityService.getUserCode() is " + securityService.getUserCode());
+		if (securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| "PER_SERVICE".equals(securityService.getUserCode()) || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 
-		BaseEntity searchBE = new BaseEntity("SER_");
-		MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
-		qparams.putAll(params);
+			BaseEntity searchBE = new BaseEntity("SER_");
+			MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
+			qparams.putAll(params);
 
-		final String pageStartStr = params.getFirst("pageStart");
-		final String pageSizeStr = params.getFirst("pageSize");
-		if (pageStartStr != null) {
-			Attribute attributeInteger = new AttributeInteger("QRY_PAGE_START", "PageStart");
-			try {
-				searchBE.setValue(attributeInteger, Integer.decode(pageStartStr));
-			} catch (NumberFormatException | BadDataException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			final String pageStartStr = params.getFirst("pageStart");
+			final String pageSizeStr = params.getFirst("pageSize");
+			if (pageStartStr != null) {
+				Attribute attributeInteger = new AttributeInteger("QRY_PAGE_START", "PageStart");
+				try {
+					searchBE.setValue(attributeInteger, Integer.decode(pageStartStr));
+				} catch (NumberFormatException | BadDataException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				qparams.remove("pageStart");
 			}
-			qparams.remove("pageStart");
-		}
-		if (pageSizeStr != null) {
-			Attribute attributeInteger = new AttributeInteger("QRY_PAGE_SIZE", "PageSize");
-			try {
-				searchBE.setValue(attributeInteger, Integer.decode(pageSizeStr));
-			} catch (NumberFormatException | BadDataException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (pageSizeStr != null) {
+				Attribute attributeInteger = new AttributeInteger("QRY_PAGE_SIZE", "PageSize");
+				try {
+					searchBE.setValue(attributeInteger, Integer.decode(pageSizeStr));
+				} catch (NumberFormatException | BadDataException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				qparams.remove("pageSize");
 			}
-			qparams.remove("pageSize");
-		}
-		List<BaseEntity> results = service.findBySearchBE(searchBE);
+			List<BaseEntity> results = service.findBySearchBE(searchBE);
 
-		Long total = -1L;
+			Long total = -1L;
 
-		try {
-			//total = 1L;
-			total = service.findBySearchBECount(searchBE);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			total = -1L;
-		}
+			try {
+				// total = 1L;
+				total = service.findBySearchBECount(searchBE);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				total = -1L;
+			}
 
-		BaseEntity[] beArr = new BaseEntity[results.size()];
-		beArr = results.toArray(beArr);
-		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
-		msg.setTotal(total);
-		String json = JsonUtils.toJson(msg);
-		return Response.status(200).entity(json).build();
+			BaseEntity[] beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, searchBE.getCode(), null);
+			msg.setTotal(total);
+			String json = JsonUtils.toJson(msg);
+			return Response.status(200).entity(json).build();
 		} else {
 			return Response.status(503).build();
 		}
@@ -434,8 +425,8 @@ public class QwandaEndpoint {
 	public Response findBySearchBE3(final String hql) {
 
 		log.info("Search " + hql);
-		if (securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -457,8 +448,8 @@ public class QwandaEndpoint {
 	public Response findBySearchBE4(final String hql) {
 
 		log.info("Search " + hql);
-		if (securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 
 			List<Object> results = service.findBySearchBE3(hql);
 			String json = JsonUtils.toJson(results);
@@ -476,8 +467,8 @@ public class QwandaEndpoint {
 	public Response findBySearchBE2(@PathParam("hql") final String hql) {
 
 		log.info("Search " + hql);
-		if (securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 
 			List<BaseEntity> results = service.findBySearchBE2(hql);
 			BaseEntity[] beArr = new BaseEntity[results.size()];
@@ -497,36 +488,39 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	@Transactional
 	public Response findBySearchEA23(@PathParam("hql") final String hql) {
-		return findBySearchEA22(hql,0,2000);
+		return findBySearchEA22(hql, 0, 2000);
 	}
-	
+
 	@GET
 	@Consumes("application/json")
 	@Path("/baseentitys/search23/{hql}/{pageStart}/{pageSize}")
 	@Produces("application/json")
 	@Transactional
 	public Response findBySearchEA22(@PathParam("hql") final String hql,
-			@PathParam("pageStart") final Integer pageStart,
-			@PathParam("pageSize") final Integer pageSize) {
+			@PathParam("pageStart") final Integer pageStart, @PathParam("pageSize") final Integer pageSize) {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
-		log.info("Search " + hql2 + " pageStart="+pageStart+" , pageSize="+pageSize);
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		log.info("Search " + hql2 + " pageStart=" + pageStart + " , pageSize=" + pageSize);
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE")
+				|| GennySettings.devMode) {
 
-			List<EntityAttribute> results = service.findBySearchEA22(hql2,pageStart,pageSize);
-			Map<String,BaseEntity> beMap = new HashMap<String,BaseEntity>();
+			List<EntityAttribute> results = service.findBySearchEA22(hql2, pageStart, pageSize);
+			Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
 			for (EntityAttribute ea : results) {
 				BaseEntity be = beMap.get(ea.getBaseEntityCode());
 				if (be == null) {
-					BaseEntity originalBe = VertxUtils.readFromDDT(securityService.getRealm(), ea.getBaseEntityCode(), securityService.getToken());
+					BaseEntity originalBe = VertxUtils.readFromDDT(securityService.getRealm(), ea.getBaseEntityCode(),
+							securityService.getToken());
 					be = originalBe;
 					be.setBaseEntityAttributes(new HashSet<EntityAttribute>()); // we only want to send the returned eas
 				}
@@ -547,29 +541,31 @@ public class QwandaEndpoint {
 			return Response.status(401).build();
 		}
 	}
-	
+
 	@GET
 	@Consumes("application/json")
 	@Path("/baseentitys/search24/{hql}/{pageStart}/{pageSize}")
 	@Produces("application/json")
 	@Transactional
 	public Response findBySearchEA24(@PathParam("hql") final String hql,
-			@PathParam("pageStart") final Integer pageStart,
-			@PathParam("pageSize") final Integer pageSize) {
+			@PathParam("pageStart") final Integer pageStart, @PathParam("pageSize") final Integer pageSize) {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
-		log.info("Search " + hql2 + " pageStart="+pageStart+" , pageSize="+pageSize);
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		log.info("Search " + hql2 + " pageStart=" + pageStart + " , pageSize=" + pageSize);
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE")
+				|| GennySettings.devMode) {
 
-			QSearchBeResult result = service.findBySearchEA24(hql2,pageStart,pageSize);
+			QSearchBeResult result = service.findBySearchEA24(hql2, pageStart, pageSize);
 //			String countStr = service.readFromDDT(hql2);
 //			Long count = 1964L;
 //			if (countStr == null) {
@@ -580,7 +576,7 @@ public class QwandaEndpoint {
 //			}
 //			result.setTotal(count);
 //			
-			
+
 			return Response.status(200).entity(result).build();
 		} else {
 			return Response.status(401).build();
@@ -597,18 +593,21 @@ public class QwandaEndpoint {
 		log.info("Search " + searchBE.getCode());
 
 		// Force any user that is not admin to have to use their own code
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE")
+				|| GennySettings.devMode) {
 
-
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false, false);
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(),
+					searchBE, false, false);
 			return Response.status(200).entity(result).build();
 		} else {
 			return Response.status(401).build();
@@ -623,25 +622,30 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findByFetch25(final SearchEntity searchBE) {
 		/*
-		 * Basically an endpoint that fetches entities for you instead of returning only a codes
+		 * Basically an endpoint that fetches entities for you instead of returning only
+		 * a codes
 		 */
 
 		log.info("Fetch " + searchBE.getCode());
 
 		// Force any user that is not admin to have to use their own code
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE")
+				|| GennySettings.devMode) {
 
-
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, false, true);
-			// QDataBaseEntityMessage msg = new QDataBaseEntityMessage(result.getEntities());
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(),
+					searchBE, false, true);
+			// QDataBaseEntityMessage msg = new
+			// QDataBaseEntityMessage(result.getEntities());
 			// msg.setTotal(result.getTotal());
 			String json = JsonUtils.toJson(result);
 			return Response.status(200).entity(json).build();
@@ -661,18 +665,21 @@ public class QwandaEndpoint {
 		log.info("Count " + searchBE.getCode());
 
 		// Force any user that is not admin to have to use their own code
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE")
+				|| GennySettings.devMode) {
 
-
-			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(), searchBE, true, false);
+			QSearchBeResult result = service.findBySearch25(securityService.getToken(), securityService.getRealm(),
+					searchBE, true, false);
 			Long count = result.getTotal();
 			return Response.status(200).entity(count).build();
 		} else {
@@ -688,25 +695,27 @@ public class QwandaEndpoint {
 	public Response findBySearchEA24Count(@PathParam("hql") final String hql) {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			allowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 		if (allowed || securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE") || GennySettings.devMode) {
+				|| securityService.inRole("dev") || securityService.getUserCode().equals("PER_SERVICE")
+				|| GennySettings.devMode) {
 
 			Long count = service.findBySearchEA24Count(hql2);
-			
+
 			return Response.status(200).entity(count).build();
 		} else {
 			return Response.status(401).build();
 		}
 	}
 
-	
 	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys/search")
@@ -714,32 +723,35 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchBE(final BaseEntity searchBE) {
 
-		log.info("Search " + searchBE+" securityService.getUserCode()="+securityService.getUserCode());
+		log.info("Search " + searchBE + " securityService.getUserCode()=" + securityService.getUserCode());
 
-		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(), securityService.getToken());
+		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
+				securityService.getToken());
 		Boolean isAllowed = false;
 		if (user == null) {
 			return Response.status(401).build();
 		} else {
-			isAllowed = user.getValue("PRI_IS ADMIN", false)||user.getValue("PRI_IS SUPERUSER", false)||user.getValue("PRI_IS DEV", false);
+			isAllowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
+					|| user.getValue("PRI_IS DEV", false);
 		}
 
 		// Force any user that is not admin to have to use their own code
-		if (!(true || isAllowed || securityService.inRole("admin") || securityService.inRole("superadmin") || "PER_SERVICE".equals(securityService.getUserCode())
-				|| securityService.inRole("dev")) || searchDevMode ) {  // TODO Remove the true!
+		if (!(true || isAllowed || securityService.inRole("admin") || securityService.inRole("superadmin")
+				|| "PER_SERVICE".equals(securityService.getUserCode()) || securityService.inRole("dev"))
+				|| searchDevMode) { // TODO Remove the true!
 			String stakeHolderCode = null;
-			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+			stakeHolderCode = "PER_" + QwandaUtils
+					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 
 			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
-			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE", "SourceStakeholderCode");
+			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE",
+					"SourceStakeholderCode");
 			try {
 
-				if(searchBE.containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
-					searchBE.addAttribute(sourceStakeHolderAttribute, new Double(1.0),
-							stakeHolderCode);
-				}else {
-					searchBE.addAttribute(stakeHolderAttribute, new Double(1.0),
-							stakeHolderCode);
+				if (searchBE.containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
+					searchBE.addAttribute(sourceStakeHolderAttribute, new Double(1.0), stakeHolderCode);
+				} else {
+					searchBE.addAttribute(stakeHolderAttribute, new Double(1.0), stakeHolderCode);
 				}
 
 			} catch (BadDataException e) {
@@ -750,40 +762,39 @@ public class QwandaEndpoint {
 
 		}
 		Long startTime = System.nanoTime();
-			List<BaseEntity> results = service.findBySearchBE(searchBE);
-			log.info("search from db takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
-			Long total = -1L;
+		List<BaseEntity> results = service.findBySearchBE(searchBE);
+		log.info("search from db takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
+		Long total = -1L;
 
-			try {
-				//total = 1L;
-				//total = service.findBySearchBECount(searchBE);
-				log.info("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
+		try {
+			// total = 1L;
+			// total = service.findBySearchBECount(searchBE);
+			log.info("search count takes us to " + (System.nanoTime() - startTime) / 1e6 + "ms");
 
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				total = -1L;
-			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			total = -1L;
+		}
 
-			BaseEntity[] beArr = null;
-			if (!(results==null||results.isEmpty())) {
-				beArr = new BaseEntity[results.size()];
-				beArr = results.toArray(beArr);
-			} else {
-				beArr = new BaseEntity[0];
-				total = 0L;
-			}
+		BaseEntity[] beArr = null;
+		if (!(results == null || results.isEmpty())) {
+			beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+		} else {
+			beArr = new BaseEntity[0];
+			total = 0L;
+		}
 
-			// Override returned parent code if it is supplied, otherwise use search BE code
-			String parentCode = searchBE.getCode();
-			Optional<EntityAttribute> parentAttribute = searchBE.findEntityAttribute("SCH_SOURCE_CODE");
-			if (parentAttribute.isPresent()) {
-				parentCode = parentAttribute.get().getValueString();
-			}
-			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
-			msg.setTotal(total);
-			String json = JsonUtils.toJson(msg);
-			return Response.status(200).entity(json).build();
-
+		// Override returned parent code if it is supplied, otherwise use search BE code
+		String parentCode = searchBE.getCode();
+		Optional<EntityAttribute> parentAttribute = searchBE.findEntityAttribute("SCH_SOURCE_CODE");
+		if (parentAttribute.isPresent()) {
+			parentCode = parentAttribute.get().getValueString();
+		}
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
+		msg.setTotal(total);
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
 
 	}
 
@@ -796,23 +807,22 @@ public class QwandaEndpoint {
 
 		log.info("Search " + searchBE);
 
-
 		// Force any user that is not admin to have to use their own code
-		if (!(securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) || searchDevMode) {  // TODO Remove the true!
+		if (!(securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("dev"))
+				|| searchDevMode) { // TODO Remove the true!
 			String stakeHolderCode = null;
-			stakeHolderCode = "PER_"+QwandaUtils.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
+			stakeHolderCode = "PER_" + QwandaUtils
+					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 
 			Attribute stakeHolderAttribute = new AttributeText("SCH_STAKEHOLDER_CODE", "StakeholderCode");
-			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE", "SourceStakeholderCode");
+			Attribute sourceStakeHolderAttribute = new AttributeText("SCH_SOURCE_STAKEHOLDER_CODE",
+					"SourceStakeholderCode");
 			try {
 
-				if(searchBE.getParent().containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
-					searchBE.getParent().addAttribute(sourceStakeHolderAttribute, new Double(1.0),
-							stakeHolderCode);
-				}else {
-					searchBE.getParent().addAttribute(stakeHolderAttribute, new Double(1.0),
-							stakeHolderCode);
+				if (searchBE.getParent().containsEntityAttribute("SCH_SOURCE_STAKEHOLDER_CODE")) {
+					searchBE.getParent().addAttribute(sourceStakeHolderAttribute, new Double(1.0), stakeHolderCode);
+				} else {
+					searchBE.getParent().addAttribute(stakeHolderAttribute, new Double(1.0), stakeHolderCode);
 				}
 
 			} catch (BadDataException e) {
@@ -823,40 +833,39 @@ public class QwandaEndpoint {
 
 		}
 		Long startTime = System.nanoTime();
-			List<BaseEntity> results = service.findBySearchBE(searchBE);
-			log.info("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
-			Long total = -1L;
+		List<BaseEntity> results = service.findBySearchBE(searchBE);
+		log.info("search from db takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+		Long total = -1L;
 
-			try {
-				//total = 1L;
-				//total = service.findBySearchBECount(searchBE);
-				log.info("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
+		try {
+			// total = 1L;
+			// total = service.findBySearchBECount(searchBE);
+			log.info("search count takes us to " + ((System.nanoTime() - startTime) / 1e6) + "ms");
 
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				total = -1L;
-			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			total = -1L;
+		}
 
-			BaseEntity[] beArr = null;
-			if (!((results==null)||(results.isEmpty()))) {
-				beArr = new BaseEntity[results.size()];
-				beArr = results.toArray(beArr);
-			} else {
-				beArr = new BaseEntity[0];
-				total = 0L;
-			}
+		BaseEntity[] beArr = null;
+		if (!((results == null) || (results.isEmpty()))) {
+			beArr = new BaseEntity[results.size()];
+			beArr = results.toArray(beArr);
+		} else {
+			beArr = new BaseEntity[0];
+			total = 0L;
+		}
 
-			// Override returned parent code if it is supplied, otherwise use search BE code
-			String parentCode = searchBE.getParent().getCode();
-			Optional<EntityAttribute> parentAttribute = searchBE.getParent().findEntityAttribute("SCH_SOURCE_CODE");
-			if (parentAttribute.isPresent()) {
-				parentCode = parentAttribute.get().getValueString();
-			}
-			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
-			msg.setTotal(total);
-			String json = JsonUtils.toJson(msg);
-			return Response.status(200).entity(json).build();
-
+		// Override returned parent code if it is supplied, otherwise use search BE code
+		String parentCode = searchBE.getParent().getCode();
+		Optional<EntityAttribute> parentAttribute = searchBE.getParent().findEntityAttribute("SCH_SOURCE_CODE");
+		if (parentAttribute.isPresent()) {
+			parentCode = parentAttribute.get().getValueString();
+		}
+		QDataBaseEntityMessage msg = new QDataBaseEntityMessage(beArr, parentCode, null);
+		msg.setTotal(total);
+		String json = JsonUtils.toJson(msg);
+		return Response.status(200).entity(json).build();
 
 	}
 
@@ -921,8 +930,6 @@ public class QwandaEndpoint {
 		String json = JsonUtils.toJson(msg);
 		return Response.status(200).entity(json).build();
 	}
-
-
 
 	@GET
 	@Path("/questioncodes/{questionCode}")
@@ -1140,7 +1147,8 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response getTargets(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode, @Context final UriInfo uriInfo) {
-	//	log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		// log.info("Entering GET TARGETS
+		// /baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
@@ -1173,7 +1181,8 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
-		//log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		// log.info("Entering GET
+		// TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = -1L;
 
 		try {
@@ -1199,7 +1208,8 @@ public class QwandaEndpoint {
 	public Response getTargetsUsingLinkValue(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
-		//log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
+		// log.info("Entering GET TARGETS
+		// /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = false;
@@ -1232,7 +1242,8 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
-		//log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		// log.info("Entering GET
+		// TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = -1L;
 
 		try {
@@ -1258,7 +1269,8 @@ public class QwandaEndpoint {
 	public Response getTargetsUsingLinkValueWithAttributes(@PathParam("sourceCode") final String sourceCode,
 			@DefaultValue("LNK_CORE") @PathParam("linkCode") final String linkCode,
 			@PathParam("linkValue") final String linkValue, @Context final UriInfo uriInfo) {
-		//log.info("Entering GET TARGETS /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
+		// log.info("Entering GET TARGETS
+		// /baseentitys/{sourceCode}/linkcodes/{linkCode}/linkValue/{linkValue}");
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
 		boolean includeAttributes = true;
@@ -1291,7 +1303,8 @@ public class QwandaEndpoint {
 			targets.parallelStream().forEach(t -> t.setBaseEntityAttributes(null));
 		}
 
-		//log.info("Entering GET TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
+		// log.info("Entering GET
+		// TARGETSCOUNT/baseentitys/{sourceCode}/linkcodes/{linkCode}");
 		Long total = -1L;
 
 		try {
@@ -1349,7 +1362,7 @@ public class QwandaEndpoint {
 			// params.remove("level");
 		}
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
-				pageSize, level, qparams,stakeholderCode);
+				pageSize, level, qparams, stakeholderCode);
 
 		// for (final BaseEntity be : targets) {
 		// log.info("\n" + be.getCode() + " + attributes");
@@ -1357,7 +1370,7 @@ public class QwandaEndpoint {
 		// log.debug(p.getAttributeCode()));
 		// }
 
-		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams,stakeholderCode);
+		Long total = service.findChildrenByAttributeLinkCount(sourceCode, linkCode, qparams, stakeholderCode);
 
 		BaseEntity[] beArr = new BaseEntity[targets.size()];
 		beArr = targets.toArray(beArr);
@@ -1410,28 +1423,22 @@ public class QwandaEndpoint {
 					.getNormalisedUsername((String) securityService.getUserMap().get("username")).toUpperCase();
 		}
 
-	     SearchEntity searchBE = new SearchEntity("Targets","Targets")
-	      	     .addColumn("PRI_IMAGE_URL","Image")
-	      	     .addColumn("PRI_USERNAME","Username")
-	      	     .addColumn("PRI_FIRSTNAME","Firstname")
-	      	     .addColumn("PRI_LASTNAME","Surname")
-	      	     .addColumn("PRI_MOBILE","Mobile")
-	      	     .addColumn("PRI_EMAIL","Email")
-	      	     .addColumn("PRI_REGISTRATION_DATETIME", "Registered Date")
-	      	     .addColumn("PRI_LAST_LOGIN_DATETIME","Last Login Date")
+		SearchEntity searchBE = new SearchEntity("Targets", "Targets").addColumn("PRI_IMAGE_URL", "Image")
+				.addColumn("PRI_USERNAME", "Username").addColumn("PRI_FIRSTNAME", "Firstname")
+				.addColumn("PRI_LASTNAME", "Surname").addColumn("PRI_MOBILE", "Mobile").addColumn("PRI_EMAIL", "Email")
+				.addColumn("PRI_REGISTRATION_DATETIME", "Registered Date")
+				.addColumn("PRI_LAST_LOGIN_DATETIME", "Last Login Date")
 
-	      	     .addSort("PRI_FIRSTNAME","Firstname",SearchEntity.Sort.ASC)
-	      	     .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"PER_%")
+				.addSort("PRI_FIRSTNAME", "Firstname", SearchEntity.Sort.ASC)
+				.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "PER_%")
 
-	      	     .setPageStart(pageStart)
-	      	     .setPageSize(pageSize);
+				.setPageStart(pageStart).setPageSize(pageSize);
 
-	     if (stakeholderCode!=null) {
-	    	 searchBE.setStakeholder(stakeholderCode);
-	     }
+		if (stakeholderCode != null) {
+			searchBE.setStakeholder(stakeholderCode);
+		}
 
-	//     List<BaseEntity> targets = service.findBySearchBE(searchBE);
-
+		// List<BaseEntity> targets = service.findBySearchBE(searchBE);
 
 		final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode, true, pageStart,
 				pageSize, level, qparams, stakeholderCode);
@@ -1473,19 +1480,16 @@ public class QwandaEndpoint {
 
 		}
 
-        SearchEntity searchBE = new SearchEntity("SBE_TEST2", "findBaseEntitysByAttributeValue");
-        for(String str : params.keySet()){
-        	if ((!"pageStart".equals(str))&&(!"pageSize".equals(str))) {
-        		searchBE.addFilter(str,SearchEntity.StringFilter.EQUAL, params.getFirst(str));
-        	}
-        }
-        searchBE.addSort("PRI_CREATED", "Created", SearchEntity.Sort.DESC)
-        .setPageStart(pageStart)
-        .setPageSize(pageSize);
-
+		SearchEntity searchBE = new SearchEntity("SBE_TEST2", "findBaseEntitysByAttributeValue");
+		for (String str : params.keySet()) {
+			if ((!"pageStart".equals(str)) && (!"pageSize".equals(str))) {
+				searchBE.addFilter(str, SearchEntity.StringFilter.EQUAL, params.getFirst(str));
+			}
+		}
+		searchBE.addSort("PRI_CREATED", "Created", SearchEntity.Sort.DESC).setPageStart(pageStart)
+				.setPageSize(pageSize);
 
 		Response response = findBySearchBE(searchBE);
-
 
 		return response;
 
@@ -1496,8 +1500,8 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	@Transactional
 	public Response fetchBaseEntityByAttributeValue(@Context final UriInfo uriInfo,
-					@PathParam("attributeCode") final String attributeCode,
-					@PathParam("attributeValue") final String attributeValue) {
+			@PathParam("attributeCode") final String attributeCode,
+			@PathParam("attributeValue") final String attributeValue) {
 
 		Integer pageStart = 0;
 		Integer pageSize = 10; // default
@@ -1513,21 +1517,21 @@ public class QwandaEndpoint {
 		}
 
 		SearchEntity searchBE = new SearchEntity("SBE_TEST2", "fetchBaseEntityByAttributeValue");
-			// for(String str : params.keySet()) {
-			// 	if ((!"pageStart".equals(str))&&(!"pageSize".equals(str))) {
-			// 		searchBE.addFilter(str,SearchEntity.StringFilter.EQUAL, params.getFirst(str));
-			// 	}
-			// }
+		// for(String str : params.keySet()) {
+		// if ((!"pageStart".equals(str))&&(!"pageSize".equals(str))) {
+		// searchBE.addFilter(str,SearchEntity.StringFilter.EQUAL,
+		// params.getFirst(str));
+		// }
+		// }
 
 		searchBE.addSort("PRI_CREATED", "Created", SearchEntity.Sort.DESC)
-			.addFilter(attributeCode, SearchEntity.StringFilter.EQUAL, attributeValue)
-			.setPageStart(pageStart)
-			.setPageSize(pageSize);
+				.addFilter(attributeCode, SearchEntity.StringFilter.EQUAL, attributeValue).setPageStart(pageStart)
+				.setPageSize(pageSize);
 
 		Response response = findBySearchBE(searchBE);
 
 		return response;
-    }
+	}
 
 	@GET
 	@Path("/baseentitys/importkeycloak")
@@ -1597,8 +1601,6 @@ public class QwandaEndpoint {
 		return "unknown";
 	}
 
-
-
 	@PUT
 	@Consumes("application/json")
 	@Path("/links")
@@ -1652,25 +1654,34 @@ public class QwandaEndpoint {
 		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
 		be.setName(baseEntity.getName());
 		be.setStatus(baseEntity.getStatus());
-		
+
 		// only update an entity Attribute if it has changed
 		Set<EntityAttribute> newEas = new HashSet<>();
-		for (EntityAttribute ea : baseEntity.getBaseEntityAttributes()) {
-			Optional<EntityAttribute> optExistingEa = be.getBaseEntityAttributes().parallelStream().filter(x -> x.getAttributeCode().equals(ea.getAttributeCode())).findFirst();
-			if (optExistingEa.isPresent()) {
-				EntityAttribute existingEa = optExistingEa.get();
-				if (!existingEa.equals(ea)) {
-					existingEa.setInferred(ea.getInferred());
-					existingEa.setPrivacyFlag(ea.getPrivacyFlag());
-					existingEa.setReadonly(ea.getReadonly());
-					existingEa.setValue(ea.getValue());
-					existingEa.setWeight(ea.getWeight());
+		if (!be.getBaseEntityAttributes().isEmpty()) {
+			for (EntityAttribute ea : baseEntity.getBaseEntityAttributes()) {
+				Optional<EntityAttribute> optExistingEa = be.getBaseEntityAttributes().parallelStream()
+						.filter(x -> x.getAttributeCode().equals(ea.getAttributeCode())).findFirst();
+				if (optExistingEa.isPresent()) {
+					EntityAttribute existingEa = optExistingEa.get();
+					EqualsBuilder eb = new EqualsBuilder();
+					eb.append(existingEa.getInferred(), ea.getInferred());
+					eb.append(existingEa.getPrivacyFlag(), ea.getPrivacyFlag());
+					eb.append(existingEa.getReadonly(), ea.getReadonly());
+					eb.append(existingEa.getValue(), ea.getValue());
+					eb.append(existingEa.getWeight(), ea.getWeight());
+					if ( eb.isEquals()) {
+						existingEa.setInferred(ea.getInferred());
+						existingEa.setPrivacyFlag(ea.getPrivacyFlag());
+						existingEa.setReadonly(ea.getReadonly());
+						existingEa.setValue(ea.getValue());
+						existingEa.setWeight(ea.getWeight());
+					}
+				} else {
+					newEas.add(ea);
 				}
-			} else {
-				newEas.add(ea);
 			}
 		}
-		
+
 		be.getBaseEntityAttributes().addAll(newEas);
 		Long result = service.update(be);
 
@@ -1683,9 +1694,9 @@ public class QwandaEndpoint {
 	@Produces("application/json")
 	@Transactional
 	public Response forceBaseEntityAttributes(final BaseEntity baseEntity) {
-		Map<String,Object> map = securityService.getUserMap();
+		Map<String, Object> map = securityService.getUserMap();
 		String username = (String) securityService.getUserMap().get("username");
-		String userCode = "PER_"+QwandaUtils.getNormalisedUsername(username);
+		String userCode = "PER_" + QwandaUtils.getNormalisedUsername(username);
 
 		if (securityService.inRole("admin") || securityService.inRole("superadmin")
 				|| userCode.equalsIgnoreCase(baseEntity.getCode())) { // TODO Remove the true!
@@ -1693,9 +1704,9 @@ public class QwandaEndpoint {
 			log.info("forcing baseEntity attributes" + baseEntity.getCode() + ":" + baseEntity.getName());
 			BaseEntity be = null;
 			try {
-			be = service.findBaseEntityByCode(baseEntity.getCode());
+				be = service.findBaseEntityByCode(baseEntity.getCode());
 			} catch (NoResultException e) {
-				return Response.status(404).build();  // could not find it
+				return Response.status(404).build(); // could not find it
 			}
 			be.setName(baseEntity.getName());
 			// now remove the attributes that are not left over
@@ -1723,16 +1734,17 @@ public class QwandaEndpoint {
 	@Path("/baseentitys/delete/{baseEntityCode}/{attributeCode}")
 	@Produces("application/json")
 	@Transactional
-	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,@PathParam("attributeCode") final String attributeCode) {
+	public Response removeEntityAttribute(@PathParam("baseEntityCode") final String baseEntityCode,
+			@PathParam("attributeCode") final String attributeCode) {
 
 //		String username = (String) securityService.getUserMap().get("preferred_username");
 //		String userCode = QwandaUtils.getNormalisedUsername(username);
-		log.info("Deleting code "+baseEntityCode+":"+attributeCode);
+		log.info("Deleting code " + baseEntityCode + ":" + attributeCode);
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev")) ) {  // TODO Remove the true!
+				|| securityService.inRole("dev"))) { // TODO Remove the true!
 
-		service.removeEntityAttribute(baseEntityCode, attributeCode);
-		return Response.status(200).build();
+			service.removeEntityAttribute(baseEntityCode, attributeCode);
+			return Response.status(200).build();
 		}
 
 		return Response.status(401).entity("Unauthorised").build();
@@ -1749,10 +1761,10 @@ public class QwandaEndpoint {
 		String userCode = QwandaUtils.getNormalisedUsername(username);
 
 		if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev"))) {  // TODO Remove the true!
+				|| securityService.inRole("dev"))) { // TODO Remove the true!
 
-		service.removeEntityAttributes(attributeCode);
-		return Response.status(200).build();
+			service.removeEntityAttributes(attributeCode);
+			return Response.status(200).build();
 		}
 
 		return Response.status(401).entity("Unauthorised").build();
@@ -1796,47 +1808,46 @@ public class QwandaEndpoint {
 	}
 
 	@DELETE
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/baseentitys/{code}")
-    @Produces("application/json")
+	@Produces("application/json")
 	@Transactional
-    public Response removeUser(@PathParam("code") final String code) {
-	  if ((securityService.inRole("admin") || securityService.inRole("superadmin")
-          || securityService.inRole("dev")) || GennySettings.devMode) {
-	    String keycloakUserId = null;
-	    if(code.startsWith("PER_")) {
-	      List<EntityAttribute> entityAttributeList = service.findAttributesByBaseEntityCode(code);
-	      for(EntityAttribute ea : entityAttributeList) {
-	        if("PRI_KEYCLOAK_UUID".equals(ea.getAttributeCode())) {
-	          keycloakUserId = ea.getValueString();
-	        }
-	      }
-	    }
-	    log.info("Removing User " + code);
+	public Response removeUser(@PathParam("code") final String code) {
+		if ((securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("dev"))
+				|| GennySettings.devMode) {
+			String keycloakUserId = null;
+			if (code.startsWith("PER_")) {
+				List<EntityAttribute> entityAttributeList = service.findAttributesByBaseEntityCode(code);
+				for (EntityAttribute ea : entityAttributeList) {
+					if ("PRI_KEYCLOAK_UUID".equals(ea.getAttributeCode())) {
+						keycloakUserId = ea.getValueString();
+					}
+				}
+			}
+			log.info("Removing User " + code);
 
-        service.removeBaseEntity(code);
-        log.info("Successfully removed the user from database");
+			service.removeBaseEntity(code);
+			log.info("Successfully removed the user from database");
 
-        log.info("Keycloak User ID: " + keycloakUserId);
-        try {
-          if(keycloakUserId != null && code.startsWith("PER_")) {
-            KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),securityService.getRealm(), keycloakUserId);
-            Log.info("Successfully removed the user from keycloak");
-          } else {
-            log.info("Either Keycloak User ID is null or given base entity is not an user");
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        return Response.status(200).build();
-	  } else {
-		  Log.info("User does not have required access rights");
-		  return Response.status(503).build();
-	  }
+			log.info("Keycloak User ID: " + keycloakUserId);
+			try {
+				if (keycloakUserId != null && code.startsWith("PER_")) {
+					KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),
+							securityService.getRealm(), keycloakUserId);
+					Log.info("Successfully removed the user from keycloak");
+				} else {
+					log.info("Either Keycloak User ID is null or given base entity is not an user");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return Response.status(200).build();
+		} else {
+			Log.info("User does not have required access rights");
+			return Response.status(503).build();
+		}
 
-    }
-
-
+	}
 
 	@POST
 	@Consumes("application/json")
@@ -1999,7 +2010,6 @@ public class QwandaEndpoint {
 		return Response.status(200).entity(json).build();
 	}
 
-
 	@GET
 	@Path("/templates/{templateCode}")
 	@Produces("application/json")
@@ -2010,7 +2020,5 @@ public class QwandaEndpoint {
 		String json = JsonUtils.toJson(template);
 		return Response.status(200).entity(json).build();
 	}
-
-
 
 }
