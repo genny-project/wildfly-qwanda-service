@@ -1656,33 +1656,35 @@ public class QwandaEndpoint {
 		be.setStatus(baseEntity.getStatus());
 
 		// only update an entity Attribute if it has changed
-		Set<EntityAttribute> newEas = new HashSet<>();
-		if (!be.getBaseEntityAttributes().isEmpty()) {
-			for (EntityAttribute ea : baseEntity.getBaseEntityAttributes()) {
-				Optional<EntityAttribute> optExistingEa = be.getBaseEntityAttributes().parallelStream()
-						.filter(x -> x.getAttributeCode().equals(ea.getAttributeCode())).findFirst();
-				if (optExistingEa.isPresent()) {
-					EntityAttribute existingEa = optExistingEa.get();
-					EqualsBuilder eb = new EqualsBuilder();
-					eb.append(existingEa.getInferred(), ea.getInferred());
-					eb.append(existingEa.getPrivacyFlag(), ea.getPrivacyFlag());
-					eb.append(existingEa.getReadonly(), ea.getReadonly());
-					eb.append(existingEa.getAsString(), ea.getAsString());
-					eb.append(existingEa.getWeight(), ea.getWeight());
-					if ( eb.isEquals()) {
-						existingEa.setInferred(ea.getInferred());
-						existingEa.setPrivacyFlag(ea.getPrivacyFlag());
-						existingEa.setReadonly(ea.getReadonly());
-						existingEa.setValue(ea.getValue());
-						existingEa.setWeight(ea.getWeight());
-					}
-				} else {
-					newEas.add(ea);
-				}
-			}
-		}
-
-		be.getBaseEntityAttributes().addAll(newEas);
+//		Set<EntityAttribute> newEas = new HashSet<>();
+//		if (!be.getBaseEntityAttributes().isEmpty()) {
+//			for (EntityAttribute ea : baseEntity.getBaseEntityAttributes()) {
+//				Optional<EntityAttribute> optExistingEa = be.getBaseEntityAttributes().parallelStream()
+//						.filter(x -> x.getAttributeCode().equals(ea.getAttributeCode())).findFirst();
+//				if (optExistingEa.isPresent()) {
+//					EntityAttribute existingEa = optExistingEa.get();
+//					EqualsBuilder eb = new EqualsBuilder();
+//					eb.append(existingEa.getInferred(), ea.getInferred());
+//					eb.append(existingEa.getPrivacyFlag(), ea.getPrivacyFlag());
+//					eb.append(existingEa.getReadonly(), ea.getReadonly());
+//					eb.append(existingEa.getAsString(), ea.getAsString());
+//					eb.append(existingEa.getWeight(), ea.getWeight());
+//					if ( eb.isEquals()) {
+//						existingEa.setInferred(ea.getInferred());
+//						existingEa.setPrivacyFlag(ea.getPrivacyFlag());
+//						existingEa.setReadonly(ea.getReadonly());
+//						existingEa.setValue(ea.getValue());
+//						existingEa.setWeight(ea.getWeight());
+//					}
+//				} else {
+//					newEas.add(ea);
+//				}
+//			}
+//		}
+//
+//		be.getBaseEntityAttributes().addAll(newEas);
+		
+		be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
 		Long result = service.update(be);
 
 		return Response.status(200).entity(result).build();
