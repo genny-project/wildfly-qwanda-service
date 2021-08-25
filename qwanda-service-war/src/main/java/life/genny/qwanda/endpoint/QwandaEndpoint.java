@@ -1652,7 +1652,26 @@ public class QwandaEndpoint {
 		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
 		be.setName(baseEntity.getName());
 		be.setStatus(baseEntity.getStatus());
-		be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
+		
+		// only update an entity Attribute if it has changed
+		Set<EntityAttribute> newEas = new HashSet<>();
+		for (EntityAttribute ea : baseEntity.getBaseEntityAttributes()) {
+			Optional<EntityAttribute> optExistingEa = be.getBaseEntityAttributes().parallelStream().filter(x -> x.getAttributeCode().equals(ea.getAttributeCode())).findFirst();
+			if (optExistingEa.isPresent()) {
+				EntityAttribute existingEa = optExistingEa.get();
+				if (!existingEa.equals(ea)) {
+					existingEa.setInferred(ea.getInferred());
+					existingEa.setPrivacyFlag(ea.getPrivacyFlag());
+					existingEa.setReadonly(ea.getReadonly());
+					existingEa.setValue(ea.getValue());
+					existingEa.setWeight(ea.getWeight());
+				}
+			} else {
+				newEas.add(ea);
+			}
+		}
+		
+		be.getBaseEntityAttributes().addAll(newEas);
 		Long result = service.update(be);
 
 		return Response.status(200).entity(result).build();
