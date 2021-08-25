@@ -1667,7 +1667,7 @@ public class QwandaEndpoint {
 					eb.append(existingEa.getInferred(), ea.getInferred());
 					eb.append(existingEa.getPrivacyFlag(), ea.getPrivacyFlag());
 					eb.append(existingEa.getReadonly(), ea.getReadonly());
-					eb.append(existingEa.getValue(), ea.getValue());
+					eb.append(existingEa.getValueAsString(), ea.getValueAsString());
 					eb.append(existingEa.getWeight(), ea.getWeight());
 					if ( eb.isEquals()) {
 						existingEa.setInferred(ea.getInferred());
