@@ -382,26 +382,32 @@ public class StartupService {
 		rx.getDataUnits().forEach(this::saveServiceBes);
 		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
 
-		if ((!GennySettings.skipGoogleDocInStartup)&&(noskip)) {
-			log.info("Starting Transaction for loading *********************");
+		if (!GennySettings.disableBatchLoading) {
+			if ((!GennySettings.skipGoogleDocInStartup)&&(noskip)) {
+				log.info("Starting Transaction for loading *********************");
 
-			rx.getDataUnits().forEach(this::persistEnabledProject);
-			log.info("*********************** Finished Google Doc Import ***********************************");
-		} else {
-			log.info("Skipping Google doc loading SKIPBOOTXPORT="+(noskip?"NO SKIP":"SKIP"));
-		}
-
-		// Push BEs to cache if noskipping
-		if (GennySettings.loadDdtInStartup /*&& noskip*/) {		    
-            log.info("Pushing to DTT  ");
-		    rx.getDataUnits().forEach(this::pushToDTT);
-		} else {
-			if (!noskip) {
-				log.info("Skipping the pushing of baseentities into cache due to SKIPBOOTXPORT");
+				rx.getDataUnits().forEach(this::persistEnabledProject);
+				log.info("*********************** Finished Google Doc Import ***********************************");
+			} else {
+				log.info("Skipping Google doc loading SKIPBOOTXPORT="+(noskip?"NO SKIP":"SKIP"));
 			}
+
+			// Push BEs to cache if noskipping
+			if (GennySettings.loadDdtInStartup /*&& noskip*/) {
+				log.info("Pushing to DTT  ");
+				rx.getDataUnits().forEach(this::pushToDTT);
+			} else {
+				if (!noskip) {
+					log.info("Skipping the pushing of baseentities into cache due to SKIPBOOTXPORT");
+				}
+			}
+			rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
+			log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+		} else {
+			log.warn("Skip Google Sheets batch loading, make sure this is what you want!!");
 		}
-		rx.getDataUnits().forEach(this::pushProjectsUrlsToDTT);
-		log.info("skipGithubInStartup is " + (GennySettings.skipGithubInStartup ? "TRUE" : "FALSE"));
+
+		// Clone from GitHub
 		String branch = "master";
 		rx.getDataUnits().forEach(this::setEnabledRealm);
 		securityService.setImportMode(false);
