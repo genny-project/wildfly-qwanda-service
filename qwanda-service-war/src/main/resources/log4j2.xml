@@ -1,56 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" name="Log4jTest" packages="">
-	<Properties>
-		<Property name="filename">test.log</Property>
-	</Properties>
+    <Properties>
+        <Property name="filename">test.log</Property>
+    </Properties>
 
-	<Appenders>
-		<Console name="STDOUT">
-			<PatternLayout
-				pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}; - (%F:%L) - %m%n" />
-		</Console>
+    <Appenders>
+        <!--Console name="STDOUT">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}; - (%F:%L) - %m%n"/>
+        </Console-->
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <!--<PatternLayout pattern="%d %-5level [%t] %c{1.}.%M(%L): %msg%n"/>-->
+            <PatternLayout
+                    pattern="%d %highlight{%-5level}{ERROR=Bright RED, WARN=Bright Yellow, INFO=Bright Green, DEBUG=Bright Cyan, TRACE=Bright White} %style{[%t]}{bright,magenta} %style{%c{1.}.%M(%L)}{cyan}: %msg%n"/>
+        </Console>
+    </Appenders>
 
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT"/>
+        </Root>
+        <Logger name="com.hazelcast.internal.diagnostics.HealthMonitor"
+                level="ERROR" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+        <Logger
+                name="com.hazelcast.nio.serialization.HazelcastSerializationException"
+                level="ERROR" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+        <Logger name="life.genny" level="INFO" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
 
-	</Appenders>
+        <Logger
+                name="com.hazelcast.client.spi.impl.ClientMembershipListener"
+                level="ERROR" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
 
-	<Loggers>
-		<Root level="INFO">
-			<AppenderRef ref="STDOUT" />
-		</Root>
-		<Logger name="com.hazelcast.internal.diagnostics.HealthMonitor"
-			level="ERROR" additivity="false">
-			<AppenderRef ref="STDOUT" />
-		</Logger>
-		<Logger
-			name="com.hazelcast.nio.serialization.HazelcastSerializationException"
-			level="ERROR" additivity="false">
-			<AppenderRef ref="STDOUT" />
-		</Logger>
-		<Logger name="life.genny" level="INFO" additivity="false">
-			<AppenderRef ref="STDOUT" />
-		</Logger>
-		
-		<Logger
-			name="com.hazelcast.client.spi.impl.ClientMembershipListener"
-			level="ERROR" additivity="false">
-			<AppenderRef ref="STDOUT" />
-		</Logger>
-		
-		<Logger
-			name="com.hazelcast.spi.impl.operationservice.impl.Invocation"
-			level="ERROR" additivity="false">
-			<AppenderRef ref="STDOUT" />
-		</Logger>
-		
-		
-				<Logger
-			name="org.hibernate.orm.deprecation"
-			level="ERROR" additivity="false">
-			<AppenderRef ref="STDOUT" />
-		</Logger>
-		
-		
-
-
-	</Loggers>
+        <Logger
+                name="com.hazelcast.spi.impl.operationservice.impl.Invocation"
+                level="ERROR" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+        <Logger
+                name="org.hibernate.orm.deprecation"
+                level="ERROR" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+    </Loggers>
 </Configuration>
