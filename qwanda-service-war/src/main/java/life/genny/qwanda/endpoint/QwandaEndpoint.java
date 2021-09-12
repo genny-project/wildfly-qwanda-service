@@ -1652,7 +1652,7 @@ public class QwandaEndpoint {
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
 		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
-		log.info("Updating  baseEntity " + code + ":" + name + " and " + status);
+		// log.info("Updating  baseEntity " + code + ":" + name + " and " + status);
 		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
 				|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
 
