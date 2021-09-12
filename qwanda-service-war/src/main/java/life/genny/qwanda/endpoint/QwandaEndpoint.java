@@ -86,6 +86,7 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.utils.VertxUtils;
+import life.genny.qwanda.EEntityStatus;
 
 /**
  * JAX-RS endpoint
@@ -1651,11 +1652,14 @@ public class QwandaEndpoint {
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
 		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
-		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
-		be.setName(baseEntity.getName());
-		be.setStatus(baseEntity.getStatus());
+		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
+				|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
 
-		// only update an entity Attribute if it has changed
+			BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
+			be.setName(baseEntity.getName());
+			be.setStatus(baseEntity.getStatus());
+
+			// only update an entity Attribute if it has changed
 //		Set<EntityAttribute> newEas = new HashSet<>();
 //		if (!be.getBaseEntityAttributes().isEmpty()) {
 //			for (EntityAttribute ea : baseEntity.getBaseEntityAttributes()) {
@@ -1683,11 +1687,75 @@ public class QwandaEndpoint {
 //		}
 //
 //		be.getBaseEntityAttributes().addAll(newEas);
-		
-		be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
-		Long result = service.update(be);
 
-		return Response.status(200).entity(result).build();
+			if (baseEntity.getBaseEntityAttributes() != null) {
+				be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
+			}
+			Long result = service.update(be);
+
+			return Response.status(200).entity(result).build();
+		} else {
+			return Response.status(401).build();
+		}
+	}
+
+	@PUT
+	@Consumes("application/json")
+	@Path("/baseentitys/{code}/{name}/{status}")
+	@Produces("application/json")
+	@Transactional
+	public Response updateBaseEntityByNameStatus(@PathParam("code") String code, @PathParam("name") String name,
+			@PathParam("status") String status) {
+
+		log.info("Updating  baseEntity " + code + ":" + name + " and " + status);
+		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
+				|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
+
+			BaseEntity be = service.findBaseEntityByCode(code);
+			be.setName(name);
+			// ugly
+//		ACTIVE,          // 0 - This status means that the entity should be picked up in all database fetches
+//		TEST,            // 1 - This means that the entity is a well crafted test entity for use by devs
+//		TEMPORARY,       // 3 - This means that the entity is a useful and persistent test object
+//		PENDING,         // 4 - This means that the entity is currently under construction and cannot be fetched under normal operation
+//		DISABLED,        // 5 - This means that the entity is currently not to be fetched, but is expected to possibly be returned to active status
+//		ARCHIVED,        // 6 - This means that the entity is not to be deleted , but is archived but not visible to normal operation
+//		PENDING_DELETE,  // 7 - This means that the entity is pending deletion, but not yet deleted
+//		DELETED,         // 8 - This means that the entity is marked deleted
+
+			switch (status) {
+			case "ACTIVE":
+				be.setStatus(EEntityStatus.ACTIVE);
+				break;
+			case "TEST":
+				be.setStatus(EEntityStatus.TEST);
+				break;
+			case "TEMPORARY":
+				be.setStatus(EEntityStatus.TEMPORARY);
+				break;
+			case "PENDING":
+				be.setStatus(EEntityStatus.PENDING);
+				break;
+			case "DISABLED":
+				be.setStatus(EEntityStatus.DISABLED);
+				break;
+			case "ARCHIVED":
+				be.setStatus(EEntityStatus.ARCHIVED);
+				break;
+			case "PENDING_DELETE":
+				be.setStatus(EEntityStatus.PENDING_DELETE);
+				break;
+			case "DELETED":
+				be.setStatus(EEntityStatus.DELETED);
+				break;
+			}
+
+			Long result = service.update(be);
+
+			return Response.status(200).entity(result).build();
+		} else {
+			return Response.status(401).build();
+		}
 	}
 
 	@PUT
