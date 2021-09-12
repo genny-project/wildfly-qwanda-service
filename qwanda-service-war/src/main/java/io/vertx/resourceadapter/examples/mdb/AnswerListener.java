@@ -13,9 +13,17 @@ import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Answer;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
+import src.main.java.life.genny.qwanda.endpoint.Logger;
+import java.lang.invoke.MethodHandles;
 
 @ApplicationScoped
 public class AnswerListener {
+
+	/**
+	 * Stores logger object.
+	 */
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 
 	@Incoming("answer")
@@ -25,7 +33,7 @@ public class AnswerListener {
 		String token = json.getString("token");
 		json.remove("token");
 		Answer answer = JsonUtils.fromJson(json.toString(),Answer.class);
-
+		log.info("Kafka Answer: "+answer);
 		try {
 			QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
 					JsonUtils.toJson(answer), token, null);

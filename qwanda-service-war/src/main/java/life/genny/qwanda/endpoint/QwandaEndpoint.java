@@ -1652,7 +1652,6 @@ public class QwandaEndpoint {
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
 		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
-		log.info("Updating  baseEntity " + code + ":" + name + " and " + status);
 		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
 				|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
 
@@ -1669,7 +1668,7 @@ public class QwandaEndpoint {
 //				if (optExistingEa.isPresent()) {
 //					EntityAttribute existingEa = optExistingEa.get();
 //					EqualsBuilder eb = new EqualsBuilder();
-//					eb.append(existingEa.getInferred(), ea.getInferred());
+//					eb.append(existingEa.getInferred(), ea.getInferred());urban dictionary p
 //					eb.append(existingEa.getPrivacyFlag(), ea.getPrivacyFlag());
 //					eb.append(existingEa.getReadonly(), ea.getReadonly());
 //					eb.append(existingEa.getAsString(), ea.getAsString());
