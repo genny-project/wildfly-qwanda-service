@@ -13,7 +13,8 @@ import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.Answer;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
-import src.main.java.life.genny.qwanda.endpoint.Logger;
+import org.apache.logging.log4j.Logger;
+
 import java.lang.invoke.MethodHandles;
 
 @ApplicationScoped
