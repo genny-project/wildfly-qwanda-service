@@ -1026,7 +1026,7 @@ public class QwandaEndpoint {
 			entity = service.findBaseEntityByCode(code, true);
 
 		} catch (NoResultException e) {
-			return Response.status(204).build();
+			return Response.status(404).build();
 		}
 
 		String json = JsonUtils.toJson(entity);
