@@ -34,7 +34,11 @@ public class AnswerListener {
 		String token = json.getString("token");
 		json.remove("token");
 		Answer answer = JsonUtils.fromJson(json.toString(),Answer.class);
-		log.info("Kafka Answer: "+answer);
+		if (answer.getValue() != null && answer.getValue().length() <= 50) {
+			log.info("Kafka Answer: "+answer);
+		} else {
+			log.debug("Kafka Answer: "+answer);
+		}
 		try {
 			QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
 					JsonUtils.toJson(answer), token, null);
