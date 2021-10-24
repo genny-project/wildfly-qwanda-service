@@ -401,6 +401,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
             result = query.getResultList();
         } catch (Exception e) {
             log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
+            throw  e;
         }
         return result;
     }
