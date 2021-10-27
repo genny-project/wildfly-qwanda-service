@@ -257,7 +257,7 @@ public class ServiceTokenService {
 			}
 
 		} catch (Exception e) {
-			log.info(e);
+			log.error(e.getMessage());
 		}
 
 		return null;
