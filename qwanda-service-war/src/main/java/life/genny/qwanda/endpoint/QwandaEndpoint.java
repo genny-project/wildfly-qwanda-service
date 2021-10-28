@@ -911,6 +911,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response fetchAttributes() {
 		final List<Attribute> entitys = service.findAttributes();
+		
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
