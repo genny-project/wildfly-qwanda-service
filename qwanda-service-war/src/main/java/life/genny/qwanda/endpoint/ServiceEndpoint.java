@@ -394,6 +394,22 @@ public class ServiceEndpoint {
 		return Response.status(200).build();
 	}
 
+	@POST
+	@Path("/messages/{channel}")
+	@ApiOperation(value = "messages", notes = "write message to channel")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response writeMessage(@PathParam("channel") final String channel, final String data) {
+		String results = null;
+		log.info("Write message to channel=" + channel);
+		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+			log.info("Writing message : channel = [" + channel + "] for realm " + securityService.getRealm());
+			VertxUtils.writeMsg(channel,data);
+			
+		} else {
+			return Response.status(400).entity("Access not allowed").build();
+		}
+		return Response.status(200).build();
+	}
 	@GET
 	@Path("/answers/{sourceCode}/{targetCode}/{attributeCode}/{value}")
 	@ApiOperation(value = "answer", notes = "quick answer")
