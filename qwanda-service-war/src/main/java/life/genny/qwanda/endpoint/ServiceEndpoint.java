@@ -461,6 +461,8 @@ public class ServiceEndpoint {
 				log.info("realms String is ["+realmsString+"]");
 				String[] realmsArray = realmsString.split(",");
 				for (String realm : realmsArray) {
+					realm = realm.substring(2); // get rid of first ["
+					realm = realm.substring(0,realm.length()-2);
 					String accessToken = serviceTokens.getServiceToken(realm);
 					GennyToken serviceToken = new GennyToken(accessToken);
 					RulesUtils.loadAllAttributesIntoCache(serviceToken);

@@ -303,13 +303,17 @@ public class StartupService {
             .collect(Collectors.toList());
 
 		// Push the list of active realms
+        log.info("Now processing the realm attributes...");
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
+          log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 		  
 		  for (String realm : realms) {
+			   log.info("Now loading in the attributes for realm "+realm);
 				String accessToken = serviceTokens.getServiceToken(realm);
 				GennyToken serviceToken = new GennyToken(accessToken);
+				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
 			  RulesUtils.loadAllAttributesIntoCache(serviceToken);
 		  }
 		  
@@ -347,11 +351,22 @@ public class StartupService {
             .collect(Collectors.toList());
 
 		// Push the list of active realms
+        log.info("Now processing the realm attributes...");
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
+          log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
-		}
-    }
+		  
+		  for (String realm : realms) {
+			   log.info("Now loading in the attributes for realm "+realm);
+				String accessToken = serviceTokens.getServiceToken(realm);
+				GennyToken serviceToken = new GennyToken(accessToken);
+				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
+			  RulesUtils.loadAllAttributesIntoCache(serviceToken);
+		  }
+		  
+		  
+		}    }
 
 	@PostConstruct
 	@Transactional
@@ -422,10 +437,25 @@ public class StartupService {
 		securityService.setImportMode(false);
 
 		// Push the list of active realms
+		// Push the list of active realms
+        log.info("Now processing the realm attributes...");
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
+          log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
-		}
+		  
+		  for (String realm : realms) {
+			   log.info("Now loading in the attributes for realm "+realm);
+				String accessToken = serviceTokens.getServiceToken(realm);
+				GennyToken serviceToken = new GennyToken(accessToken);
+				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
+			  RulesUtils.loadAllAttributesIntoCache(serviceToken);
+		  }
+		  
+		  
+		}		
+		
+		
 		double difference = ( System.nanoTime() - startTime) / 1e9; // get s
 
 		log.info("---------------- Completed Startup in "+difference+" sec ----------------");
