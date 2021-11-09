@@ -432,6 +432,7 @@ public class StartupService {
 		if (GennySettings.loadDdtInStartup /*&& noskip*/) {
 			log.info("Pushing to DTT  ");
 			rx.getDataUnits().forEach(this::pushToDTT);
+			log.info("Finished Pushing to DTT  ");
 		} else {
 			if (!noskip) {
 				log.info("Skipping the pushing of baseentities into cache due to SKIPBOOTXPORT");
@@ -442,7 +443,6 @@ public class StartupService {
 		// Clone from GitHub
 		String branch = "master";
 		rx.getDataUnits().forEach(this::setEnabledRealm);
-		securityService.setImportMode(false);
 
 		// Push the list of active realms
 		// Push the list of active realms
@@ -452,17 +452,18 @@ public class StartupService {
           log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
 		  
-		  for (String realm : realms) {
-			   log.info("Now loading in the attributes for realm "+realm);
-				String accessToken = serviceTokens.getServiceToken(realm);
-				GennyToken serviceToken = new GennyToken(accessToken);
-				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
-			  loadAllAttributesIntoCache(serviceToken);
-		  }
+//		  for (String realm : realms) {
+//			   log.info("Now loading in the attributes for realm "+realm);
+//				String accessToken = serviceTokens.getServiceToken(realm);
+//				GennyToken serviceToken = new GennyToken(accessToken);
+//				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
+//			  loadAllAttributesIntoCache(serviceToken);
+//		  }
 		  
 		  
 		}		
-		
+		securityService.setImportMode(false);
+
 		
 		double difference = ( System.nanoTime() - startTime) / 1e9; // get s
 
@@ -777,8 +778,10 @@ public class StartupService {
 
 	public void pushToDTT(RealmUnit realmUnit) {
 		// Attributes
-		log.info("Pushing Attributes to Cache");
+		String realmCode = realmUnit.getCode();
+		log.info("Pushing Attributes to Cache for realm "+realmCode);
 		final List<Attribute> entitys = service.findAttributes();
+		log.info("Pushing " + entitys.size() + " attributes to cache for realm "+realmCode);
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
@@ -786,7 +789,19 @@ public class StartupService {
 		service.writeToDDT("attributes", json);
 		log.info("Pushed " + entitys.size() + " attributes to cache");
 
-		String realmCode = realmUnit.getCode();
+		
+		
+		
+		  if (!RulesUtils.realmAttributeMap.containsKey(realmCode)) {
+          	RulesUtils.realmAttributeMap.put(realmCode, new ConcurrentHashMap<String,Attribute>());
+          }
+          Map<String,Attribute> attributeMap = RulesUtils.realmAttributeMap.get(realmCode);
+
+          for (Attribute attribute : atArr) {
+              attributeMap.put(attribute.getCode(), attribute);
+          }
+		log.info("Completed loading attributes into RulesUtils.realmAttributeMap for realm "+realmCode);
+		
 		// BaseEntitys
 //		List<BaseEntity> results = em
 //				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
