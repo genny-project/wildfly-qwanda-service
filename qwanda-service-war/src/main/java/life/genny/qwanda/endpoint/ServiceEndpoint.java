@@ -117,6 +117,9 @@ import life.genny.utils.RulesUtils;
 import life.genny.models.GennyToken;
 import io.vertx.core.json.JsonObject;
 import life.genny.qwanda.service.ServiceTokenService;
+import life.genny.qwanda.message.QDataAttributeMessage;
+import org.apache.commons.lang3.StringUtils;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JAX-RS endpoint
@@ -439,7 +442,7 @@ public class ServiceEndpoint {
 
 			String accessToken = serviceTokens.getServiceToken(realm);
 			GennyToken serviceToken = new GennyToken(accessToken);
-			RulesUtils.loadAllAttributesIntoCache(serviceToken);
+			loadAllAttributesIntoCache(serviceToken);
 		}
 		return "Loaded ";
 	}
@@ -465,7 +468,7 @@ public class ServiceEndpoint {
 					realm = realm.substring(0,realm.length()-2);
 					String accessToken = serviceTokens.getServiceToken(realm);
 					GennyToken serviceToken = new GennyToken(accessToken);
-					RulesUtils.loadAllAttributesIntoCache(serviceToken);
+					loadAllAttributesIntoCache(serviceToken);
 				}
 			}
 		}
@@ -1272,4 +1275,57 @@ public class ServiceEndpoint {
 		}
 	}
 
+	// TODO. document
+    public QDataAttributeMessage loadAllAttributesIntoCache(final GennyToken token) {
+        try {
+            boolean cacheWorked = false;
+            QDataAttributeMessage ret = null;
+            String realm = token.getRealm();
+            log.info("All the attributes about to become loaded ... for realm "+realm);
+                 log.info("LOADING ATTRIBUTES FROM API");
+ //               String jsonString = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/attributes", token.getToken());
+        		final List<Attribute> entitys = service.findAttributes();
+        		
+        		Attribute[] atArr = new Attribute[entitys.size()];
+        		atArr = entitys.toArray(atArr);
+        		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+        		msg.setToken(securityService.getToken());
+        		String jsonString = JsonUtils.toJson(msg);
+
+                if (!StringUtils.isBlank(jsonString)) {
+
+                	 VertxUtils.writeCachedJson(token.getRealm(), "attributes", jsonString, token.getToken());
+                	 
+                	 QDataAttributeMessage attMsg  = JsonUtils.fromJson(jsonString, QDataAttributeMessage.class);
+                	 ret = attMsg;
+                    Attribute[] attributeArray = attMsg.getItems();
+ 
+                    if (!RulesUtils.realmAttributeMap.containsKey(realm)) {
+                    	RulesUtils.realmAttributeMap.put(realm, new ConcurrentHashMap<String,Attribute>());
+                    }
+                    Map<String,Attribute> attributeMap = RulesUtils.realmAttributeMap.get(realm);
+      
+                    for (Attribute attribute : attributeArray) {
+                        attributeMap.put(attribute.getCode(), attribute);
+                    }
+                   // realmAttributeMap.put(realm, attributeMap);
+                   
+                    if (!RulesUtils.defAttributesMap.containsKey(realm)) {
+                  //  	setUpDefs(token);                    	
+                    }
+                    ret = RulesUtils.defAttributesMap.get(realm);
+                    ret.setToken(token.getToken());
+
+                   log.info("All the attributes have been loaded from api in" + attributeMap.size() + " attributes");
+                } else {
+                    log.error("NO ATTRIBUTES LOADED FROM API");
+                }
+
+
+            return ret;
+        } catch (Exception e) {
+            log.error("Attributes API not available");
+        }
+        return null;
+    }
 }
