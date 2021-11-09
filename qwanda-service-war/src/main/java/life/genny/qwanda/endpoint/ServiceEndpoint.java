@@ -48,6 +48,7 @@ import javax.ws.rs.core.UriInfo;
 import org.json.JSONObject;
 import life.genny.utils.VertxUtils;
 
+
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -112,6 +113,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import life.genny.utils.RulesUtils;
+import life.genny.models.GennyToken;
+import io.vertx.core.json.JsonObject;
+import life.genny.qwanda.service.ServiceTokenService;
+
 /**
  * JAX-RS endpoint
  *
@@ -141,6 +147,9 @@ public class ServiceEndpoint {
 
 	@Inject
 	private SecurityService securityService;
+	
+	@Inject
+	private ServiceTokenService serviceTokens;
 
 	public static class HibernateLazyInitializerSerializer extends JsonSerializer<JavassistLazyInitializer> {
 
@@ -297,9 +306,8 @@ public class ServiceEndpoint {
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			String realm = service.getCurrentRealm();
 			log.info("Syncing Questions to cache for realm:" + realm);
-			List<Question> results = em
-					.createQuery("SELECT a FROM Question a where a.realm=:realmStr").setParameter("realmStr", realm)
-					.getResultList();
+			List<Question> results = em.createQuery("SELECT a FROM Question a where a.realm=:realmStr")
+					.setParameter("realmStr", realm).getResultList();
 			service.writeQuestionsToDDT(results);
 			log.info("Synced " + results.size() + " Questions to cache.");
 			return Response.status(200).entity("Synced " + results.size() + " Questions to cache.").build();
@@ -316,7 +324,8 @@ public class ServiceEndpoint {
 	public Response cacheRead(@PathParam("key") final String key) {
 		String results = null;
 		log.info("Cache Fetch for key=" + key);
-		if (securityService.inRole("superadmin") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Reading from cache : key = [" + key + "]");
 			log.info("realm=[" + securityService.getRealm() + "]");
 			// log.info("token=[" + service.getToken() + "]");
@@ -326,20 +335,21 @@ public class ServiceEndpoint {
 		}
 		return Response.status(200).entity(results).build();
 	}
-	
+
 	@GET
 	@Path("/cache/read/{realm}/{key}")
 	@ApiOperation(value = "cache", notes = "read cache data located at Key for realm")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public Response cacheRealmRead(@PathParam("realm") final String realm,@PathParam("key") final String key) {
+	public Response cacheRealmRead(@PathParam("realm") final String realm, @PathParam("key") final String key) {
 		String results = null;
-		log.info("Cache Fetch for key=" + key+" at realm "+realm);
-		if (securityService.inRole("service") || securityService.inRole("test") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		log.info("Cache Fetch for key=" + key + " at realm " + realm);
+		if (securityService.inRole("service") || securityService.inRole("test") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Reading from cache : key = [" + key + "]");
 			log.info("realm=[" + realm + "]");
 			// log.info("token=[" + service.getToken() + "]");
-			results = VertxUtils.readCachedJson(realm,key,service.getToken()).toString();
+			results = VertxUtils.readCachedJson(realm, key, service.getToken()).toString();
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
@@ -353,7 +363,8 @@ public class ServiceEndpoint {
 	public Response cacheWrite(@PathParam("key") final String key, final String data) {
 		String results = null;
 		log.info("Cache Write for key=" + key);
-		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("service") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 			log.info("Writing into cache : key = [" + key + "] for realm " + securityService.getRealm());
 			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, service.getToken());
 		} else {
@@ -361,15 +372,17 @@ public class ServiceEndpoint {
 		}
 		return Response.status(200).build();
 	}
-	
+
 	@POST
 	@Path("/cache/write/{realm}/{key}")
 	@ApiOperation(value = "cache", notes = "write cache data located at Key for realm")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response cacheRealmWrite(@PathParam("realm") final String realm,@PathParam("key") final String key, final String data) {
+	public Response cacheRealmWrite(@PathParam("realm") final String realm, @PathParam("key") final String key,
+			final String data) {
 		String results = null;
-		log.info("Cache Write for key=" + key+" at realm "+realm);
-		if (securityService.inRole("test") ||securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		log.info("Cache Write for key=" + key + " at realm " + realm);
+		if (securityService.inRole("test") || securityService.inRole("service") || securityService.inRole("superadmin")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Writing into cache : key = [" + key + "] for realm " + realm);
 			VertxUtils.writeCachedJson(realm, key, data, service.getToken());
 		} else {
@@ -386,7 +399,8 @@ public class ServiceEndpoint {
 	public Response cacheClear() {
 
 		log.info("Cache Clear");
-		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("service") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 			service.clearCache();
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
@@ -401,15 +415,62 @@ public class ServiceEndpoint {
 	public Response writeMessage(@PathParam("channel") final String channel, final String data) {
 		String results = null;
 		log.info("Write message to channel=" + channel);
-		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("service") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 			log.info("Writing message : channel = [" + channel + "] for realm " + securityService.getRealm());
-			VertxUtils.writeMsg(channel,data);
-			
+			VertxUtils.writeMsg(channel, data);
+
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
 		return Response.status(200).build();
 	}
+
+	/**
+	 * Loads attributes from database into RulesUtils map.
+	 *
+	 * @param table
+	 * @return response of the load
+	 */
+	@GET
+	@Path("/loadattributes/{realm}")
+	public String loadAttributesRealm(@PathParam("realm") final String realm) {
+		if (securityService.inRole("superadmin") || securityService.inRole("service") || securityService.inRole("test")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
+
+			String accessToken = serviceTokens.getServiceToken(realm);
+			GennyToken serviceToken = new GennyToken(accessToken);
+			RulesUtils.loadAllAttributesIntoCache(serviceToken);
+		}
+		return "Loaded ";
+	}
+
+	/**
+	 * Loads attributes from database into RulesUtils map.
+	 *
+	 * @param table
+	 * @return response of the load
+	 */
+	@GET
+	@Path("/loadattributes")
+	public String loadAttributes() {
+		if (securityService.inRole("superadmin") || securityService.inRole("service") || securityService.inRole("test")
+				|| securityService.inRole("dev") || GennySettings.devMode) {
+			JsonObject realmsJson = VertxUtils.readCachedJson(GennySettings.GENNY_REALM, "REALMS");
+			if (realmsJson.getString("status").equals("ok")) {
+				String realmsString = realmsJson.getString("value");
+				log.info("realms String is ["+realmsString+"]");
+				String[] realmsArray = realmsString.split(",");
+				for (String realm : realmsArray) {
+					String accessToken = serviceTokens.getServiceToken(realm);
+					GennyToken serviceToken = new GennyToken(accessToken);
+					RulesUtils.loadAllAttributesIntoCache(serviceToken);
+				}
+			}
+		}
+		return "Loaded ";
+	}
+
 	@GET
 	@Path("/answers/{sourceCode}/{targetCode}/{attributeCode}/{value}")
 	@ApiOperation(value = "answer", notes = "quick answer")
@@ -432,7 +493,8 @@ public class ServiceEndpoint {
 
 				service.insert(answerArray);
 				result = (BaseEntity) em
-						.createQuery("SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
+						.createQuery(
+								"SELECT be FROM BaseEntity be JOIN  be.baseEntityAttributes ea where be.code=:code")
 						.setParameter("code", targetCode).getSingleResult();
 			}
 
@@ -478,7 +540,8 @@ public class ServiceEndpoint {
 	@Path("/gps/{origin}/{destination}/distance/{percentage}")
 	@Produces("application/json")
 	public Response fetchCurrentRouteStatusByPercentageDistance(@PathParam("origin") final String originAddress,
-			@PathParam("destination") final String destinationAddress, @PathParam("percentage") final Double percentage) {
+			@PathParam("destination") final String destinationAddress,
+			@PathParam("percentage") final Double percentage) {
 		String json = null;
 		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 
@@ -573,11 +636,13 @@ public class ServiceEndpoint {
 			// Why did I make this mandatory? ACC
 			Properties properties = new Properties();
 			try {
-				properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
+				properties.load(
+						Thread.currentThread().getContextClassLoader().getResource("git.properties").openStream());
 			} catch (IOException e) {
 
 			}
-			log.info("Sending rulegroup - " + rulegroup + " from " + securityService.getUserMap().get("prefered_username"));
+			log.info("Sending rulegroup - " + rulegroup + " from "
+					+ securityService.getUserMap().get("prefered_username"));
 			QEventSystemMessage event = new QEventSystemMessage("FOCUS_RULE_GROUP", properties, token);
 			event.getData().setValue(rulegroup);
 
@@ -661,11 +726,12 @@ public class ServiceEndpoint {
 									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
 
 									try {
-										String keycloakUserId = KeycloakUtils.createUser(serviceToken, securityService.getRealm(),
-												newUsername, newFirstname, newLastname, newEmail);
+										String keycloakUserId = KeycloakUtils.createUser(serviceToken,
+												securityService.getRealm(), newUsername, newFirstname, newLastname,
+												newEmail);
 										log.info("KEYCLOAK USER ID: " + keycloakUserId);
-										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(), "PRI_KEYCLOAK_UUID",
-												keycloakUserId);
+										Answer keycloakIdAnswer = new Answer(be.getCode(), be.getCode(),
+												"PRI_KEYCLOAK_UUID", keycloakUserId);
 										be.addAnswer(keycloakIdAnswer);
 										service.updateWithAttributes(be);
 									} catch (IOException e) {
@@ -789,8 +855,8 @@ public class ServiceEndpoint {
 			@DefaultValue("layouts.git") @QueryParam("project") final String project,
 			@DefaultValue("genny") @QueryParam("realm") final String realm,
 			@DefaultValue("master") @QueryParam("branch") final String branch)
-			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException, RevisionSyntaxException,
-			AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException,
+			RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
 
 		String ret = "Synced";
 
@@ -808,9 +874,10 @@ public class ServiceEndpoint {
 
 			// V1
 
-			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, "genny/sublayouts", true); // get
-																																																											// common
-																																																											// layouts
+			List<BaseEntity> gennyLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, "genny/sublayouts",
+					true); // get
+							// common
+							// layouts
 
 			log.info("about to synch sublayouts for genny");
 			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts, false);
@@ -818,7 +885,8 @@ public class ServiceEndpoint {
 			VertxUtils.writeCachedJson(securityService.getRealm(), "GENNY-V1-LAYOUTS", JsonUtils.toJson(v1messages),
 					service.getToken());
 
-			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "/sublayouts", true);
+			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "/sublayouts",
+					true);
 			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts, false);
 			log.info("writing to cache " + realm.toUpperCase() + "-V1-LAYOUTS");
 			VertxUtils.writeCachedJson(securityService.getRealm(), realm.toUpperCase() + "-V1-LAYOUTS",
@@ -969,8 +1037,8 @@ public class ServiceEndpoint {
 	@Path("/export/{table}/{realm}")
 	@Transactional
 	public Response exportRealm(@PathParam("table") final String tableStr, @PathParam("realm") final String realmStr)
-			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException, RevisionSyntaxException,
-			AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+			throws BadDataException, InvalidRemoteException, TransportException, GitAPIException,
+			RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
 
 		String ret = "";
 		String realm = realmStr.toLowerCase().trim(); // TODO, check if realm is real
@@ -992,7 +1060,8 @@ public class ServiceEndpoint {
 				// final String placeholder = (String) object.get("placeholder");
 				// final String defaultValue = (String) object.get("defaultValue");
 				// BaseEntitys
-				List<Attribute> attributes = em.createQuery("SELECT distinct att FROM Attribute att  where att.realm=:realm")
+				List<Attribute> attributes = em
+						.createQuery("SELECT distinct att FROM Attribute att  where att.realm=:realm")
 						.setParameter("realm", realm).getResultList();
 
 				// code name datatype Hint (Example Associated BaseEntity) privacy description
@@ -1049,8 +1118,9 @@ public class ServiceEndpoint {
 				// VLD_SELECT_EDU_PROVIDER dropdown .* GRP_EDU_PROVIDER_SELECTION FALSE
 				ret = "\"code\",\"name\",\"regex\",\"group_codes\",\"recursive\",\"multi_allowed\"\n";
 				for (Validation a : vlds) {
-					ret += cell(a.getCode()) + cell(a.getName()) + cell(a.getRegex()) + cell(a.getSelectionBaseEntityGroupList())
-							+ cell(a.getRecursiveGroup()) + cell(a.getMultiAllowed())
+					ret += cell(a.getCode()) + cell(a.getName()) + cell(a.getRegex())
+							+ cell(a.getSelectionBaseEntityGroupList()) + cell(a.getRecursiveGroup())
+							+ cell(a.getMultiAllowed())
 
 							+ "\n";
 				}
@@ -1141,7 +1211,7 @@ public class ServiceEndpoint {
 		return Response.status(401).entity("You need to be a test.").build();
 
 	}
-	
+
 	@GET
 	@Consumes("application/json")
 	@Path("/executehql/{hql}")
@@ -1150,21 +1220,19 @@ public class ServiceEndpoint {
 	public Response executeHQL(@PathParam("hql") final String hql) {
 
 		log.info("Execute " + hql);
-		if (securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || GennySettings.devMode) {
+		if (securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			Long result = 0L;
 			String realm = securityService.getRealm();
-			String hql2 =URLDecoder.decode(hql);
-	
+			String hql2 = URLDecoder.decode(hql);
+
 			try {
 				result = (long) em
 
 						.createQuery(hql2).executeUpdate();
-			} catch (Exception e)
-			{
+			} catch (Exception e) {
 				log.error("Error in executing hql for realm " + realm + " " + e.getLocalizedMessage());
 				return Response.status(401).entity("Query did not work.").build();
-				
+
 			}
 
 			return Response.status(200).build();
@@ -1172,7 +1240,7 @@ public class ServiceEndpoint {
 			return Response.status(401).build();
 		}
 	}
-	
+
 	@GET
 	@Consumes("application/json")
 	@Path("/executesql/{sql}")
@@ -1180,29 +1248,27 @@ public class ServiceEndpoint {
 	@Transactional
 	public Response executeSQL(@PathParam("sql") final String sql) {
 
-		log.info("Roles "+(securityService.inRole("service")?"SERVICE":"NOT SERVICE"));
-		if (securityService.inRole("service") || securityService.inRole("superadmin")
-				|| securityService.inRole("dev") || GennySettings.devMode) {
+		log.info("Roles " + (securityService.inRole("service") ? "SERVICE" : "NOT SERVICE"));
+		if (securityService.inRole("service") || securityService.inRole("superadmin") || securityService.inRole("dev")
+				|| GennySettings.devMode) {
 			String realm = securityService.getRealm();
 			try {
 				Long result = 0L;
-				String sql2 = URLDecoder.decode(sql,"UTF-8");
-				
+				String sql2 = URLDecoder.decode(sql, "UTF-8");
 
 				log.info("Execute " + sql2);
-				Query q = em.createNativeQuery(
-						sql2);
+				Query q = em.createNativeQuery(sql2);
 				result = (long) q.executeUpdate();
 				return Response.status(200).build();
 			} catch (Exception e) {
 				log.error("Error in executing sql for realm " + realm + " " + e.getLocalizedMessage());
 				return Response.status(401).entity("Query did not work.").build();
 			}
-	
+
 		} else {
 			log.warn("Disallowed role");
 			return Response.status(401).build();
 		}
 	}
-	
+
 }

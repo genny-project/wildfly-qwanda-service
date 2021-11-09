@@ -53,6 +53,8 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.security.SecureResources;
 import life.genny.utils.VertxUtils;
+import life.genny.utils.RulesUtils;
+import life.genny.models.GennyToken;
 
 
 
@@ -304,6 +306,14 @@ public class StartupService {
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		  
+		  for (String realm : realms) {
+				String accessToken = serviceTokens.getServiceToken(realm);
+				GennyToken serviceToken = new GennyToken(accessToken);
+			  RulesUtils.loadAllAttributesIntoCache(serviceToken);
+		  }
+		  
+		  
 		}
     }
     
