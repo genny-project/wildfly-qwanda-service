@@ -345,6 +345,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys")
 	@Transactional
 	public Response create(final BaseEntity entity) {
+		log.info("Inserting BE of code " + entity.getCode());	
 		Long ret = service.insert(entity);
 		return Response.status(200).entity(ret).build();
 	}
