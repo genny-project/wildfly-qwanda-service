@@ -1236,9 +1236,10 @@ public class StartupService {
 
 
             return ret;
-        } catch (Exception e) {
-            log.error("Attributes API not available");
-        }
+		} catch (Exception e) {
+			log.error("Attributes API not available, exception:" + e.getMessage());
+			e.printStackTrace();
+		}
         return null;
     }
 }
