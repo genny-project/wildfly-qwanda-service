@@ -345,6 +345,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys")
 	@Transactional
 	public Response create(final BaseEntity entity) {
+		log.info("Inserting BE of code " + entity.getCode());	
 		Long ret = service.insert(entity);
 		return Response.status(200).entity(ret).build();
 	}
@@ -1654,12 +1655,13 @@ public class QwandaEndpoint {
 
 		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
 
-		if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
-				|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
+		// if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
+		// 		|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
 
-			BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
-			be.setName(baseEntity.getName());
-			be.setStatus(baseEntity.getStatus());
+		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
+		be.setName(baseEntity.getName());
+		be.setStatus(baseEntity.getStatus());
+		log.info("Setting baseEntity status of " + baseEntity.getCode() + " to " + baseEntity.getStatus().name());
 
 			// only update an entity Attribute if it has changed
 //		Set<EntityAttribute> newEas = new HashSet<>();
@@ -1690,15 +1692,15 @@ public class QwandaEndpoint {
 //
 //		be.getBaseEntityAttributes().addAll(newEas);
 
-			if (baseEntity.getBaseEntityAttributes() != null) {
-				be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
-			}
-			Long result = service.update(be);
-
-			return Response.status(200).entity(result).build();
-		} else {
-			return Response.status(401).build();
+		if (baseEntity.getBaseEntityAttributes() != null) {
+			be.setBaseEntityAttributes(baseEntity.getBaseEntityAttributes());
 		}
+		Long result = service.update(be);
+
+		return Response.status(200).entity(result).build();
+		// } else {
+		// 	return Response.status(401).build();
+		// }
 	}
 
 	@PUT
