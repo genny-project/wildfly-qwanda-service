@@ -8,7 +8,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -23,6 +25,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.jboss.ejb3.annotation.TransactionTimeout;
@@ -51,8 +55,14 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
 import life.genny.utils.VertxUtils;
+import life.genny.utils.RulesUtils;
+import life.genny.models.GennyToken;
+import life.genny.qwanda.message.QDataAttributeMessage;
+import org.apache.commons.lang3.StringUtils;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 
@@ -301,9 +311,21 @@ public class StartupService {
             .collect(Collectors.toList());
 
 		// Push the list of active realms
+        log.info("Now processing the realm attributes...");
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
+          log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		  
+		  for (String realm : realms) {
+			   log.info("Now loading in the attributes for realm "+realm);
+				String accessToken = serviceTokens.getServiceToken(realm);
+				GennyToken serviceToken = new GennyToken(accessToken);
+				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
+			  loadAllAttributesIntoCache(serviceToken);
+		  }
+		  
+		  
 		}
     }
     
@@ -337,11 +359,22 @@ public class StartupService {
             .collect(Collectors.toList());
 
 		// Push the list of active realms
+        log.info("Now processing the realm attributes...");
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
+          log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
-		}
-    }
+		  
+		  for (String realm : realms) {
+			   log.info("Now loading in the attributes for realm "+realm);
+				String accessToken = serviceTokens.getServiceToken(realm);
+				GennyToken serviceToken = new GennyToken(accessToken);
+				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
+			  loadAllAttributesIntoCache(serviceToken);
+		  }
+		  
+		  
+		}    }
 
 	@PostConstruct
 	@Transactional
@@ -399,6 +432,7 @@ public class StartupService {
 		if (GennySettings.loadDdtInStartup /*&& noskip*/) {
 			log.info("Pushing to DTT  ");
 			rx.getDataUnits().forEach(this::pushToDTT);
+			log.info("Finished Pushing to DTT  ");
 		} else {
 			if (!noskip) {
 				log.info("Skipping the pushing of baseentities into cache due to SKIPBOOTXPORT");
@@ -409,13 +443,28 @@ public class StartupService {
 		// Clone from GitHub
 		String branch = "master";
 		rx.getDataUnits().forEach(this::setEnabledRealm);
-		securityService.setImportMode(false);
 
 		// Push the list of active realms
+		// Push the list of active realms
+        log.info("Now processing the realm attributes...");
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
+          log.info("Now saving the realm array to cache ["+realmsJson+"]");
 		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
-		}
+		  
+//		  for (String realm : realms) {
+//			   log.info("Now loading in the attributes for realm "+realm);
+//				String accessToken = serviceTokens.getServiceToken(realm);
+//				GennyToken serviceToken = new GennyToken(accessToken);
+//				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
+//			  loadAllAttributesIntoCache(serviceToken);
+//		  }
+		  
+		  
+		}		
+		securityService.setImportMode(false);
+
+		
 		double difference = ( System.nanoTime() - startTime) / 1e9; // get s
 
 		log.info("---------------- Completed Startup in "+difference+" sec ----------------");
@@ -729,8 +778,10 @@ public class StartupService {
 
 	public void pushToDTT(RealmUnit realmUnit) {
 		// Attributes
-		log.info("Pushing Attributes to Cache");
+		String realmCode = realmUnit.getCode();
+		log.info("Pushing Attributes to Cache for realm "+realmCode);
 		final List<Attribute> entitys = service.findAttributes();
+		log.info("Pushing " + entitys.size() + " attributes to cache for realm "+realmCode);
 		Attribute[] atArr = new Attribute[entitys.size()];
 		atArr = entitys.toArray(atArr);
 		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
@@ -738,7 +789,19 @@ public class StartupService {
 		service.writeToDDT("attributes", json);
 		log.info("Pushed " + entitys.size() + " attributes to cache");
 
-		String realmCode = realmUnit.getCode();
+		
+		
+		
+		  if (!RulesUtils.realmAttributeMap.containsKey(realmCode)) {
+          	RulesUtils.realmAttributeMap.put(realmCode, new ConcurrentHashMap<String,Attribute>());
+          }
+          Map<String,Attribute> attributeMap = RulesUtils.realmAttributeMap.get(realmCode);
+
+          for (Attribute attribute : atArr) {
+              attributeMap.put(attribute.getCode(), attribute);
+          }
+		log.info("Completed loading attributes into RulesUtils.realmAttributeMap for realm "+realmCode);
+		
 		// BaseEntitys
 //		List<BaseEntity> results = em
 //				.createQuery("SELECT distinct be FROM BaseEntity be JOIN  be.baseEntityAttributes ea ").getResultList();
@@ -1124,4 +1187,58 @@ public class StartupService {
 			return jsonOb.getString("value").equals(jsonString);
 		}
 	}
+	
+    public QDataAttributeMessage loadAllAttributesIntoCache(final GennyToken token) {
+        try {
+            boolean cacheWorked = false;
+            QDataAttributeMessage ret = null;
+            String realm = token.getRealm();
+            log.info("All the attributes about to become loaded ... for realm "+realm);
+                 log.info("LOADING ATTRIBUTES FROM API");
+ //               String jsonString = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/attributes", token.getToken());
+        		final List<Attribute> entitys = service.findAttributes();
+        		
+        		Attribute[] atArr = new Attribute[entitys.size()];
+        		atArr = entitys.toArray(atArr);
+        		QDataAttributeMessage msg = new QDataAttributeMessage(atArr);
+        		msg.setToken(securityService.getToken());
+        		String jsonString = JsonUtils.toJson(msg);
+
+                if (!StringUtils.isBlank(jsonString)) {
+
+                	 VertxUtils.writeCachedJson(token.getRealm(), "attributes", jsonString, token.getToken());
+                	 
+                	 QDataAttributeMessage attMsg  = JsonUtils.fromJson(jsonString, QDataAttributeMessage.class);
+                	 ret = attMsg;
+                    Attribute[] attributeArray = attMsg.getItems();
+ 
+                    if (!RulesUtils.realmAttributeMap.containsKey(realm)) {
+                    	RulesUtils.realmAttributeMap.put(realm, new ConcurrentHashMap<String,Attribute>());
+                    }
+                    Map<String,Attribute> attributeMap = RulesUtils.realmAttributeMap.get(realm);
+      
+                    for (Attribute attribute : attributeArray) {
+                        attributeMap.put(attribute.getCode(), attribute);
+                    }
+                   // realmAttributeMap.put(realm, attributeMap);
+                   
+                    if (!RulesUtils.defAttributesMap.containsKey(realm)) {
+                  //  	setUpDefs(token);                    	
+                    }
+                    ret = RulesUtils.defAttributesMap.get(realm);
+                    
+                    ret.setToken(token.getToken());
+
+                   log.info("All the attributes have been loaded from api in" + attributeMap.size() + " attributes");
+                } else {
+                    log.error("NO ATTRIBUTES LOADED FROM API");
+                }
+
+
+            return ret;
+        } catch (Exception e) {
+            log.error("Attributes API not available");
+        }
+        return null;
+    }
 }

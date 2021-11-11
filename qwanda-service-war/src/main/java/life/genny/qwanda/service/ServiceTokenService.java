@@ -242,12 +242,12 @@ public class ServiceTokenService {
 			 * we get a secure token payload containing a refresh token and an access token
 			 */
 			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakUrl, realm, realm, secret,
-					"service", password, cached_refresh_token);
-
+					"service", password, null/*cached_refresh_token*/);
+			log.info("Got to here after getting secureTokenPayload");
 			/* we get the access token and the refresh token */
 			String access_token = secureTokenPayload.getString("access_token");
 			String refresh_token = secureTokenPayload.getString("refresh_token");
-
+			log.info("Got to here2  after getting secureTokenPayload");
 			/* if we have an access token */
 			if (access_token != null) {
 
