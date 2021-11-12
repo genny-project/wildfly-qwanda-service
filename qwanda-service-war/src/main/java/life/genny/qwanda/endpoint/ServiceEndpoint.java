@@ -1324,7 +1324,8 @@ public class ServiceEndpoint {
 
             return ret;
         } catch (Exception e) {
-            log.error("Attributes API not available");
+            log.error("Attributes API not available, exception:" + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }

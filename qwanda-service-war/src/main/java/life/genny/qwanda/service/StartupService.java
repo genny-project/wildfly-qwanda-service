@@ -315,7 +315,7 @@ public class StartupService {
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
           log.info("Now saving the realm array to cache ["+realmsJson+"]");
-		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson,serviceTokens.getToken(realms.get(0)));
 		  
 		  for (String realm : realms) {
 			   log.info("Now loading in the attributes for realm "+realm);
@@ -363,7 +363,7 @@ public class StartupService {
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
           log.info("Now saving the realm array to cache ["+realmsJson+"]");
-		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson,serviceTokens.getToken(realms.get(0)));
 		  
 		  for (String realm : realms) {
 			   log.info("Now loading in the attributes for realm "+realm);
@@ -450,7 +450,7 @@ public class StartupService {
 		if(!(realms.size() == 0)) {
           String realmsJson = JsonUtils.toJson(realms);
           log.info("Now saving the realm array to cache ["+realmsJson+"]");
-		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson);
+		  VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "REALMS", realmsJson,serviceTokens.getToken(realms.get(0)));
 		  
 //		  for (String realm : realms) {
 //			   log.info("Now loading in the attributes for realm "+realm);
@@ -1130,7 +1130,7 @@ public class StartupService {
 				String token = serviceTokens.getServiceToken(realm); // be.getValue("ENV_SERVICE_TOKEN", "DUMMY");
 
 				// log.info(be.getRealm() + ":" + be.getCode() + ":token=" + token);
-				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token);
+				VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, "TOKEN" + realm.toUpperCase(), token,token);
 				VertxUtils.putObject(realm, "CACHE", "SERVICE_TOKEN", token);
 				String[] urls = urlList.split(",");
 				log.info(String.format("DEBUG, Realm: %s has %d urls, they are:%s", realm, urls.length, Arrays.toString(urls)));
@@ -1143,7 +1143,7 @@ public class StartupService {
 						log.info("Writing to Cache: " + GennySettings.GENNY_REALM + ":" + cleanUrl.toUpperCase());
 						String keyString =  cleanUrl.toUpperCase();
 						String gennyRealm = GennySettings.GENNY_REALM;
-						VertxUtils.writeCachedJson(gennyRealm, keyString, JsonUtils.toJson(be));
+						VertxUtils.writeCachedJson(gennyRealm, keyString, JsonUtils.toJson(be),token);
 						JsonObject jsonOb = VertxUtils.readCachedJson(gennyRealm, keyString);
 						if (!checkWriteCache(jsonOb, JsonUtils.toJson(be))) {
 							log.error(String.format("Realm:%s, Key:%s not cached properly!",
@@ -1151,7 +1151,7 @@ public class StartupService {
 						}
 
 						keyString = "TOKEN" + cleanUrl.toUpperCase();
-						VertxUtils.writeCachedJson(gennyRealm, keyString, token);
+						VertxUtils.writeCachedJson(gennyRealm, keyString, token,token);
 						jsonOb = VertxUtils.readCachedJson(gennyRealm, keyString);
 						if (!checkWriteCache(jsonOb, token)) {
 							log.error(String.format("Realm:%s, Key:%s not cached properly!",
@@ -1236,9 +1236,10 @@ public class StartupService {
 
 
             return ret;
-        } catch (Exception e) {
-            log.error("Attributes API not available");
-        }
+		} catch (Exception e) {
+			log.error("Attributes API not available, exception:" + e.getMessage());
+			e.printStackTrace();
+		}
         return null;
     }
 }
