@@ -20,6 +20,7 @@ import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
 
 import life.genny.qwandautils.GennySettings;
+import life.genny.models.GennyToken;
 
 import life.genny.security.SecureResources;
 
@@ -39,45 +40,59 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		String realm = "genny";
 		String username = null;
 		String key = "genny.json";
+		GennyToken gennyToken = null;
 
 		if (request != null) {
 			try {
 				// Now check for a token
 
 				if (request.getHeader("Authorization") != null) {
-
+					log.info("request.getHeader(\"Authorization\") is not null!");
 					// extract the token
 					final String authTokenHeader = request.getHeader("Authorization");
+					log.info("authTokenHeader ="+authTokenHeader);
 					final String bearerToken = authTokenHeader.substring(7);
+					log.info("bearerToken ="+bearerToken);
+					
+					gennyToken = new GennyToken(bearerToken);
+					log.info(gennyToken);
 					// now extract the realm
-					JSONObject jsonObj = null;
-					String decodedJson = null;
-					try {
-						final String[] jwtToken = bearerToken.split("\\.");
-						final Base64 decoder = new Base64(true);
-						final byte[] decodedClaims = decoder.decode(jwtToken[1]);
-						decodedJson = new String(decodedClaims);
-						jsonObj = new JSONObject(decodedJson);
-					} catch (final JSONException e1) {
-						log.error(
-								"bearerToken=" + bearerToken + "  decodedJson=" + decodedJson + ":" + e1.getMessage());
-					}
-					try {
-						username = (String) jsonObj.get("preferred_username");
-		                String[] issArray = jsonObj.get("iss").toString().split("/");
-		                realm = issArray[issArray.length-1];
-						key = realm + ".json";
-					} catch (final JSONException e1) {
-						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
-					} catch (final NullPointerException e2) {
-						log.error("NullPointerException for " + bearerToken + "::::::" + username + ":" + decodedJson);
-					}
+//					JSONObject jsonObj = null;
+//					String decodedJson = null;
+//					try {
+//						final String[] jwtToken = bearerToken.split("\\.");
+//						final Base64 decoder = new Base64(true);
+//						final byte[] decodedClaims = decoder.decode(jwtToken[1]);
+//						decodedJson = new String(decodedClaims);
+//						jsonObj = new JSONObject(decodedJson);
+//					} catch (final Exception e1) {
+//						log.error(
+//								"bearerToken=" + bearerToken + "  decodedJson=" + decodedJson + ":" + e1.getMessage());
+//					}
+//					try {
+//						log.info("jsonObj="+jsonObj.toString());
+//						username = (String) jsonObj.get("preferred_username");
+//		                String[] issArray = jsonObj.get("iss").toString().split("/");
+//		                realm = issArray[issArray.length-1];
+//						key = realm + ".json";
+//						log.info("key="+key);
+//					} catch (final JSONException e1) {
+//						log.error("no customercode incuded with token for " + username + ":" + decodedJson);
+//					} catch (final NullPointerException e2) {
+//						log.error("NullPointerException for " + bearerToken + "::::::" + username + ":" + decodedJson);
+//					}
 
+					username = gennyToken.getUsername();
+					key = gennyToken.getRealm()+".json";
+					realm = gennyToken.getRealm();
+					log.info("key="+key);
+					
 				} else {
-
+					log.info("request.getURI()="+request.getURI());
 					if (request.getURI().equals("http://localhost:8080/version")) {
 						realm = GennySettings.mainrealm;
 					} else {
+						
 					aURL = new URL(request.getURI());
 					final String url = aURL.getHost();
 					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
@@ -100,7 +115,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		// don't bother showing Docker health checks
 		if (!request.getURI().equals("http://localhost:8080/version")) {
-			String logtext = ">>>>> INCOMING REALM IS " + realm + " :" + request.getURI() + ":" + request.getMethod()
+			String logtext = ">>>>> INCOMING REALM IS " + gennyToken.getRealm() + " :" + request.getURI() + ":" + request.getMethod()
 			+ ":" + request.getRemoteAddr();
 			if (!logtext.equals(lastlog)) {
 				log.debug(logtext);
@@ -111,7 +126,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			if (firstRealm.isPresent()) {
 				String kcStr = firstRealm.get();
 				final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(kcStr);
-
+				
 				final JSONObject json = new JSONObject(keycloakJsonText);
 				realm = json.getString("realm");
 				key = realm + ".json";
