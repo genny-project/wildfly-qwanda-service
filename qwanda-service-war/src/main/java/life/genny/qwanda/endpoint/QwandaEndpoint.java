@@ -1661,7 +1661,6 @@ public class QwandaEndpoint {
 		BaseEntity be = service.findBaseEntityByCode(baseEntity.getCode());
 		be.setName(baseEntity.getName());
 		be.setStatus(baseEntity.getStatus());
-		log.info("Setting baseEntity status of " + baseEntity.getCode() + " to " + baseEntity.getStatus().name());
 
 			// only update an entity Attribute if it has changed
 //		Set<EntityAttribute> newEas = new HashSet<>();
