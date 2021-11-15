@@ -33,6 +33,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 	private final Map<String, KeycloakDeployment> cache = new ConcurrentHashMap<String, KeycloakDeployment>();
 	private static String lastlog = "";
+	private static String LOCALHOSTVERSIONURL= "http://localhost:8080/version";
 
 	@Override
 	public KeycloakDeployment resolve(final OIDCHttpFacade.Request request) {
@@ -41,11 +42,12 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		String username = null;
 		String key = "genny.json";
 		GennyToken gennyToken = null;
+		String requestURI = "";
 
 		if (request != null) {
+			requestURI = request.getURI();
 			try {
 				// Now check for a token
-
 				if (request.getHeader("Authorization") != null) {
 					log.debug("request.getHeader(\"Authorization\") is not null!");
 					// extract the token
@@ -88,23 +90,22 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					log.debug("key="+key);
 					
 				} else {
-					log.debug("request.getURI()="+request.getURI());
-					if (request.getURI().equals("http://localhost:8080/version")) {
+					log.debug("request.getURI()="+ requestURI);
+					if (requestURI.equals(LOCALHOSTVERSIONURL)) {
 						realm = GennySettings.mainrealm;
 					} else {
-						
-					aURL = new URL(request.getURI());
-					final String url = aURL.getHost();
-					final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
-					if (keycloakJsonText==null) {
-						log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
-						
-					} else {
-					// extract realm
-					final JSONObject json = new JSONObject(keycloakJsonText);
-					realm = json.getString("realm");
-					key = realm + ".json";
-					}
+						aURL = new URL(requestURI);
+						final String url = aURL.getHost();
+						final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(url + ".json");
+						if (keycloakJsonText==null) {
+							log.error(url + ".json is NOT in qwanda-service Keycloak Map!");
+
+						} else {
+							// extract realm
+							final JSONObject json = new JSONObject(keycloakJsonText);
+							realm = json.getString("realm");
+							key = realm + ".json";
+						}
 					}
 				}
 
@@ -114,7 +115,11 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 		}
 
 		// don't bother showing Docker health checks
-		if (!request.getURI().equals("http://localhost:8080/version")) {
+		/*
+		service dropkick and lauchy will call qwanda service version endpoint to check if qwanda service up and running
+		without pass auth header
+		 */
+		if (!requestURI.equals(LOCALHOSTVERSIONURL) && gennyToken != null) {
 			String logtext = ">>>>> INCOMING REALM IS " + gennyToken.getRealm() + " :" + request.getURI() + ":" + request.getMethod()
 			+ ":" + request.getRemoteAddr();
 			if (!logtext.equals(lastlog)) {
@@ -159,9 +164,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			} catch (final UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
-
 		}
-
 		return deployment;
 	}
 
