@@ -49,15 +49,15 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			try {
 				// Now check for a token
 				if (request.getHeader("Authorization") != null) {
-					log.debug("request.getHeader(\"Authorization\") is not null!");
+					log.info("request.getHeader(\"Authorization\") is not null!");
 					// extract the token
 					final String authTokenHeader = request.getHeader("Authorization");
-					log.debug("authTokenHeader ="+authTokenHeader);
+					log.info("authTokenHeader ="+authTokenHeader);
 					final String bearerToken = authTokenHeader.substring(7);
-					log.debug("bearerToken ="+bearerToken);
+					log.info("bearerToken ="+bearerToken);
 					
 					gennyToken = new GennyToken(bearerToken);
-					log.debug(gennyToken);
+					log.info(gennyToken);
 					// now extract the realm
 //					JSONObject jsonObj = null;
 //					String decodedJson = null;
@@ -87,10 +87,10 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					username = gennyToken.getUsername();
 					key = gennyToken.getRealm()+".json";
 					realm = gennyToken.getRealm();
-					log.debug("key="+key);
+					log.info("key="+key);
 					
 				} else {
-					log.debug("request.getURI()="+ requestURI);
+					log.info("request.getURI()="+ requestURI);
 					if (requestURI.equals(LOCALHOSTVERSIONURL)) {
 						realm = GennySettings.mainrealm;
 					} else {
