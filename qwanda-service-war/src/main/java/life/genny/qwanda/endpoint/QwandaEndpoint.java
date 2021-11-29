@@ -599,6 +599,8 @@ public class QwandaEndpoint {
 				securityService.getToken());
 		Boolean allowed = false;
 		if (user == null) {
+			log.error("Can't find user, will return 401, realm:" + securityService.getRealm()
+			+ ", userCode:" + securityService.getUserCode() + ", token:" + securityService.getUserCode());
 			return Response.status(401).build();
 		} else {
 			allowed = user.getValue("PRI_IS ADMIN", false) || user.getValue("PRI_IS SUPERUSER", false)
@@ -612,6 +614,9 @@ public class QwandaEndpoint {
 					searchBE, false, false);
 			return Response.status(200).entity(result).build();
 		} else {
+			log.error("User:" + user.getCode() + " not allowed, allowed value is " + allowed
+			+ " userCode from securityService is " + securityService.getUserCode()
+			+ " return 401");
 			return Response.status(401).build();
 		}
 
