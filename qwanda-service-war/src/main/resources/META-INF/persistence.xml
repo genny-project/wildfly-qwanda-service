@@ -96,9 +96,9 @@
 
 			<!-- 2LC -->
 			<property name="hibernate.cache.use_second_level_cache"
-				value="true" />
+				value="false" />
 			<property name="hibernate.cache.use_query_cache"
-				value="true" />
+				value="false" />
 
 			<!-- <property name="cache.provider_class" value="org.hibernate.cache.NoCacheProvider" 
 				/> -->
