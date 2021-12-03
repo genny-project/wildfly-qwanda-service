@@ -110,7 +110,18 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				}
 
 			} catch (final Exception e) {
-				log.error("Error in accessing request.getURI , spi issue? "+e.getLocalizedMessage());
+				log.error("Error in accessing request.getURI:" + requestURI + " , spi issue?, exception: " + e.getLocalizedMessage());
+				String authTokenHeader = request.getHeader("Authorization");
+				String bearerToken = authTokenHeader.substring(7);
+				if(gennyToken !=null) {
+					username = gennyToken.getUsername();
+					key = gennyToken.getRealm()+".json";
+					realm = gennyToken.getRealm();
+					log.error(String.format("Request details: " + "uri:%s, " + "authTokenHeader:%s, " + "bearerToken:%s, " +
+									"userName:%s," + "key:%s," + "realm:%s",
+							requestURI, authTokenHeader, bearerToken, username, key, realm ));
+				}
+				e.printStackTrace();
 			}
 		}
 
