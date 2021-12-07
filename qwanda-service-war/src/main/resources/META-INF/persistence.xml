@@ -6,7 +6,6 @@
 
 	<persistence-unit name="genny-persistence-unit"
 		transaction-type="JTA">
-		<!-- <provider>org.hibernate.ejb.HibernatePersistence</provider> -->
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<jta-data-source>java:jboss/datasources/gennyDS</jta-data-source>
 		<!-- <mapping-file>ormap.xml</mapping-file> -->
@@ -54,11 +53,9 @@
 		<validation-mode>CALLBACK</validation-mode>
 
 		<properties>
-			<property name="shared-cache-mode" value="ALL" />
 			<property name="hibernate.dialect"
 				value="life.genny.qwanda.util.MySQL8DialectGenny" />
 			<property name="hibernate.connection.driver_class" value="com.mysql.cj.jdbc.Driver" />
-				
 			<property name="hibernate.connection.autocommit"
 				value="true" />
 			<property name="hibernate.max_fetch_depth" value="3" />
@@ -87,23 +84,10 @@
 			<!-- <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.MySQLSpatial56Dialect" 
 				/> -->
 			<!-- Infinispan -->
-			<property name="hibernate.cache.infinispan.statistics"
-				value="false" />
-			<property name="hibernate.cache.use_structured_entries"
-				value="false" />
 			<property name="javax.persistence.lock.timeout" value="100" />
 			<property name="javax.persistence.query.timeout" value="200" />
 
 			<!-- 2LC -->
-			<property name="hibernate.cache.use_second_level_cache"
-				value="false" />
-			<property name="hibernate.cache.use_query_cache"
-				value="false" />
-
-			<!-- <property name="cache.provider_class" value="org.hibernate.cache.NoCacheProvider" 
-				/> -->
-			<!-- <property name="hibernate.cache.region.factory_class" value="com.hazelcast.hibernate.HazelcastCacheRegionFactory" 
-				/> -->
 			<property name="hibernate.connection.pool_size" value="100" />
 			<property name="hibernate.c3p0.min_size" value="20" />
 			<property name="hibernate.c3p0.max_size" value="100" />
