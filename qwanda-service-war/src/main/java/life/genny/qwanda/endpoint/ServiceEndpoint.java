@@ -422,7 +422,18 @@ public class ServiceEndpoint {
 			log.info("Writing message : channel = [" + channel + "] for realm " + securityService.getRealm());
 			if ("answer".equals(channel)) {
 				try {
-				VertxUtils.eb.write("answer",data);
+					log.info("Writing answer:"+data);
+				//	VertxUtils.eb.write("answer",data);
+					JsonObject json = JsonUtils.fromJson(data,JsonObject.class);
+					String token = json.getString("token");
+					json.remove("token");
+					try {
+						QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
+								JsonUtils.toJson(json), token, null);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}	
+
 				} catch (Exception e) {
 					log.error("Exception in answer message");
 				}
