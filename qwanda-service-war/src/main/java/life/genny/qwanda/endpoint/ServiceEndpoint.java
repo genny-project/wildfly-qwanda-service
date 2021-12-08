@@ -420,7 +420,15 @@ public class ServiceEndpoint {
 		log.info("Write message to channel=" + channel);
 		if (securityService.inRole("service") ||securityService.inRole("superadmin") || securityService.inRole("dev") || GennySettings.devMode) {
 			log.info("Writing message : channel = [" + channel + "] for realm " + securityService.getRealm());
-			VertxUtils.writeMsg(channel,data);
+			if ("answer".equals(channel)) {
+				try {
+				VertxUtils.eb.write("answer",data);
+				} catch (Exception e) {
+					log.error("Exception in answer message");
+				}
+ 			} else {
+				VertxUtils.writeMsg(channel,data);
+			}
 			
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
