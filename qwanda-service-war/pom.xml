@@ -65,7 +65,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <kie.version>7.34.0.Final</kie.version>
-        <version.keycloak>15.0.2</version.keycloak>
+        <version.keycloak>15.1.1</version.keycloak>
 
         <version.ee7>1.0.2.Final</version.ee7>
         <version.resteasy>3.0.10.Final</version.resteasy>
