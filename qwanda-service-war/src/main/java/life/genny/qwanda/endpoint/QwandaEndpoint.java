@@ -345,7 +345,7 @@ public class QwandaEndpoint {
 	@Path("/baseentitys")
 	@Transactional
 	public Response create(final BaseEntity entity) {
-		log.info("Inserting BE of code " + entity.getCode());	
+		log.info("Inserting baseEntity " + entity.getCode() + ":" + entity.getName() + ",status:" + entity.getStatus().name());
 		Long ret = service.insert(entity);
 		return Response.status(200).entity(ret).build();
 	}
@@ -1658,7 +1658,7 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response updateBaseEntity(final BaseEntity baseEntity) {
 
-		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName());
+		log.info("Updating  baseEntity " + baseEntity.getCode() + ":" + baseEntity.getName() + ",status:" + baseEntity.getStatus().name());
 
 		// if (securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("service")
 		// 		|| securityService.inRole("test") || securityService.inRole("dev")) { // TODO Remove the true!
