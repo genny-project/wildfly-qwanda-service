@@ -134,7 +134,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			String logtext = ">>>>> INCOMING REALM IS " + gennyToken.getRealm() + " :" + request.getURI() + ":" + request.getMethod()
 			+ ":" + request.getRemoteAddr();
 			if (!logtext.equals(lastlog)) {
-				log.debug(logtext);
+				log.info(logtext);
 				lastlog = logtext;
 			}
 		} else {
