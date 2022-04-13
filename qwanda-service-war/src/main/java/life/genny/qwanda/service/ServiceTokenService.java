@@ -224,8 +224,8 @@ public class ServiceTokenService {
 		String initVector = GennySettings.dynamicInitVector(realm);
 		String password = null;
 
-		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword);
-		password = SecurityUtils.decrypt(key, initVector, encryptedPassword);
+		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() +"]");
+		password = SecurityUtils.decrypt(key, initVector, encryptedPassword.trim());
 
 		log.info("password=" + password);
 
