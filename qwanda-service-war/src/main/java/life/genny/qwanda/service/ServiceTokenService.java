@@ -70,7 +70,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import life.genny.bootxport.bootx.RealmUnit;
 
-
 @ApplicationScoped
 
 public class ServiceTokenService {
@@ -84,50 +83,49 @@ public class ServiceTokenService {
 	@Inject
 	private SecureResources secureResources;
 
-	public void init(Map<String,Map> projects) {
+	public void init(Map<String, Map> projects) {
 		log.info("Initialising Service Tokens ");
-	
-		for (String projectCode : projects.keySet()) {
-			Map<String,Object> project = projects.get(projectCode);
-			log.info("Project: "+projects.get(projectCode));
 
-			if ("FALSE".equals((String)project.get("disable"))) {
+		for (String projectCode : projects.keySet()) {
+			Map<String, Object> project = projects.get(projectCode);
+			log.info("Project: " + projects.get(projectCode));
+
+			if ("FALSE".equals((String) project.get("disable"))) {
 				String realm = projectCode;
-				String keycloakUrl = (String)project.get("keycloakUrl");
-				String secret = (String)project.get("clientSecret");
-				String key = (String)project.get("ENV_SECURITY_KEY");
-				String encryptedPassword = (String)project.get("ENV_SERVICE_PASSWORD");
+				String keycloakUrl = (String) project.get("keycloakUrl");
+				String secret = (String) project.get("clientSecret");
+				String key = (String) project.get("ENV_SECURITY_KEY");
+				String encryptedPassword = (String) project.get("ENV_SERVICE_PASSWORD");
 				String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
-		
-				serviceTokens.put(projectCode,realmToken);
+
+				serviceTokens.put(projectCode, realmToken);
 			}
 		}
-		
+
 	}
 
 	public void init(RealmUnit multitenancy) {
 		log.info("Initialising Service Tokens ");
-		 
-			log.info("Project: "+multitenancy.getName());
 
-			if (!multitenancy.getDisable()) {
-				String realm = multitenancy.getCode();
-				String keycloakUrl = multitenancy.getKeycloakUrl();
-				String secret = multitenancy.getClientSecret();
-				String key = multitenancy.getSecurityKey();
-				String encryptedPassword = multitenancy.getServicePassword();
-				String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
-		
-				serviceTokens.put(multitenancy.getCode(),realmToken);
-			}
-		
-		
+		log.info("Project: " + multitenancy.getName());
+
+		if (!multitenancy.getDisable()) {
+			String realm = multitenancy.getCode();
+			String keycloakUrl = multitenancy.getKeycloakUrl();
+			String secret = multitenancy.getClientSecret();
+			String key = multitenancy.getSecurityKey();
+			String encryptedPassword = multitenancy.getServicePassword();
+			String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
+
+			serviceTokens.put(multitenancy.getCode(), realmToken);
+		}
+
 	}
 
 	public String getToken(String realm) {
 		return getServiceToken(realm); // I keep forgetting the name of the function so I'm creating this
 	}
-	
+
 	public String getServiceToken(String realm) {
 		/* we get the service token currently stored in the cache */
 
@@ -214,8 +212,9 @@ public class ServiceTokenService {
 
 	public String generateServiceToken(String realm, final String keycloakUrl, final String secret,
 			final String key, final String encryptedPassword) {
-				// TODO: FIX THIS
-				realm = "internmatch";
+		// TODO: FIX THIS
+		realm = "internmatch";
+		String clientId = System.getenv("PROJECT_REALM");
 
 		log.info("Generating Service Token for " + realm);
 
@@ -224,13 +223,13 @@ public class ServiceTokenService {
 		String initVector = GennySettings.dynamicInitVector(realm);
 		String password = null;
 
-		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() +"]");
+		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() + "]");
 		password = SecurityUtils.decrypt(key, initVector, encryptedPassword.trim());
 
 		log.info("password=" + password);
 
 		try {
-			log.info("realm()! : " + realm + "\n" + "realm! : " + realm + "\n" + "secret : " + secret + "\n"
+			log.info("realm : " + realm + "\n" + "clientId : " + clientId + "\n" + "secret : [" + secret + "]\n"
 					+ "keycloakurl: " + keycloakUrl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
 					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
@@ -243,8 +242,8 @@ public class ServiceTokenService {
 			/*
 			 * we get a secure token payload containing a refresh token and an access token
 			 */
-			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakUrl, realm, realm, secret,
-					"service", password, null/*cached_refresh_token*/);
+			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakUrl, realm, clientId, secret,
+					"service", password, null/* cached_refresh_token */);
 			log.info("Got to here after getting secureTokenPayload");
 			/* we get the access token and the refresh token */
 			String access_token = secureTokenPayload.getString("access_token");
