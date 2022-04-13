@@ -214,6 +214,8 @@ public class ServiceTokenService {
 
 	public String generateServiceToken(final String realm, final String keycloakUrl, final String secret,
 			final String key, final String encryptedPassword) {
+				// TODO: FIX THIS
+				realm = "internmatch";
 
 		log.info("Generating Service Token for " + realm);
 
