@@ -87,7 +87,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					username = gennyToken.getUsername();
 					key = gennyToken.getRealm()+".json";
 					realm = gennyToken.getRealm();
-					log.debug("key="+key);
+					log.info("key="+key);
 					
 				} else {
 					log.debug("request.getURI()="+ requestURI);
@@ -166,7 +166,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 				} else {
-					log.warn("Incorrect realm being used! - "+key);
+					log.info("Incorrect realm being used! - "+key);
 				}
 			} catch (final java.lang.RuntimeException ce) {
 				ce.printStackTrace();
