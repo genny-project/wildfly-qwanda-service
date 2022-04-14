@@ -88,8 +88,11 @@ public class SecurityService implements Serializable {
 	}
 
 	public String getRealm() {
-			 return ((KeycloakPrincipal)
-					 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
+		GennyToken gToken = new GennyToken(getToken());
+		return gToken.getRealm();
+
+			//  return ((KeycloakPrincipal)
+			// 		 request.getUserPrincipal()).getKeycloakSecurityContext().getRealm();
 
 	}
 
