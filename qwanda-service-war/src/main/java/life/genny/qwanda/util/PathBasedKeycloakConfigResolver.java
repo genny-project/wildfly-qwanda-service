@@ -57,7 +57,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					log.debug("bearerToken ="+bearerToken);
 					
 					gennyToken = new GennyToken(bearerToken);
-					log.debug(gennyToken);
+					log.info(gennyToken.getToken());
 					// now extract the realm
 //					JSONObject jsonObj = null;
 //					String decodedJson = null;
@@ -89,6 +89,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					realm = gennyToken.getRealm();
 					log.info(gennyToken.getToken());
 					log.info("key="+key);
+					log.info("url="+requestURI);
 					
 				} else {
 					log.debug("request.getURI()="+ requestURI);
