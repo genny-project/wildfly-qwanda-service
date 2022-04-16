@@ -172,7 +172,7 @@ public class ServiceTokenService {
 	}
 
 	public String generateServiceToken(String realm) {
-
+		
 		log.info("Generating Service Token for " + realm);
 
 		String jsonFile = realm + ".json";
@@ -202,7 +202,7 @@ public class ServiceTokenService {
 				realmJson.getString("auth-server-url").length() - "/auth".length());
 
 		String key = GennySettings.dynamicKey(jsonRealm);
-		String initVector = GennySettings.dynamicInitVector(jsonRealm);
+		String initVector = "PRJ_INTERNMATCH*"; //GennySettings.dynamicInitVector(jsonRealm); TODO: fix
 		String encryptedPassword = GennySettings.dynamicEncryptedPassword(jsonRealm);
 		String password = null;
 
@@ -256,7 +256,7 @@ public class ServiceTokenService {
 				refreshServiceTokens.put(realm, refresh_token);
 				return access_token;
 			}
-
+ 
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
