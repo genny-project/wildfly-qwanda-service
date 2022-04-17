@@ -57,7 +57,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					log.debug("bearerToken ="+bearerToken);
 					
 					gennyToken = new GennyToken(bearerToken);
-					log.debug(gennyToken);
+					log.info(gennyToken.getToken());
 					// now extract the realm
 //					JSONObject jsonObj = null;
 //					String decodedJson = null;
@@ -87,7 +87,9 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					username = gennyToken.getUsername();
 					key = gennyToken.getRealm()+".json";
 					realm = gennyToken.getRealm();
-					log.debug("key="+key);
+					log.info(gennyToken.getToken());
+					log.info("key="+key);
+					log.info("url="+requestURI);
 					
 				} else {
 					log.debug("request.getURI()="+ requestURI);
@@ -134,7 +136,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			String logtext = ">>>>> INCOMING REALM IS " + gennyToken.getRealm() + " :" + request.getURI() + ":" + request.getMethod()
 			+ ":" + request.getRemoteAddr();
 			if (!logtext.equals(lastlog)) {
-				log.debug(logtext);
+				log.info(logtext);
 				lastlog = logtext;
 			}
 		} else {
@@ -166,7 +168,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				deployment = KeycloakDeploymentBuilder.build(is);
 				cache.put(realm, deployment);
 				} else {
-					log.warn("Incorrect realm being used! - "+key);
+					log.info("Incorrect realm being used! - "+key);
 				}
 			} catch (final java.lang.RuntimeException ce) {
 				ce.printStackTrace();
