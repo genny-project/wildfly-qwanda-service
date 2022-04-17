@@ -9,20 +9,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.codec.binary.Base64;
+import life.genny.models.GennyToken;
+import life.genny.qwandautils.GennySettings;
+import life.genny.security.SecureResources;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
 
-import life.genny.qwandautils.GennySettings;
-import life.genny.models.GennyToken;
 
-import life.genny.security.SecureResources;
+
 
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 	/**
@@ -146,7 +144,10 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 				final String keycloakJsonText = SecureResources.getKeycloakJsonMap().get(kcStr);
 				
 				final JSONObject json = new JSONObject(keycloakJsonText);
-				realm = json.getString("realm");
+				realm = json.getString("resource");
+				if ("alyson".equals(realm)) {
+					realm="internmatch";
+				}
 				key = realm + ".json";
 
 			} else {

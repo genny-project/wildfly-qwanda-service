@@ -1,74 +1,25 @@
 package life.genny.qwanda.service;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Properties;
-import javax.annotation.PostConstruct;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.MultivaluedMap;
-import org.apache.logging.log4j.Logger;
-import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import io.vertx.core.json.JsonObject;
-import life.genny.qwanda.Link;
-import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.entity.BaseEntity;
-import life.genny.qwanda.entity.EntityEntity;
-import life.genny.qwanda.exception.BadDataException;
-import life.genny.qwanda.message.QDataAttributeMessage;
-import life.genny.qwanda.message.QDataBaseEntityMessage;
-import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
-import life.genny.qwanda.message.QEventLinkChangeMessage;
-import life.genny.qwanda.message.QEventSystemMessage;
-import life.genny.qwanda.util.PersistenceHelper;
-import life.genny.qwanda.util.WildFlyJmsQueueSender;
-import life.genny.qwanda.util.WildflyJms;
-import life.genny.qwandautils.GennySettings;
-import life.genny.qwandautils.JsonUtils;
-import life.genny.qwandautils.KeycloakUtils;
-import life.genny.qwandautils.QwandaUtils;
-import life.genny.qwandautils.SecurityUtils;
-import life.genny.security.SecureResources;
-import life.genny.services.BaseEntityService2;
-import life.genny.utils.VertxUtils;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-
-import org.json.JSONException;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.qwandautils.GennySettings;
+import life.genny.qwandautils.KeycloakUtils;
+import life.genny.qwandautils.SecurityUtils;
+import life.genny.security.SecureResources;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import life.genny.bootxport.bootx.RealmUnit;
+
+
+
 
 @ApplicationScoped
 
@@ -97,7 +48,7 @@ public class ServiceTokenService {
 				String key = (String) project.get("ENV_SECURITY_KEY");
 				String encryptedPassword = (String) project.get("ENV_SERVICE_PASSWORD");
 				String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
-
+				log.info("Putting "+projectCode+" into serviceTokens");
 				serviceTokens.put(projectCode, realmToken);
 			}
 		}
