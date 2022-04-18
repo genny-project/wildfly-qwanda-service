@@ -145,7 +145,7 @@ public class ServiceTokenService {
 		}
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		String secret = "nosecret";
-		if (realmJson.contains("credentials")) {
+		if (realmJson.containsKey("credentials")) {
 			JsonObject secretJson = realmJson.getJsonObject("credentials");
 			secret = secretJson.getString("secret");
 		}
