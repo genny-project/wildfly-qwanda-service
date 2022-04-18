@@ -144,8 +144,11 @@ public class ServiceTokenService {
 			}
 		}
 		JsonObject realmJson = new JsonObject(keycloakJson);
-		JsonObject secretJson = realmJson.getJsonObject("credentials");
-		String secret = secretJson.getString("secret");
+		String secret = "nosecret";
+		if (realmJson.contains("credentials")) {
+			JsonObject secretJson = realmJson.getJsonObject("credentials");
+			secret = secretJson.getString("secret");
+		}
 		String jsonRealm = realmJson.getString("realm");
 
 		// Now ask the bridge for the keycloak to use
