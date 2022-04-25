@@ -322,7 +322,7 @@ public class StartupService {
 				String accessToken = serviceTokens.getServiceToken(realm);
 				GennyToken serviceToken = new GennyToken(accessToken);
 				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
-			  loadAllAttributesIntoCache(serviceToken);
+			  loadAllAttributesIntoCache(realm,serviceToken);
 		  }
 		  
 		  
@@ -370,7 +370,7 @@ public class StartupService {
 				String accessToken = serviceTokens.getServiceToken(realm);
 				GennyToken serviceToken = new GennyToken(accessToken);
 				 log.info("Using serviceToken for  "+realm+" -> "+serviceToken);
-			  loadAllAttributesIntoCache(serviceToken);
+			  loadAllAttributesIntoCache(realm,serviceToken);
 		  }
 		  
 		  
@@ -1188,11 +1188,11 @@ public class StartupService {
 		}
 	}
 	
-    public QDataAttributeMessage loadAllAttributesIntoCache(final GennyToken token) {
+    public QDataAttributeMessage loadAllAttributesIntoCache(String realm,final GennyToken token) {
         try {
             boolean cacheWorked = false;
             QDataAttributeMessage ret = null;
-            String realm = token.getRealm();
+     
             log.info("All the attributes about to become loaded ... for realm "+realm);
                  log.info("LOADING ATTRIBUTES FROM API");
  //               String jsonString = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/attributes", token.getToken());
@@ -1209,6 +1209,7 @@ public class StartupService {
                 	 VertxUtils.writeCachedJson(token.getRealm(), "attributes", jsonString, token.getToken());
                 	 
                 	 QDataAttributeMessage attMsg  = JsonUtils.fromJson(jsonString, QDataAttributeMessage.class);
+                	  attMsg.setToken(token.getToken());
                 	 ret = attMsg;
                     Attribute[] attributeArray = attMsg.getItems();
  
@@ -1226,10 +1227,13 @@ public class StartupService {
                   //  	setUpDefs(token);                    	
                     }
                     ret = RulesUtils.defAttributesMap.get(realm);
+                    if (ret == null) {
+                    	ret = attMsg;
+                    }
                     
                     ret.setToken(token.getToken());
 
-                   log.info("All the attributes have been loaded from api in" + attributeMap.size() + " attributes");
+                   log.info("All the attributes have been loaded from api in " + attributeMap.size() + " attributes for realm "+realm);
                 } else {
                     log.error("NO ATTRIBUTES LOADED FROM API");
                 }
