@@ -53,7 +53,7 @@ import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
-
+import life.genny.models.GennyToken;
 /**
  * JAX-RS endpoint
  *
@@ -163,7 +163,8 @@ public class UtilsEndpoint {
 				String token = KeycloakUtils.getAccessToken(keycloakUrl, realm, realm,
 						secret, "service", service_password);
 				log.info("token = "+token);
-				QwandaUtils.apiPostEntity(GennySettings.vertxUrl, json.toString(), token);
+				GennyToken gennyToken = new GennyToken(token);
+				QwandaUtils.apiPostEntity(GennySettings.vertxUrl, json.toString(), gennyToken);
 				
 			} catch (Exception e) {
 				log.error("PRJ_" + realm.toUpperCase() + " attribute ENV_SERVICE_PASSWORD  is missing!");

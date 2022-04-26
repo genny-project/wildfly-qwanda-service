@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.models.GennyToken;
 
 public class InsertObservers {
 	/**
@@ -27,7 +28,8 @@ public class InsertObservers {
 		log.info("ATTRIBUTE CHANGE EVENT!" + event.getAnswer().getTargetCode() + ":" + event.getAnswer().getValue()
 				+ " -> was " + event.getOldValue());
 		try {
-			QwandaUtils.apiPostEntity(bridgeApi, JsonUtils.toJson(event), event.getToken());
+			GennyToken gennyToken = new GennyToken(event.getToken());
+			QwandaUtils.apiPostEntity(bridgeApi, JsonUtils.toJson(event), gennyToken);
 		} catch (IOException e) {
 
 			log.error("Error in posting to Vertx bridge:" + event.getAnswer().getTargetCode() + ":"

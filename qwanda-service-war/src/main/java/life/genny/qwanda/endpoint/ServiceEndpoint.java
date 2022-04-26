@@ -120,7 +120,7 @@ import life.genny.qwanda.service.ServiceTokenService;
 import life.genny.qwanda.message.QDataAttributeMessage;
 import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.ConcurrentHashMap;
-
+import life.genny.models.GennyToken;
 /**
  * JAX-RS endpoint
  *
@@ -352,7 +352,8 @@ public class ServiceEndpoint {
 			log.info("Reading from cache : key = [" + key + "]");
 			log.info("realm=[" + realm + "]");
 			// log.info("token=[" + service.getToken() + "]");
-			results = VertxUtils.readCachedJson(realm, key, service.getToken()).toString();
+			GennyToken gennyToken = new GennyToken(service.getToken());
+			results = VertxUtils.readCachedJson(realm, key, gennyToken).toString();
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
@@ -369,7 +370,8 @@ public class ServiceEndpoint {
 		if (securityService.inRole("service") || securityService.inRole("superadmin") || securityService.inRole("dev")
 				|| GennySettings.devMode) {
 			log.info("Writing into cache : key = [" + key + "] for realm " + securityService.getRealm());
-			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, service.getToken());
+			GennyToken gennyToken = new GennyToken(service.getToken());
+			VertxUtils.writeCachedJson(securityService.getRealm(), key, data, gennyToken);
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
@@ -386,8 +388,9 @@ public class ServiceEndpoint {
 		log.info("Cache Write for key=" + key + " at realm " + realm);
 		if (securityService.inRole("test") || securityService.inRole("service") || securityService.inRole("superadmin")
 				|| securityService.inRole("dev") || GennySettings.devMode) {
+			GennyToken gennyToken = new GennyToken(service.getToken());
 			log.info("Writing into cache : key = [" + key + "] for realm " + realm);
-			VertxUtils.writeCachedJson(realm, key, data, service.getToken());
+			VertxUtils.writeCachedJson(realm, key, data, gennyToken);
 		} else {
 			return Response.status(400).entity("Access not allowed").build();
 		}
@@ -427,9 +430,10 @@ public class ServiceEndpoint {
 					JsonObject json = JsonUtils.fromJson(data,JsonObject.class);
 					String token = json.getString("token");
 					json.remove("token");
+					GennyToken gennyToken = new GennyToken(token);
 					try {
 						QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
-								JsonUtils.toJson(json), token, null);
+								JsonUtils.toJson(json), gennyToken, null);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}	
@@ -671,7 +675,8 @@ public class ServiceEndpoint {
 
 			try {
 				String json = JsonUtils.toJson(event);
-				QwandaUtils.apiPostEntity(bridgeApi, json, token);
+				GennyToken gennyToken = new GennyToken(token);
+				QwandaUtils.apiPostEntity(bridgeApi, json, gennyToken);
 			} catch (Exception e) {
 				log.error("Error in posting link Change to JMS:" + event);
 			}
@@ -743,8 +748,8 @@ public class ServiceEndpoint {
 								if (optEmail.isPresent()) {
 									String newEmail = optEmail.get().getAsString();
 
-									String serviceToken = service.getServiceToken(securityService.getRealm());
-
+									String serviceTokenStr = service.getServiceToken(securityService.getRealm());
+									GennyToken serviceToken = new GennyToken(serviceTokenStr);
 									// Now check if it exists in keycloak
 									String keycloakUrl = service.getKeycloakUrl(securityService.getRealm());
 
@@ -838,8 +843,9 @@ public class ServiceEndpoint {
 		String response = "Failed";
 
 		try {
+			GennyToken gennyToken = new GennyToken(securityService.getToken());
 			response = QwandaUtils.apiGet(GennySettings.qwandaServiceUrl + "/qwanda/synchronizesheet/" + table,
-					securityService.getToken(), 240);
+					gennyToken, 240);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -905,15 +911,16 @@ public class ServiceEndpoint {
 			log.info("about to synch sublayouts for genny");
 			QDataSubLayoutMessage v1messages = synchLayouts(gennyLayouts, false);
 			log.info("writing to cache GENNY-V1-LAYOUTS");
+			GennyToken gennyToken = new GennyToken(service.getToken());
 			VertxUtils.writeCachedJson(securityService.getRealm(), "GENNY-V1-LAYOUTS", JsonUtils.toJson(v1messages),
-					service.getToken());
+					gennyToken);
 
 			List<BaseEntity> realmLayouts = GitUtils.getLayoutBaseEntitys(gitUrl, branch, realm, realm + "/sublayouts",
 					true);
 			QDataSubLayoutMessage v1realmmessages = synchLayouts(realmLayouts, false);
 			log.info("writing to cache " + realm.toUpperCase() + "-V1-LAYOUTS");
 			VertxUtils.writeCachedJson(securityService.getRealm(), realm.toUpperCase() + "-V1-LAYOUTS",
-					JsonUtils.toJson(v1realmmessages), service.getToken());
+					JsonUtils.toJson(v1realmmessages), gennyToken);
 
 			// Do V2
 
@@ -943,7 +950,7 @@ public class ServiceEndpoint {
 			QDataBaseEntityMessage msg = new QDataBaseEntityMessage(layouts.toArray(new BaseEntity[0]));
 			msg.setParentCode("GRP_LAYOUTS");
 			msg.setLinkCode("LNK_CORE");
-			VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg), service.getToken());
+			VertxUtils.writeCachedJson(realm, "V2-LAYOUTS", JsonUtils.toJson(msg), gennyToken);
 
 			log.info("Loaded in layouts for realm " + realm);
 			// genny/sublayouts ..
@@ -1039,7 +1046,8 @@ public class ServiceEndpoint {
 			}
 
 			String json = JsonUtils.toJson(newLayout);
-			VertxUtils.writeCachedJson(newLayout.getRealm(), newLayout.getCode(), json, service.getToken());
+			GennyToken gennyToken = new GennyToken(service.getToken());
+			VertxUtils.writeCachedJson(newLayout.getRealm(), newLayout.getCode(), json, gennyToken);
 			index++;
 
 		}
@@ -1312,8 +1320,8 @@ public class ServiceEndpoint {
         		String jsonString = JsonUtils.toJson(msg);
 
                 if (!StringUtils.isBlank(jsonString)) {
-
-                	 VertxUtils.writeCachedJson(token.getRealm(), "attributes", jsonString, token.getToken());
+                	
+                	 VertxUtils.writeCachedJson(token.getRealm(), "attributes", jsonString, token);
                 	 
                 	 QDataAttributeMessage attMsg  = JsonUtils.fromJson(jsonString, QDataAttributeMessage.class);
                 	 ret = attMsg;

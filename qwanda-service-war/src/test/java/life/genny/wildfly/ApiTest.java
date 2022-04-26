@@ -45,6 +45,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.models.GennyToken;
 
 public class ApiTest {
 	/**
@@ -117,9 +118,9 @@ public class ApiTest {
 				// return this column with this
 				// // header
 				searchBE.setValue(new AttributeText("PRI_LASTNAME", "LastName"), null, 1.5); // return this column
-
+				GennyToken gennyToken = new GennyToken(token);
 				String results = QwandaUtils.apiPostEntity(qwandaurl + "/qwanda/baseentitys/search",
-						JsonUtils.toJson(searchBE), token);
+						JsonUtils.toJson(searchBE), gennyToken);
 				log.info("Results=" + results);
 
 			} catch (BadDataException e) {
@@ -166,8 +167,9 @@ public class ApiTest {
 			JSONObject json = new JSONObject(accessTokenResponse);
 			String token = json.getString("access_token");
 			try {
+				GennyToken gennyToken = new GennyToken(token);
 				String ret = QwandaUtils.apiGet(
-						qwandaurl + "/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/PER_USER1", token);
+						qwandaurl + "/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/PER_USER1", gennyToken);
 				log.info(ret);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -297,8 +299,9 @@ public class ApiTest {
 			try {
 				// Add a new Link
 				Link newLink = new Link("GRP_USERS", "PER_USER1", "LNK_TEST", "1.2", new Double(3.14));
+				GennyToken gennyToken = new GennyToken(token);
 				String ret = QwandaUtils.apiPostEntity(qwandaurl + "/qwanda/entityentitys", gson.toJson(newLink),
-						token);
+						gennyToken);
 
 				// EntityEntity ee = gson.fromJson(ret, EntityEntity.class);
 
@@ -307,7 +310,7 @@ public class ApiTest {
 				// Update Link
 				Link updatedLink = new Link("GRP_USERS", "PER_USER1", "LNK_TEST", "1.3", new Double(6.14));
 				updatedLink.setChildColor("BLACK");
-				ret = QwandaUtils.apiPutEntity(qwandaurl + "/qwanda/entityentitys", gson.toJson(updatedLink), token);
+				ret = QwandaUtils.apiPutEntity(qwandaurl + "/qwanda/entityentitys", gson.toJson(updatedLink), gennyToken);
 				log.info("ret from link update is " + ret);
 				// ee = gson.fromJson(ret, EntityEntity.class);
 

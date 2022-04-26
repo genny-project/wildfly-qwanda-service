@@ -42,6 +42,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.jpa.QueryHints;
+import life.genny.models.GennyToken; 
 
 @RequestScoped
 
@@ -94,6 +95,12 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     @Override
     public String getToken() {
         return serviceTokens.getServiceToken(getRealm());
+    }
+    
+    public GennyToken getGennyToken()
+    {
+    	GennyToken gennyToken = new GennyToken(getToken());
+    	return gennyToken;
     }
 
     @Override
@@ -269,17 +276,17 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     @javax.ejb.Asynchronous
     public void writeToDDT(final BaseEntity be) {
         String json = JsonUtils.toJson(be);
-        VertxUtils.writeCachedJson(be.getRealm(), be.getCode(), json, getToken());
+        VertxUtils.writeCachedJson(be.getRealm(), be.getCode(), json, getGennyToken());
 
         if (be.getCode().startsWith("RUL_FRM_")) {
             // write themes and frames and ASKS ands MSG
             String priAsks = be.getValue("PRI_ASKS", "");
             if (!StringUtils.isBlank(priAsks)) {
-                VertxUtils.writeCachedJson(be.getRealm(), be.getCode().substring("RUL_".length()) + "_ASKS", priAsks, getToken());
+                VertxUtils.writeCachedJson(be.getRealm(), be.getCode().substring("RUL_".length()) + "_ASKS", priAsks, getGennyToken());
             }
             String priMsg = be.getValue("PRI_MSG", "");
             if (!StringUtils.isBlank(priMsg)) {
-                VertxUtils.writeCachedJson(be.getRealm(), be.getCode().substring("RUL_".length()) + "_MSG", priMsg, getToken());
+                VertxUtils.writeCachedJson(be.getRealm(), be.getCode().substring("RUL_".length()) + "_MSG", priMsg, getGennyToken());
             }
 
         }
@@ -287,14 +294,14 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
 
     public void clearCache() {
-        VertxUtils.clearCache(getRealm(), getToken());
+        VertxUtils.clearCache(getRealm(), getGennyToken());
     }
 
     @Override
     @javax.ejb.Asynchronous
     public void writeToDDT(final Question q) {
         String json = JsonUtils.toJson(q);
-        VertxUtils.writeCachedJson(q.getRealm(), q.getCode(), json, getToken());
+        VertxUtils.writeCachedJson(q.getRealm(), q.getCode(), json, getGennyToken());
     }
 
 
@@ -302,7 +309,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     @javax.ejb.Asynchronous
     public void writeToDDT(final String key, String jsonValue) {
 
-        VertxUtils.writeCachedJson(this.getRealm(), key, jsonValue, getToken());
+        VertxUtils.writeCachedJson(this.getRealm(), key, jsonValue, getGennyToken());
 
     }
 
@@ -314,7 +321,7 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
 
     @Override
     public String readFromDDT(final String key) {
-        return VertxUtils.readCachedJson(this.getRealm(), key, getToken()).toString();
+        return VertxUtils.readCachedJson(this.getRealm(), key, getGennyToken()).toString();
     }
 
     @Override

@@ -14,7 +14,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.QwandaUtils;
 import org.apache.logging.log4j.Logger;
-
+import life.genny.models.GennyToken;
 import java.lang.invoke.MethodHandles;
 
 @ApplicationScoped
@@ -40,8 +40,9 @@ public class AnswerListener {
 			log.debug("Kafka Answer: "+answer);
 		}
 		try {
+			GennyToken gennyToken = new GennyToken(token);
 			QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
-					JsonUtils.toJson(answer), token, null);
+					JsonUtils.toJson(answer), gennyToken, null);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	

@@ -87,7 +87,7 @@ import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 import life.genny.utils.VertxUtils;
 import life.genny.qwanda.EEntityStatus;
-
+import life.genny.models.GennyToken;
 /**
  * JAX-RS endpoint
  *
@@ -503,8 +503,9 @@ public class QwandaEndpoint {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
 		log.info("Search " + hql2 + " pageStart=" + pageStart + " , pageSize=" + pageSize);
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
@@ -522,7 +523,7 @@ public class QwandaEndpoint {
 				BaseEntity be = beMap.get(ea.getBaseEntityCode());
 				if (be == null) {
 					BaseEntity originalBe = VertxUtils.readFromDDT(securityService.getRealm(), ea.getBaseEntityCode(),
-							securityService.getToken());
+							gennyToken);
 					be = originalBe;
 					be.setBaseEntityAttributes(new HashSet<EntityAttribute>()); // we only want to send the returned eas
 				}
@@ -554,8 +555,10 @@ public class QwandaEndpoint {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
 		String hql2 = new String(decodedBytes);
 		log.info("Search " + hql2 + " pageStart=" + pageStart + " , pageSize=" + pageSize);
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
+
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
@@ -593,10 +596,12 @@ public class QwandaEndpoint {
 	public Response findBySearch25(final SearchEntity searchBE) {
 
 		log.info("Search " + searchBE.getCode());
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
+
 
 		// Force any user that is not admin to have to use their own code
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean allowed = false;
 		if (user == null) {
 			log.error("Can't find user, will return 401, realm:" + securityService.getRealm()
@@ -634,10 +639,11 @@ public class QwandaEndpoint {
 		 */
 
 		log.info("Fetch " + searchBE.getCode());
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
 
 		// Force any user that is not admin to have to use their own code
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
@@ -670,10 +676,11 @@ public class QwandaEndpoint {
 	public Response findBySearchEA25Count(final SearchEntity searchBE) {
 
 		log.info("Count " + searchBE.getCode());
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
 
 		// Force any user that is not admin to have to use their own code
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
@@ -701,9 +708,11 @@ public class QwandaEndpoint {
 	@Transactional
 	public Response findBySearchEA24Count(@PathParam("hql") final String hql) {
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(hql);
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
+
 		String hql2 = new String(decodedBytes);
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean allowed = false;
 		if (user == null) {
 			return Response.status(401).build();
@@ -731,9 +740,10 @@ public class QwandaEndpoint {
 	public Response findBySearchBE(final BaseEntity searchBE) {
 
 		log.info("Search " + searchBE + " securityService.getUserCode()=" + securityService.getUserCode());
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
 
 		BaseEntity user = VertxUtils.readFromDDT(securityService.getRealm(), securityService.getUserCode(),
-				securityService.getToken());
+				gennyToken);
 		Boolean isAllowed = false;
 		if (user == null) {
 			return Response.status(401).build();
@@ -813,6 +823,7 @@ public class QwandaEndpoint {
 	public Response findBySearchBE(final QSearchEntityMessage searchBE) {
 
 		log.info("Search " + searchBE);
+		GennyToken gennyToken = new GennyToken(securityService.getToken());
 
 		// Force any user that is not admin to have to use their own code
 		if (!(securityService.inRole("admin") || securityService.inRole("superadmin") || securityService.inRole("dev"))
@@ -1910,7 +1921,8 @@ public class QwandaEndpoint {
 			log.info("Keycloak User ID: " + keycloakUserId);
 			try {
 				if (keycloakUserId != null && code.startsWith("PER_")) {
-					KeycloakUtils.removeUser(service.getServiceToken(securityService.getRealm()),
+					GennyToken gennyToken = new GennyToken(service.getServiceToken(securityService.getRealm()));
+					KeycloakUtils.removeUser(gennyToken,
 							securityService.getRealm(), keycloakUserId);
 					Log.info("Successfully removed the user from keycloak");
 				} else {
