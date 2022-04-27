@@ -87,6 +87,11 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					username = gennyToken.getUsername();
 					key = gennyToken.getRealm()+".json";
 					realm = gennyToken.getRealm();
+					String projectRealm = CommonUtils.getSystemEnv("PROJECT_REALM");
+					if(projectRealm != null) {
+						log.warning("OVERRIDING GENNY TOKEN REALM WITH PROJECT REALM");
+						realm = projectRealm;
+					}
 					log.info(gennyToken.getToken());
 					log.info("key="+key);
 					log.info("url="+requestURI);
