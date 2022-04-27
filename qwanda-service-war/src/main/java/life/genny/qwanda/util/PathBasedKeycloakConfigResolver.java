@@ -155,15 +155,15 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 			}
 		}
 
-		KeycloakDeployment deployment = cache.get(realm);  // just get one
-		key = realm;
-
 
 		String projectRealm = getSystemEnv("PROJECT_REALM");
 		if(projectRealm != null) {
 			System.err.println("[!] PathBasedKeycloakConfigResolver (164): OVERRIDING GENNY TOKEN REALM WITH PROJECT REALM: " + projectRealm);
 			realm = projectRealm;
 		}
+
+		KeycloakDeployment deployment = cache.get(realm);  // just get one
+		key = realm;
 
 		if (null == deployment) {
 			InputStream is;
