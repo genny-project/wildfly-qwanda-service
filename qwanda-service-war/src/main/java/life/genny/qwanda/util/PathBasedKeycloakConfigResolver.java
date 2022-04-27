@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.logging.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.keycloak.adapters.KeycloakConfigResolver;
@@ -29,8 +29,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 	/**
 	 * Stores logger object.
 	 */
-	protected static final Logger log = org.apache.logging.log4j.LogManager
-			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+	protected static final Logger log = Logger.getLogger(PathBasedKeycloakConfigResolver.class);
 
 	private final Map<String, KeycloakDeployment> cache = new ConcurrentHashMap<String, KeycloakDeployment>();
 	private static String lastlog = "";
@@ -162,7 +161,7 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		String projectRealm = getSystemEnv("PROJECT_REALM");
 		if(projectRealm != null) {
-			log.warning("OVERRIDING GENNY TOKEN REALM WITH PROJECT REALM");
+			System.err.println("[!] PathBasedKeycloakConfigResolver (164): OVERRIDING GENNY TOKEN REALM WITH PROJECT REALM: " + projectRealm);
 			realm = projectRealm;
 		}
 

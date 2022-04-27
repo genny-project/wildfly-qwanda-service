@@ -20,11 +20,17 @@
 		<antrun-plugin-version>1.7</antrun-plugin-version>
 		<vertx.version>3.9.3</vertx.version>
 		<source.version>11</source.version>
+		<log4j-core-version>2.17.2</log4j-core-version>
 		<target.version>11</target.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j-core-version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.jboss.ejb3</groupId>
 				<artifactId>jboss-ejb3-ext-api</artifactId>
