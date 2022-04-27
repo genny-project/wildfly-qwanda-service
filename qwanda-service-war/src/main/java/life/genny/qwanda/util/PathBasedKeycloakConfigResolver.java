@@ -25,6 +25,35 @@ import life.genny.models.GennyToken;
 import life.genny.security.SecureResources;
 
 public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
+
+
+	// Putting this here because we just need the damn thing to work before we throw out the whole api
+
+
+    /**
+     * Fetch a System Environment Variable (Effectively {@link System#getenv()} but with logging). Will log if the environment variable is missing
+     * @param env - Environment variable to fetch
+     * @return - value of env or null if it is missing
+     */
+    public static String getSystemEnv(String env) {
+        return getSystemEnv(env, true);
+    }
+
+    /**
+     * Fetch a System Environment Variable (Effectively {@link System#getenv()} but with logging)
+     * @param env - Environment variable to fetch
+     * @param alert whether or not to log if the environment variable is missing (default true)
+     * @return - value of env or null if it is missing
+     */
+    public static String getSystemEnv(String env, boolean alert) {
+        String result = System.getenv(env);
+        if(result == null && alert) {
+            log.error("Cannot get environment variable " + env + ". Is it set?");
+        }
+
+        return result;
+    }
+
 	/**
 	 * Stores logger object.
 	 */
@@ -87,11 +116,6 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 					username = gennyToken.getUsername();
 					key = gennyToken.getRealm()+".json";
 					realm = gennyToken.getRealm();
-					String projectRealm = CommonUtils.getSystemEnv("PROJECT_REALM");
-					if(projectRealm != null) {
-						log.warning("OVERRIDING GENNY TOKEN REALM WITH PROJECT REALM");
-						realm = projectRealm;
-					}
 					log.info(gennyToken.getToken());
 					log.info("key="+key);
 					log.info("url="+requestURI);
@@ -162,6 +186,13 @@ public class PathBasedKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		KeycloakDeployment deployment = cache.get(realm);  // just get one
 		key = realm;
+
+
+		String projectRealm = getSystemEnv("PROJECT_REALM");
+		if(projectRealm != null) {
+			log.warning("OVERRIDING GENNY TOKEN REALM WITH PROJECT REALM");
+			realm = projectRealm;
+		}
 
 		if (null == deployment) {
 			InputStream is;
