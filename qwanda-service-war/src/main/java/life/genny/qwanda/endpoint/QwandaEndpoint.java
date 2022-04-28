@@ -585,6 +585,16 @@ public class QwandaEndpoint {
 		}
 	}
 
+	@GET
+	@Path("/baseentitys/code/{baseentitycode}")
+	@Produces("application/json")
+	public Response findBaseEntityByCode(@PathParam("baseentitycode") final String code) {
+		log.info("FINDING BASE ENTITY WITH CODE: " + code);
+		BaseEntity baseEntity = service.findBaseEntityByCode(code);
+		log.info("Found: " + baseEntity.getCode());
+		return baseEntity;
+	}
+
 	@POST
 	@Consumes("application/json")
 	@Path("/baseentitys/search25")
