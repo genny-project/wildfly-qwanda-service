@@ -592,7 +592,7 @@ public class QwandaEndpoint {
 		log.info("FINDING BASE ENTITY WITH CODE: " + code);
 		BaseEntity baseEntity = service.findBaseEntityByCode(code);
 		log.info("Found: " + baseEntity.getCode());
-		return baseEntity;
+		return Response.ok().entity(baseEntity).build();
 	}
 
 	@POST
