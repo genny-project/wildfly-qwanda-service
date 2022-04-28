@@ -147,7 +147,7 @@ public class ServiceTokenService {
 		JsonObject secretJson = realmJson.getJsonObject("credentials");
 		String secret = "";
 		if(secretJson == null || secret == null) {
-			secret = CommonUtils.getSystemEnv("GENNY_CLIENT_SECRET");
+			secret = CommonUtils.getSystemEnv("GENNY_BACKEND_SECRET");
 		} else {
 			secret = secretJson.getString("secret");
 		}
@@ -170,7 +170,7 @@ public class ServiceTokenService {
 			final String key, final String encryptedPassword) {
 		// TODO: FIX THIS
 		realm = "internmatch";
-		String clientId = CommonUtils.getSystemEnv("PROJECT_REALM");
+		String clientId = "backend";
 
 		log.info("Generating Service Token for " + realm);
 
