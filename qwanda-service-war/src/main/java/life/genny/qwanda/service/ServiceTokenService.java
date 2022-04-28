@@ -144,11 +144,8 @@ public class ServiceTokenService {
 			}
 		}
 		JsonObject realmJson = new JsonObject(keycloakJson);
-		String secret = System.getenv("GENNY_CLIENT_SECRET"); //"nosecret";
-		if (realmJson.containsKey("credentials")) {
-			JsonObject secretJson = realmJson.getJsonObject("credentials");
-			secret = secretJson.getString("secret");
-		}
+		JsonObject secretJson = realmJson.getJsonObject("credentials");
+		String secret = secretJson.getString("secret");
 		String jsonRealm = realmJson.getString("realm");
 
 		// Now ask the bridge for the keycloak to use
@@ -168,7 +165,7 @@ public class ServiceTokenService {
 			final String key, final String encryptedPassword) {
 		// TODO: FIX THIS
 		realm = "internmatch";
-		String clientId = "backend";//System.getenv("PROJECT_REALM");
+		String clientId = CommonUtils.getSystemEnv("PROJECT_REALM");
 
 		log.info("Generating Service Token for " + realm);
 
@@ -178,7 +175,7 @@ public class ServiceTokenService {
 		String password = null;
 
 		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() + "]");
-		password = SecurityUtils.decrypt(key, initVector, encryptedPassword.trim());
+		password = CommonUtils.getSystemEnv("GENNY_CLIENT_PASSWORD");
 
 		log.info("password=" + password);
 
