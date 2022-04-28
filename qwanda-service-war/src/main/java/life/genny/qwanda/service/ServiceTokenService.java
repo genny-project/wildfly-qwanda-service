@@ -180,7 +180,7 @@ public class ServiceTokenService {
 		String password = null;
 
 		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() + "]");
-		password = CommonUtils.getSystemEnv("GENNY_CLIENT_SECRET");
+		password = CommonUtils.getSystemEnv("GENNY_SERVICE_PASSWORD");
 
 		log.info("password=" + password);
 
