@@ -38,6 +38,8 @@ import life.genny.security.SecureResources;
 import life.genny.services.BaseEntityService2;
 import life.genny.utils.VertxUtils;
 
+import life.genny.utils.CommonUtils;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
@@ -214,7 +216,7 @@ public class ServiceTokenService {
 			final String key, final String encryptedPassword) {
 		// TODO: FIX THIS
 		realm = "internmatch";
-		String clientId = System.getenv("PROJECT_REALM");
+		String clientId = CommonUtils.getSystemEnv("PROJECT_REALM");
 
 		log.info("Generating Service Token for " + realm);
 
@@ -224,7 +226,7 @@ public class ServiceTokenService {
 		String password = null;
 
 		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() + "]");
-		password = SecurityUtils.decrypt(key, initVector, encryptedPassword.trim());
+		password = CommonUtils.getSystemEnv("GENNY_CLIENT_PASSWORD");
 
 		log.info("password=" + password);
 
