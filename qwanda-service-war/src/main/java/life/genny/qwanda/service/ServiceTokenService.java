@@ -145,9 +145,11 @@ public class ServiceTokenService {
 		}
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");
-		String secret = secretJson.getString("secret");
+		String secret = "";
 		if(secretJson == null || secret == null) {
 			secret = CommonUtils.getSystemEnv("GENNY_CLIENT_SECRET");
+		} else {
+			secret = secretJson.getString("secret");
 		}
 		String jsonRealm = realmJson.getString("realm");
 
