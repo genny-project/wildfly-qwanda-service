@@ -15,6 +15,7 @@ import life.genny.qwandautils.SecurityUtils;
 import life.genny.security.SecureResources;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import life.genny.utils.CommonUtils;
 
@@ -168,6 +169,13 @@ public class ServiceTokenService {
 
 	public String generateServiceToken(String realm, final String keycloakUrl, final String secret,
 			final String key, final String encryptedPassword) {
+		
+		String accessToken = serviceTokens.get("realm");
+		if (!StringUtils.isBlank(accessToken)) {
+			log.info("ServiceToken exists:"+accessToken.substring(0,10));
+			return accessToken;
+		}
+		
 		// TODO: FIX THIS
 		realm = "internmatch";
 		String clientId = "backend";
