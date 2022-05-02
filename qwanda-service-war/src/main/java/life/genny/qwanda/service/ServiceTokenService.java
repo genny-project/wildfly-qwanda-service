@@ -221,7 +221,8 @@ public class ServiceTokenService {
 			final String key, final String encryptedPassword) {
 		// TODO: FIX THIS
 		realm = "internmatch";
-		String clientId = "backend";
+//		String clientId = "backend";
+		String clientId = realm ;
 
 		log.info("Generating Service Token for " + realm);
 
