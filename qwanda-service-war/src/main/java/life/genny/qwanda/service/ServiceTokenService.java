@@ -46,6 +46,11 @@ public class ServiceTokenService {
 				String realm = projectCode;
 				String keycloakUrl = (String) project.get("keycloakUrl");
 				String secret = (String) project.get("clientSecret");
+				
+				if(secret == null || StringUtils.isBlank(secret)) {
+					secret = CommonUtils.getSystemEnv("GENNY_BACKEND_SECRET");
+				}
+
 				String realmToken = generateServiceToken(realm, keycloakUrl, secret);
 				log.info("Putting "+projectCode+" into serviceTokens");
 				serviceTokens.put(projectCode, realmToken);
@@ -63,6 +68,11 @@ public class ServiceTokenService {
 			String realm = multitenancy.getCode();
 			String keycloakUrl = multitenancy.getKeycloakUrl();
 			String secret = multitenancy.getClientSecret();
+			
+			if(secret == null || StringUtils.isBlank(secret)) {
+				secret = CommonUtils.getSystemEnv("GENNY_BACKEND_SECRET");
+			}
+
 			String realmToken = generateServiceToken(realm, keycloakUrl, secret);
 
 			serviceTokens.put(multitenancy.getCode(), realmToken);
