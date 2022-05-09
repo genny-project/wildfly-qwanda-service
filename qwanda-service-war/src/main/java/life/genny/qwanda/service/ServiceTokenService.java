@@ -46,9 +46,7 @@ public class ServiceTokenService {
 				String realm = projectCode;
 				String keycloakUrl = (String) project.get("keycloakUrl");
 				String secret = (String) project.get("clientSecret");
-				String key = (String) project.get("ENV_SECURITY_KEY");
-				String encryptedPassword = (String) project.get("ENV_SERVICE_PASSWORD");
-				String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
+				String realmToken = generateServiceToken(realm, keycloakUrl, secret);
 				log.info("Putting "+projectCode+" into serviceTokens");
 				serviceTokens.put(projectCode, realmToken);
 			}
@@ -65,9 +63,7 @@ public class ServiceTokenService {
 			String realm = multitenancy.getCode();
 			String keycloakUrl = multitenancy.getKeycloakUrl();
 			String secret = multitenancy.getClientSecret();
-			String key = multitenancy.getSecurityKey();
-			String encryptedPassword = multitenancy.getServicePassword();
-			String realmToken = generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
+			String realmToken = generateServiceToken(realm, keycloakUrl, secret);
 
 			serviceTokens.put(multitenancy.getCode(), realmToken);
 		}
@@ -125,7 +121,6 @@ public class ServiceTokenService {
 
 	public String generateServiceToken(String realm) {
 		
-		log.info("Generating Service Token for " + realm);
 
 		String jsonFile = realm + ".json";
 
@@ -134,7 +129,7 @@ public class ServiceTokenService {
 		}
 		String keycloakJson = SecureResources.getKeycloakJsonMap().get(jsonFile);
 		if (keycloakJson == null) {
-			log.info("No keycloakMap for " + realm + " ... fixing");
+			log.error("No keycloakMap for " + realm + " ... fixing");
 			String gennyKeycloakJson = SecureResources.getKeycloakJsonMap().get("genny");
 			if (GennySettings.devMode) {
 				SecureResources.getKeycloakJsonMap().put(jsonFile, gennyKeycloakJson);
@@ -147,55 +142,35 @@ public class ServiceTokenService {
 		JsonObject realmJson = new JsonObject(keycloakJson);
 		JsonObject secretJson = realmJson.getJsonObject("credentials");
 		String secret = "";
-		if(secretJson == null || secret == null) {
+		if(secretJson == null) {
 			secret = CommonUtils.getSystemEnv("GENNY_BACKEND_SECRET");
 		} else {
 			secret = secretJson.getString("secret");
 		}
-		String jsonRealm = realmJson.getString("realm");
 
 		// Now ask the bridge for the keycloak to use
 		String keycloakUrl = realmJson.getString("auth-server-url").substring(0,
 				realmJson.getString("auth-server-url").length() - "/auth".length());
 
-		String key = GennySettings.dynamicKey(jsonRealm);
-		String initVector = "PRJ_INTERNMATCH*"; //GennySettings.dynamicInitVector(jsonRealm); TODO: fix
-		String encryptedPassword = GennySettings.dynamicEncryptedPassword(jsonRealm);
-		String password = null;
-
-		return generateServiceToken(realm, keycloakUrl, secret, key, encryptedPassword);
+		return generateServiceToken(realm, keycloakUrl, secret);
 
 	}
 
-	public String generateServiceToken(String realm, final String keycloakUrl, final String secret,
-			final String key, final String encryptedPassword) {
+	public String generateServiceToken(String realm, final String keycloakUrl, final String secret) {
 		
 		String accessToken = serviceTokens.get("realm");
 		if (!StringUtils.isBlank(accessToken)) {
-			log.info("ServiceToken exists:"+accessToken.substring(0,10));
 			return accessToken;
 		}
-		
-		// TODO: FIX THIS
+
 		realm = "internmatch";
 		String clientId = "backend";
 
 		log.info("Generating Service Token for " + realm);
 
-		String jsonFile = realm + ".json";
-
-		String initVector = GennySettings.dynamicInitVector(realm);
-		String password = null;
-
-		log.info("key:" + key + ":" + initVector + ":" + encryptedPassword.trim() + "]");
-		password = CommonUtils.getSystemEnv("GENNY_SERVICE_PASSWORD");
-
-		log.info("password=" + password);
+		String password = CommonUtils.getSystemEnv("GENNY_SERVICE_PASSWORD");
 
 		try {
-			log.info("realm : " + realm + "\n" + "clientId : " + clientId + "\n" + "secret : [" + secret + "]\n"
-					+ "keycloakurl: " + keycloakUrl + "\n" + "key : " + key + "\n" + "initVector : " + initVector + "\n"
-					+ "enc pw : " + encryptedPassword + "\n" + "password : " + password + "\n");
 
 			/* we get the refresh token from the cache */
 			String cached_refresh_token = null;
@@ -208,11 +183,11 @@ public class ServiceTokenService {
 			 */
 			JsonObject secureTokenPayload = KeycloakUtils.getSecureTokenPayload(keycloakUrl, realm, clientId, secret,
 					"service", password, null/* cached_refresh_token */);
-			log.info("Got to here after getting secureTokenPayload");
 			/* we get the access token and the refresh token */
+			
 			String access_token = secureTokenPayload.getString("access_token");
 			String refresh_token = secureTokenPayload.getString("refresh_token");
-			log.info("Got to here2  after getting secureTokenPayload");
+			
 			/* if we have an access token */
 			if (access_token != null) {
 
@@ -222,7 +197,12 @@ public class ServiceTokenService {
 			}
  
 		} catch (Exception e) {
+			log.error("=========================== Error fetching token! ===========================");
+			log.error("realm : " + realm + "\n" + "clientId : " + clientId + "\n" + "secret : [" + secret + "]\n"
+					+ "keycloakurl: " + keycloakUrl + "\n"
+					+ "password : " + password + "\n");
 			log.error(e.getMessage());
+			e.printStackTrace();
 		}
 
 		return null;
