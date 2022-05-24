@@ -17,35 +17,35 @@ import org.apache.logging.log4j.Logger;
 
 import java.lang.invoke.MethodHandles;
 
-//@ApplicationScoped
-//public class AnswerListener {
-//
-//	/**
-//	 * Stores logger object.
-//	 */
-//	protected static final Logger log = org.apache.logging.log4j.LogManager
-//			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
-//
-//
-//	@Incoming("answer")
-//	@Merge
-//	public CompletionStage<Void> fromAnswers(Message<String>  message) {
-//		JsonObject json = new JsonObject(message.getPayload());
-//		String token = json.getString("token");
-//		json.remove("token");
-//		Answer answer = JsonUtils.fromJson(json.toString(),Answer.class);
-//		if (answer.getValue() != null && answer.getValue().length() <= 50) {
-//			log.info("Kafka Answer NOT SAVED: "+answer);
-//		} else {
-//			log.info("Kafka Answer NOT SAVED: "+answer);
-//		}
-////		try {
-////			QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
-////					JsonUtils.toJson(answer), token, null);
-////		} catch (IOException e) {
-////			e.printStackTrace();
-////		}	
-//		return	message.ack();
-//	}
-//
-//}
+@ApplicationScoped
+public class AnswerListener {
+
+	/**
+	 * Stores logger object.
+	 */
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+
+	@Incoming("answer")
+	@Merge
+	public CompletionStage<Void> fromAnswers(Message<String>  message) {
+		JsonObject json = new JsonObject(message.getPayload());
+		String token = json.getString("token");
+		json.remove("token");
+		Answer answer = JsonUtils.fromJson(json.toString(),Answer.class);
+		if (answer.getValue() != null && answer.getValue().length() <= 50) {
+			log.info("Kafka Answer NOT SAVED: "+answer);
+		} else {
+			log.info("Kafka Answer NOT SAVED: "+answer);
+		}
+		try {
+			QwandaUtils.apiPostEntity2("http://localhost:8080/qwanda/answers",
+					JsonUtils.toJson(answer), token, null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+		return	message.ack();
+	}
+
+}
