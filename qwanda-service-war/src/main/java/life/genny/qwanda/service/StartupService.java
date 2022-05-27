@@ -1197,7 +1197,7 @@ public class StartupService {
 		if ((jsonOb == null) || ("error".equals(jsonOb.getString("status")))) {
 		    return false;
 		} else {
-			return jsonOb.getString("value").equals(jsonString);
+			return jsonOb.getJsonObject("value").toString().equals(jsonString);
 		}
 	}
 	
