@@ -445,7 +445,7 @@
         <dependency>
             <groupId>org.jboss.remoting</groupId>
             <artifactId>jboss-remoting</artifactId>
-            <version>5.0.5.Final</version>
+            <version>5.0.20.Final</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.wildfly.common/wildfly-common -->
         <dependency>
