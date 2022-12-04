@@ -26,6 +26,12 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
+import com.bettercloud.vault.VaultException;
+import life.genny.qwandautils.GennySettings;
+import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.VaultUtils;
+import life.genny.qwandautils.VaultAuthParams;
+import life.genny.qwandautils.VaultAuthType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -38,11 +44,9 @@ import life.genny.bootxport.bootx.Realm;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.bootxport.bootx.StateManagement;
 import life.genny.bootxport.bootx.XSSFService;
-//import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.bootxport.bootx.XlsxImport;
 import life.genny.bootxport.bootx.XlsxImportOffline;
 import life.genny.bootxport.bootx.XlsxImportOnline;
-//import life.genny.services.BatchLoading;
 import life.genny.bootxport.xlsimport.BatchLoading;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.Layout;
@@ -53,16 +57,10 @@ import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAttributeMessage;
-import life.genny.qwandautils.GennySettings;
-import life.genny.qwandautils.JsonUtils;
-import life.genny.qwandautils.QwandaUtils;
 import life.genny.security.SecureResources;
 import life.genny.utils.VertxUtils;
 import life.genny.utils.RulesUtils;
 import life.genny.models.GennyToken;
-import life.genny.qwanda.message.QDataAttributeMessage;
-import org.apache.commons.lang3.StringUtils;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 
@@ -376,11 +374,47 @@ public class StartupService {
 		  
 		}    }
 
+	private void initVault() throws VaultException {
+		// init Vault settings
+		final String vaultUrl = System.getenv("VAULT_URL");
+		final String profile = System.getenv("VAULT_PROFILE");
+		// support root token, approle, and github token
+		final String vaultAuthType = System.getenv("VAULT_AUTH_TYPE");
+		VaultAuthParams params = null;
+		switch(vaultAuthType) {
+			case "rootToken":
+				final String rootToken = System.getenv("VAULT_ROOT_TOKEN");
+				params = VaultAuthParams.newBuilder()
+						.withRootToken(rootToken)
+						.build();
+				VaultUtils.fetchAll(profile, vaultUrl, VaultAuthType.RootToken, params);
+				break;
+			case "appRole":
+				final String appRoleId = System.getenv("VAULT_APP_ROLE_ID");
+				final String secretId = System.getenv("VAULT_APP_SECRET_ID");
+				params = VaultAuthParams.newBuilder()
+						.withAppRole(appRoleId, secretId)
+						.build();
+				VaultUtils.fetchAll(profile, vaultUrl, VaultAuthType.AppRole, params);
+				break;
+			case "GitHub":
+				final String githubToken = System.getenv("VAULT_GITHUB_TOKEN");
+				params = VaultAuthParams.newBuilder()
+						.withGithubToken(githubToken)
+						.build();
+				VaultUtils.fetchAll(profile, vaultUrl, VaultAuthType.GitHubAuth, params);
+				break;
+			default:
+				break;
+		}
+	}
+
 	@PostConstruct
 	@Transactional
 	@TransactionTimeout(value = 80000, unit = TimeUnit.SECONDS)
-	public void inits() {
+	public void inits() throws VaultException {
 		long startTime = System.nanoTime();
+		initVault();
 
 		cacheInterface = new WildflyCache(inDb);
 		VertxUtils.init(eventBus, cacheInterface);
