@@ -13,6 +13,7 @@ import javax.ejb.Singleton;
 
 //import com.hazelcast.core.HazelcastInstance;
 
+import life.genny.qwandautils.VaultUtils;
 import org.apache.logging.log4j.Logger;
 import org.infinispan.client.hotrod.DefaultTemplate;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -88,8 +89,8 @@ public class Hazel {
 	               .port(ConfigurationProperties.DEFAULT_HOTROD_PORT)
 	             .security().authentication()
 	               //Add user credentials.
-	               .username(System.getenv("INFINISPAN_USERNAME"))
-	               .password(System.getenv("INFINISPAN_PASSWORD"))
+	               .username(VaultUtils.readValue("INFINISPAN_USERNAME"))
+	               .password(VaultUtils.readValue("INFINISPAN_PASSWORD"))
 	               .realm("default")
 	               .saslMechanism("DIGEST-MD5");
         cacheManager = new RemoteCacheManager(builder.build());
