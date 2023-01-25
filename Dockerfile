@@ -1,6 +1,6 @@
 ARG CODE_VERSION=latest
 FROM gennyproject/wildfly:${CODE_VERSION}
-RUN apk update && apk add git
+#RUN apk update && apk add git
 RUN mv /usr/glibc-compat/lib/ld-linux-x86-64.so.2 /usr/glibc-compat/lib/ld-linux-x86-64.so
 RUN ln -s /usr/glibc-compat/lib/ld-linux-x86-64.so /usr/glibc-compat/lib/ld-linux-x86-64.so.2
 
