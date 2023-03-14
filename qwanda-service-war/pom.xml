@@ -64,7 +64,7 @@
         <project.oauth.version>1.19.0</project.oauth.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.keycloak>20.0.3</version.keycloak>
+        <version.keycloak>21.0.1</version.keycloak>
 
         <version.ee7>1.0.2.Final</version.ee7>
         <version.resteasy>3.0.20.Final</version.resteasy>
@@ -444,7 +444,7 @@
         <dependency>
             <groupId>org.jboss.remoting</groupId>
             <artifactId>jboss-remoting</artifactId>
-            <version>5.0.5.Final</version>
+            <version>5.0.20.Final</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.wildfly.common/wildfly-common -->
         <dependency>
