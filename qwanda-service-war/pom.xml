@@ -68,7 +68,7 @@
         <version.keycloak>15.0.2</version.keycloak>
 
         <version.ee7>1.0.2.Final</version.ee7>
-        <version.resteasy>3.0.10.Final</version.resteasy>
+        <version.resteasy>3.0.20.Final</version.resteasy>
         <version.slf4j>1.7.21</version.slf4j>
         <version.swagger>1.5.16</version.swagger>
 
