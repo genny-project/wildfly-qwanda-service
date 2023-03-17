@@ -47,7 +47,7 @@
         <maven.compiler.target>11</maven.compiler.target>
 
         <version.postgresql>9.4.1207</version.postgresql>
-        <version.mysql-connector-java>8.0.28</version.mysql-connector-java>
+        <version.mysql-connector-java>8.0.22</version.mysql-connector-java>
 
         <version.jodatime>2.7</version.jodatime>
 
