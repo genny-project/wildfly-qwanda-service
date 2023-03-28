@@ -407,6 +407,26 @@ public class Service extends BaseEntityService2 implements QwandaRepository {
     }
 
     @Override
+    public <T> List<T> queryTableByRealm(String tableName, String realm, HashSet<String> codes) {
+        if (codes == null )
+            return queryTableByRealm(tableName,realm);
+        else {
+            List<T> result = Collections.emptyList();
+            try {
+                String queryString = "SELECT temp FROM %s temp where temp.realm=:realmStr and temp.code in (:codes)";
+                Query query = getEntityManager().createQuery(String.format(queryString, tableName));
+                query.setParameter("realmStr", realm);
+                query.setParameter("codes", codes);
+                result = query.getResultList();
+            } catch (Exception e) {
+                log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
+                throw  e;
+            }
+            return result;
+        }
+    }
+
+    @Override
     public void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping) {
         if (objectList.isEmpty()) return;
 
